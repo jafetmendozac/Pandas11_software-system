@@ -20,6 +20,7 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { CalendarioComponent } from './pages/agenda/calendario.component';
 import { ClientesTableComponent } from './pages/clientes/clientes-table.component';
+import { MascotasTableComponent } from './pages/mascotas/mascotas-table.component';
 
 export const routes: Routes = [
   {
@@ -37,6 +38,11 @@ export const routes: Routes = [
         path:'clientes',
         component:ClientesTableComponent,
         title:'Angular Clientes Table | TailAdmin - Angular Admin Dashboard Template'
+      },
+      {
+        path:'mascotas',
+        component:MascotasTableComponent,
+        title:'Mascotas | Spa & Boutique Pandas 11'
       },
       {
         path:'calendar',
