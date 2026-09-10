@@ -11,10 +11,10 @@
     <div class="flex flex-col px-2 overflow-y-auto custom-scrollbar">
       <div>
         <h5 class="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-          {{ selectedEvent ? 'Edit Event' : 'Add Event' }}
+          {{ selectedEvent ? 'Editar evento' : 'Agregar evento' }}
         </h5>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Plan your next big moment: schedule or edit an event to stay on track
+          Programa o edita un evento para mantener tu agenda organizada.
         </p>
       </div>
 
@@ -22,13 +22,13 @@
       <div class="mt-8">
         <div>
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Event Title
+            Título del evento
           </label>
           <input
             id="event-title"
             type="text"
             [(ngModel)]="eventTitle"
-            placeholder="Enter event title"
+            placeholder="Escribe el título del evento"
             class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
           />
         </div>
@@ -37,7 +37,7 @@
       <!-- Event Color -->
       <div class="mt-6">
         <label class="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-          Event Color
+          Color del evento
         </label>
         <div class="flex flex-wrap items-center gap-4 sm:gap-5">
           @for (entry of calendarsEvents; track entry.key) {
@@ -61,7 +61,7 @@
                     >
                     </span>
                   </span>
-                  {{ entry.key }}
+                  {{ entry.label }}
                 </label>
               </div>
             </div>
@@ -72,7 +72,7 @@
       <!-- Start Date -->
       <div class="mt-6">
         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Enter Start Date
+          Fecha de inicio
         </label>
         <div class="relative">
           <input
@@ -93,7 +93,7 @@
       <!-- End Date -->
       <div class="mt-6">
         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Enter End Date
+          Fecha de finalización
         </label>
         <div class="relative">
           <input
@@ -118,14 +118,14 @@
           type="button"
           class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
         >
-          Close
+          Cerrar
         </button>
         <button
           (click)="handleAddOrUpdateEvent()"
           type="button"
           class="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
         >
-          {{ selectedEvent ? 'Update Changes' : 'Add Event' }}
+          {{ selectedEvent ? 'Guardar cambios' : 'Agregar evento' }}
         </button>
       </div>
     </div>

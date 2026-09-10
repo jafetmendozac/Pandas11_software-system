@@ -3,9 +3,8 @@ import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, DateSelectInfo, EventClickInfo, EventInput } from 'fullcalendar';
-import dayGridPlugin from 'fullcalendar/daygrid';
 import interactionPlugin from 'fullcalendar/interaction';
-import multiMonthPlugin from 'fullcalendar/multimonth';
+import esLocale from 'fullcalendar/locales/es';
 import themePlugin from 'fullcalendar/themes/classic';
 import timeGridPlugin from 'fullcalendar/timegrid';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
@@ -29,7 +28,7 @@ export interface CalendarEvent extends EventInput {
   styles: ``
 })
 export class CalendarioComponent implements OnInit {
-  @ViewChild('calendario') calendarComponent!: FullCalendarComponent;
+  @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
 
   events: CalendarEvent[] = [];
   selectedEvent: CalendarEvent | null = null;
@@ -39,20 +38,18 @@ export class CalendarioComponent implements OnInit {
   eventLevel = 'Primary';
   isOpen = false;
 
-  currentView = 'dayGridMonth';
+  currentView = 'timeGridWeek';
 
   viewOptions = [
-    { key: 'dayGridMonth', label: 'Month' },
-    { key: 'multiMonthYear', label: 'Year' },
-    { key: 'timeGridWeek', label: 'Week' },
-    { key: 'timeGridDay', label: 'Day' },
+    { key: 'timeGridWeek', label: 'Semana' },
+    { key: 'timeGridDay', label: 'Día' },
   ];
 
   calendarsEvents = [
-    { key: 'Danger', value: 'danger' },
-    { key: 'Success', value: 'success' },
-    { key: 'Primary', value: 'primary' },
-    { key: 'Warning', value: 'warning' }
+    { key: 'Danger', label: 'Peligro', value: 'danger' },
+    { key: 'Success', label: 'Éxito', value: 'success' },
+    { key: 'Primary', label: 'Principal', value: 'primary' },
+    { key: 'Warning', label: 'Advertencia', value: 'warning' }
   ];
 
   calendarOptions!: CalendarOptions;
@@ -61,24 +58,24 @@ export class CalendarioComponent implements OnInit {
 
   ngOnInit() {
     const isRtl = document.documentElement.dir === 'rtl';
-    const locale = document.documentElement.lang || 'en';
+    const locale = document.documentElement.lang || 'es';
 
     this.events = [
       {
         id: '1',
-        title: 'Event Conf.',
+        title: 'Conferencia',
         start: new Date().toISOString().split('T')[0],
         extendedProps: { calendar: 'Danger' }
       },
       {
         id: '2',
-        title: 'Meeting',
+        title: 'Reunión',
         start: new Date(Date.now() + 86400000).toISOString().split('T')[0],
         extendedProps: { calendar: 'Success' }
       },
       {
         id: '3',
-        title: 'Workshop',
+        title: 'Taller',
         start: new Date(Date.now() + 172800000).toISOString().split('T')[0],
         end: new Date(Date.now() + 259200000).toISOString().split('T')[0],
         extendedProps: { calendar: 'Primary' }
@@ -88,12 +85,11 @@ export class CalendarioComponent implements OnInit {
     this.calendarOptions = {
       plugins: [
         themePlugin,
-        dayGridPlugin,
         timeGridPlugin,
         interactionPlugin,
-        multiMonthPlugin,
       ],
-      initialView: 'dayGridMonth',
+      initialView: 'timeGridWeek',
+      locale: esLocale,
       direction: isRtl ? 'rtl' : 'ltr',
 
       // Toolbar Header configuration
@@ -124,7 +120,7 @@ export class CalendarioComponent implements OnInit {
             'flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!',
         },
         addEventButton: {
-          text: 'Add Event +',
+          text: 'Agregar evento +',
           click: () => this.handleOpenAddModal(),
           className:
             'rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! text-white hover:bg-brand-600! focus:shadow-none! w-auto!',
