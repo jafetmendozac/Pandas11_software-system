@@ -90,6 +90,7 @@ export class CalendarioComponent implements OnInit {
       ],
       initialView: 'timeGridWeek',
       locale: esLocale,
+      allDayText: 'Todo el día',
       direction: isRtl ? 'rtl' : 'ltr',
 
       // Toolbar Header configuration
@@ -202,6 +203,9 @@ export class CalendarioComponent implements OnInit {
         },
         timeGridWeek: {
           slotDuration: '01:00:00',
+          slotMinTime: '6:00:00',
+          slotMaxTime: '19:00:00',
+          slotHeaderFormat: { hour: 'numeric', hour12: true },
           slotMinHeight: 56,
           expandRows: true,
           allDaySlot: true,
@@ -236,6 +240,7 @@ export class CalendarioComponent implements OnInit {
         },
         timeGridDay: {
           slotDuration: '00:30:00',
+          slotHeaderFormat: { hour: 'numeric', hour12: true },
           slotMinHeight: 48,
           expandRows: true,
           allDaySlot: true,
