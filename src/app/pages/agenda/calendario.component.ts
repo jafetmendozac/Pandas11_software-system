@@ -64,20 +64,25 @@ export class CalendarioComponent implements OnInit {
       {
         id: '1',
         title: 'Conferencia',
-        start: new Date().toISOString().split('T')[0],
+        start: this.createDateTimeOffset(0, 9),
+        end: this.createDateTimeOffset(0, 10),
+        allDay: false,
         extendedProps: { calendar: 'Danger' }
       },
       {
         id: '2',
         title: 'Reunión',
-        start: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        start: this.createDateTimeOffset(1, 11),
+        end: this.createDateTimeOffset(1, 12),
+        allDay: false,
         extendedProps: { calendar: 'Success' }
       },
       {
         id: '3',
         title: 'Taller',
-        start: new Date(Date.now() + 172800000).toISOString().split('T')[0],
-        end: new Date(Date.now() + 259200000).toISOString().split('T')[0],
+        start: this.createDateTimeOffset(2, 14),
+        end: this.createDateTimeOffset(2, 16),
+        allDay: false,
         extendedProps: { calendar: 'Primary' }
       }
     ];
@@ -121,7 +126,7 @@ export class CalendarioComponent implements OnInit {
             'flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!',
         },
         addEventButton: {
-          text: 'Agregar evento +',
+          text: 'Añadir cita +',
           click: () => this.handleOpenAddModal(),
           className:
             'rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! text-white hover:bg-brand-600! focus:shadow-none! w-auto!',
@@ -423,24 +428,16 @@ export class CalendarioComponent implements OnInit {
 
   handleOpenAddModal() {
     this.resetModalFields();
-    const currentDate = new Date();
-    const yyyy = currentDate.getFullYear();
-    const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const dd = String(currentDate.getDate()).padStart(2, '0');
-    const combineDate = `${yyyy}-${mm}-${dd}`;
-
-    this.eventStartDate = combineDate;
-    this.eventEndDate = combineDate;
+    this.eventStartDate = this.toDateTimeInputValue(new Date());
+    this.eventEndDate = this.toDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000));
     this.eventLevel = 'Primary';
     this.openModal();
   }
 
   handleDateSelect(selectInfo: DateSelectInfo) {
     this.resetModalFields();
-    this.eventStartDate = selectInfo.startStr ? selectInfo.startStr.split('T')[0] : '';
-    this.eventEndDate = selectInfo.endStr
-      ? selectInfo.endStr.split('T')[0]
-      : this.eventStartDate;
+    this.eventStartDate = this.toDateTimeInputValue(selectInfo.start);
+    this.eventEndDate = this.toDateTimeInputValue(selectInfo.end ?? new Date(selectInfo.start.getTime() + 60 * 60 * 1000));
     this.eventLevel = 'Primary';
     this.openModal();
   }
@@ -461,14 +458,14 @@ export class CalendarioComponent implements OnInit {
       extendedProps: { calendar: event.extendedProps?.calendar || 'Primary' }
     };
     this.eventTitle = event.title;
-    this.eventStartDate = event.startStr ? event.startStr.split('T')[0] : '';
-    this.eventEndDate = event.endStr ? event.endStr.split('T')[0] : this.eventStartDate;
+    this.eventStartDate = event.start ? this.toDateTimeInputValue(event.start) : '';
+    this.eventEndDate = event.end ? this.toDateTimeInputValue(event.end) : this.eventStartDate;
     this.eventLevel = event.extendedProps?.calendar || 'Primary';
     this.openModal();
   }
 
   handleAddOrUpdateEvent() {
-    const titleVal = this.eventTitle.trim() || (this.selectedEvent ? 'Event' : 'New Event');
+    const titleVal = this.eventTitle.trim() || (this.selectedEvent ? 'Cita' : 'Nueva cita');
     if (this.selectedEvent) {
       this.events = this.events.map(ev =>
         ev.id === this.selectedEvent!.id
@@ -477,6 +474,7 @@ export class CalendarioComponent implements OnInit {
               title: titleVal,
               start: this.eventStartDate,
               end: this.eventEndDate || this.eventStartDate,
+              allDay: false,
               extendedProps: { calendar: this.eventLevel || 'Primary' }
             }
           : ev
@@ -487,7 +485,7 @@ export class CalendarioComponent implements OnInit {
         title: titleVal,
         start: this.eventStartDate,
         end: this.eventEndDate || this.eventStartDate,
-        allDay: true,
+        allDay: false,
         extendedProps: { calendar: this.eventLevel || 'Primary' }
       };
       this.events = [...this.events, newEvent];
@@ -509,6 +507,22 @@ export class CalendarioComponent implements OnInit {
     this.eventEndDate = '';
     this.eventLevel = 'Primary';
     this.selectedEvent = null;
+  }
+
+  private toDateTimeInputValue(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private createDateTimeOffset(daysFromToday: number, hour: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + daysFromToday);
+    date.setHours(hour, 0, 0, 0);
+    return date.toISOString();
   }
 
   openModal() {
