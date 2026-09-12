@@ -211,7 +211,7 @@ export class CalendarioComponent implements OnInit {
           slotMinTime: '6:00:00',
           slotMaxTime: '19:00:00',
           slotHeaderFormat: { hour: 'numeric', hour12: true },
-          slotMinHeight: 56,
+          slotMinHeight: 80,
           expandRows: true,
           allDaySlot: true,
           dayHeaderContent: (arg: any) => {
