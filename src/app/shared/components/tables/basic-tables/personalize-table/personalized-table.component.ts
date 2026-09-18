@@ -36,7 +36,7 @@ type PaginationItem = number | 'ellipsis';
 })
 export class PersonalizedTable {
 
-  @Input() title = 'Latest Transactions';
+  // @Input() title = 'Latest Transactions';
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;

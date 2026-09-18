@@ -191,8 +191,12 @@ layer(base);
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative z-1 max-w-full overflow-x-hidden bg-gray-50 font-normal font-outfit;
   }
+}
+
+html {
+  overflow-x: hidden;
 }
 
 @utility menu-item {

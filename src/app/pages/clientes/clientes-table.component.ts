@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { BasicTableTwoComponent } from '../../shared/components/tables/basic-tables/basic-table-two/basic-table-two.component';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { ComponentCardComponent } from "../../shared/components/common/component-card/component-card.component";
+import { PersonalizedTable } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 
 
 @Component({
@@ -9,7 +9,7 @@ import { ComponentCardComponent } from "../../shared/components/common/component
   imports: [
     PageBreadcrumbComponent,
     ComponentCardComponent,
-    BasicTableTwoComponent
+    PersonalizedTable
 ],
   templateUrl: './clientes-table.component.html',
   styles: ``

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
-import { BasicTableOneComponent } from '../../shared/components/tables/basic-tables/basic-table-one/basic-table-one.component';
+import { PersonalizedTable } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 
 
 @Component({
@@ -9,7 +9,7 @@ import { BasicTableOneComponent } from '../../shared/components/tables/basic-tab
   imports: [
     ComponentCardComponent,
     PageBreadcrumbComponent,
-    BasicTableOneComponent,
+    PersonalizedTable,
   ],
   templateUrl: './mascotas-table.component.html',
   styles: ``
