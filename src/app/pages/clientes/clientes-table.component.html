@@ -2,7 +2,13 @@
 <div class="space-y-6">
   <div>
     <app-component-card title="Listado de clientes">
-      <app-personalized-table title="Clientes" />
+      <app-personalized-table
+        title="Clientes"
+        [transactionData]="transactionData"
+        (transactionCreated)="createClient($event)"
+        (transactionUpdated)="updateClient($event)"
+        (transactionDeleted)="deleteClient($event)"
+      />
     </app-component-card>
   </div>
 </div>

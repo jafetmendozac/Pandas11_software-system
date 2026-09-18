@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { ComponentCardComponent } from "../../shared/components/common/component-card/component-card.component";
 import { PersonalizedTable } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
+import { Transaction } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
+import { ClientesService } from '../../shared/services/clientes.service';
 
 
 @Component({
@@ -14,69 +16,35 @@ import { PersonalizedTable } from '../../shared/components/tables/basic-tables/p
   templateUrl: './clientes-table.component.html',
   styles: ``
 })
-export class ClientesTableComponent {
-  tableRowData = [
+export class ClientesTableComponent implements OnInit {
+  transactionData: Transaction[] = [
     {
-      id: 'DE124321',
-      user: { initials: 'AB', name: 'John Doe', email: 'johndoe@gmail.com' },
-      avatarColor: 'brand',
-      product: { name: 'Software License', price: '$18,50.34', purchaseDate: '2024-06-15' },
-      status: { type: 'Complete' },
-      actions: { delete: true },
+      image: '/images/brand/brand-08.svg', action: 'John Doe', date: '2024-06-15', amount: '555-0101', category: 'john@example.com', status: 'Success'
     },
     {
-      id: 'DE124322',
-      user: { initials: 'CD', name: 'Jane Smith', email: 'janesmith@gmail.com' },
-      avatarColor: 'brand',
-      product: { name: 'Cloud Hosting', price: '$12,99.00', purchaseDate: '2024-06-18' },
-      status: { type: 'Pending' },
-      actions: { delete: true },
-    },
-    {
-      id: 'DE124323',
-      user: { initials: 'EF', name: 'Michael Brown', email: 'michaelbrown@gmail.com' },
-      avatarColor: 'brand',
-      product: { name: 'Web Domain', price: '$9,50.00', purchaseDate: '2024-06-20' },
-      status: { type: 'Cancel' },
-      actions: { delete: true },
-    },
-    {
-      id: 'DE124324',
-      user: { initials: 'GH', name: 'Alice Johnson', email: 'alicejohnson@gmail.com' },
-      avatarColor: 'brand',
-      product: { name: 'SSL Certificate', price: '$2,30.45', purchaseDate: '2024-06-25' },
-      status: { type: 'Pending' },
-      actions: { delete: true },
-    },
-    {
-      id: 'DE124325',
-      user: { initials: 'IJ', name: 'Robert Lee', email: 'robertlee@gmail.com' },
-      avatarColor: 'brand',
-      product: { name: 'Premium Support', price: '$15,20.00', purchaseDate: '2024-06-30' },
-      status: { type: 'Complete' },
-      actions: { delete: true },
+      image: '/images/brand/brand-07.svg', action: 'Jane Smith', date: '2024-06-18', amount: '555-0102', category: 'jane@example.com', status: 'Pending'
     },
   ];
 
-  selectedRows: string[] = [];
-  selectAll = false;
+  constructor(private readonly clientesService: ClientesService) {}
 
-  handleSelectAll() {
-    this.selectAll = !this.selectAll;
-    this.selectedRows = this.selectAll ? this.tableRowData.map(row => row.id) : [];
-  }
-
-  handleRowSelect(id: string) {
-    if (this.selectedRows.includes(id)) {
-      this.selectedRows = this.selectedRows.filter(rowId => rowId !== id);
-    } else {
-      this.selectedRows = [...this.selectedRows, id];
+  async ngOnInit() {
+    try {
+      this.transactionData = await this.clientesService.getAll();
+    } catch (error) {
+      console.error('No se pudieron cargar los clientes.', error);
     }
   }
 
-  getBadgeColor(type: string): 'success' | 'warning' | 'error' {
-    if (type === 'Complete') return 'success';
-    if (type === 'Pending') return 'warning';
-    return 'error';
+  async createClient(transaction: Transaction) {
+    await this.clientesService.create(transaction);
+  }
+
+  async deleteClient(transaction: Transaction) {
+    await this.clientesService.remove(transaction);
+  }
+
+  async updateClient(transaction: Transaction) {
+    await this.clientesService.update(transaction);
   }
 }

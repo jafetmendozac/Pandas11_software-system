@@ -2,7 +2,13 @@
 <div class="space-y-6">
   <div>
     <app-component-card title="Listado de mascotas">
-      <app-personalized-table title="Mascotas" />
+      <app-personalized-table
+        title="Mascotas"
+        [transactionData]="transactionData"
+        (transactionCreated)="createPet($event)"
+        (transactionUpdated)="updatePet($event)"
+        (transactionDeleted)="deletePet($event)"
+      />
     </app-component-card>
   </div>
 </div>

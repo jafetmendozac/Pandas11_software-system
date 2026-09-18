@@ -7,6 +7,7 @@ import { BadgeComponent } from '../../../ui/badge/badge.component';
 import { ModalComponent } from '../../../ui/modal/modal.component';
 
 export interface Transaction {
+  id?: string;
   image: string;
   action: string;
   date: string;
@@ -169,7 +170,7 @@ export class PersonalizedTable {
   @Output() transactionDeleted = new EventEmitter<Transaction>();
 
   currentPage = 1;
-  itemsPerPage = 2;
+  itemsPerPage = 5;
   isFormOpen = false;
   editingIndex: number | null = null;
   formData: Transaction = this.createEmptyTransaction();
