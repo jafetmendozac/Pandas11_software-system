@@ -6,6 +6,7 @@ import { BasicTableTwoComponent } from '../../../shared/components/tables/basic-
 import { BasicTableThreeComponent } from '../../../shared/components/tables/basic-tables/basic-table-three/basic-table-three.component';
 import { BasicTableFourComponent } from '../../../shared/components/tables/basic-tables/basic-table-four/basic-table-four.component';
 import { BasicTableFiveComponent } from '../../../shared/components/tables/basic-tables/basic-table-five/basic-table-five.component';
+import { PersonalizedTable } from '../../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 
 @Component({
   selector: 'app-basic-tables',
@@ -17,6 +18,7 @@ import { BasicTableFiveComponent } from '../../../shared/components/tables/basic
     BasicTableThreeComponent,
     BasicTableFourComponent,
     BasicTableFiveComponent,
+    PersonalizedTable
   ],
   templateUrl: './basic-tables.component.html',
   styles: ``
