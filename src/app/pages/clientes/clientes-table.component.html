@@ -4,10 +4,11 @@
     <app-component-card title="Listado de clientes">
       <app-personalized-table
         title="Clientes"
-        [transactionData]="transactionData"
-        (transactionCreated)="createClient($event)"
-        (transactionUpdated)="updateClient($event)"
-        (transactionDeleted)="deleteClient($event)"
+        [tableData]="tableData"
+        [columns]="columns"
+        (rowCreated)="createClient($event)"
+        (rowUpdated)="updateClient($event)"
+        (rowDeleted)="deleteClient($event)"
       />
     </app-component-card>
   </div>

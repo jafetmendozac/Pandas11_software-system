@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { Transaction } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
+import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 
 @Injectable({ providedIn: 'root' })
 export class ServiciosService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async getAll(): Promise<Transaction[]> {
+  async getAll(): Promise<TableRow[]> {
     const { data, error } = await this.supabase.client.from('services').select('*').order('created_at');
     if (error) throw error;
     return (data ?? []).map((service) => ({
       id: service.id,
       image: '/images/brand/brand-15.svg',
       action: service.name ?? '',
-      date: service.duration_minutes ? `${service.duration_minutes} min` : '',
-      amount: service.price ? `$${service.price}` : '',
+      date: service.duration_minutes ?? '',
+      amount: service.price ?? '',
       category: service.description ?? '',
       type: service.requires_specialist ? 'Specialist' : 'General',
       quantity: 0,
@@ -24,27 +24,30 @@ export class ServiciosService {
     }));
   }
 
-  async create(transaction: Transaction) {
-    return this.supabase.client.from('services').insert({
-      name: transaction.action,
-      description: transaction.category,
-      price: Number.parseFloat(transaction.amount.replace(/[^0-9.]/g, '')) || 0,
-      duration_minutes: Number.parseInt(transaction.date, 10) || 0,
-      requires_specialist: transaction.type === 'Specialist',
+  async create(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('services').insert({
+      name: String(transaction['action'] ?? ''),
+      description: String(transaction['category'] ?? ''),
+      price: Number.parseFloat(String(transaction['amount'] ?? '').replace(/[^0-9.]/g, '')) || 0,
+      duration_minutes: Number.parseInt(String(transaction['date'] ?? ''), 10) || 0,
+      requires_specialist: transaction['type'] === 'Specialist',
     });
+    if (error) throw error;
   }
 
-  async remove(transaction: Transaction) {
-    return this.supabase.client.from('services').delete().eq('id', transaction.id);
+  async remove(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('services').delete().eq('id', transaction['id']);
+    if (error) throw error;
   }
 
-  async update(transaction: Transaction) {
-    return this.supabase.client.from('services').update({
-      name: transaction.action,
-      description: transaction.category,
-      price: Number.parseFloat(transaction.amount.replace(/[^0-9.]/g, '')) || 0,
-      duration_minutes: Number.parseInt(transaction.date, 10) || 0,
-      requires_specialist: transaction.type === 'Specialist',
-    }).eq('id', transaction.id);
+  async update(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('services').update({
+      name: String(transaction['action'] ?? ''),
+      description: String(transaction['category'] ?? ''),
+      price: Number.parseFloat(String(transaction['amount'] ?? '').replace(/[^0-9.]/g, '')) || 0,
+      duration_minutes: Number.parseInt(String(transaction['date'] ?? ''), 10) || 0,
+      requires_specialist: transaction['type'] === 'Specialist',
+    }).eq('id', transaction['id']);
+    if (error) throw error;
   }
 }

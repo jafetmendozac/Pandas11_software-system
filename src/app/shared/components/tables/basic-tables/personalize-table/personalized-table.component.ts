@@ -6,18 +6,14 @@ import { TableDropdownComponent } from '../../../common/table-dropdown/table-dro
 import { BadgeComponent } from '../../../ui/badge/badge.component';
 import { ModalComponent } from '../../../ui/modal/modal.component';
 
-export interface Transaction {
-  id?: string;
-  image: string;
-  action: string;
-  date: string;
-  amount: string;
-  category: string;
-  type?: string;
-  quantity?: number;
-  account?: string;
-  method?: string;
-  status: "Success" | "Pending" | "Failed";
+export type TableRow = Record<string, unknown>;
+
+export interface TableColumn {
+  key: string;
+  label: string;
+  editable?: boolean;
+  type?: 'text' | 'number' | 'date';
+  options?: Array<{ label: string; value: string }>;
 }
 
 type PaginationItem = number | 'ellipsis';
@@ -36,267 +32,123 @@ type PaginationItem = number | 'ellipsis';
   styles: ``
 })
 export class PersonalizedTable {
-
-  // @Input() title = 'Latest Transactions';
+  @Input() title = 'Data';
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;
-  @Input() itemsPerPageOptions = [5, 10, 15];
-  @Input() transactionData: Transaction[] = [
-    {
-      image: "/images/brand/brand-08.svg", // Path or URL for the image
-      action: "Bought PYPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-07.svg", // Path or URL for the image
-      action: "Bought AAPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Pending",
-    },
-    {
-      image: "/images/brand/brand-15.svg", // Path or URL for the image
-      action: "Sell KKST", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-02.svg", // Path or URL for the image
-      action: "Bought FB", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-10.svg", // Path or URL for the image
-      action: "Sell AMZN", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Failed",
-    },
-    {
-      image: "/images/brand/brand-08.svg", // Path or URL for the image
-      action: "Bought PYPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-07.svg", // Path or URL for the image
-      action: "Bought AAPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Pending",
-    },
-    {
-      image: "/images/brand/brand-15.svg", // Path or URL for the image
-      action: "Sell KKST", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-02.svg", // Path or URL for the image
-      action: "Bought FB", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-10.svg", // Path or URL for the image
-      action: "Sell AMZN", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Failed",
-    },
-    {
-      image: "/images/brand/brand-08.svg", // Path or URL for the image
-      action: "Bought PYPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-07.svg", // Path or URL for the image
-      action: "Bought AAPL", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Pending",
-    },
-    {
-      image: "/images/brand/brand-15.svg", // Path or URL for the image
-      action: "Sell KKST", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-02.svg", // Path or URL for the image
-      action: "Bought FB", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Success",
-    },
-    {
-      image: "/images/brand/brand-10.svg", // Path or URL for the image
-      action: "Sell AMZN", // Action description
-      date: "Nov 23, 01:00 PM", // Date and time of the transaction
-      amount: "$2,567.88", // Transaction amount
-      category: "Finance", // Category of the transaction
-      status: "Failed",
-    },
-  ]
+  @Input() itemsPerPageOptions: number[] = [5, 10, 15];
+  @Input() columns: TableColumn[] = [];
+  @Input() tableData: TableRow[] = [];
 
-  @Output() transactionCreated = new EventEmitter<Transaction>();
-  @Output() transactionUpdated = new EventEmitter<Transaction>();
-  @Output() transactionDeleted = new EventEmitter<Transaction>();
+  @Output() rowCreated = new EventEmitter<TableRow>();
+  @Output() rowUpdated = new EventEmitter<TableRow>();
+  @Output() rowDeleted = new EventEmitter<TableRow>();
 
   currentPage = 1;
   itemsPerPage = 5;
   isFormOpen = false;
   editingIndex: number | null = null;
-  formData: Transaction = this.createEmptyTransaction();
+  formData: TableRow = {};
 
   get totalPages(): number {
-    return Math.ceil(this.transactionData.length / this.itemsPerPage);
+    return Math.ceil(this.tableData.length / this.itemsPerPage);
   }
 
   get paginationItems(): PaginationItem[] {
     if (this.totalPages <= 7) {
       return Array.from({ length: this.totalPages }, (_, index) => index + 1);
     }
-
     if (this.currentPage <= 4) {
       return [1, 2, 3, 4, 5, 'ellipsis', this.totalPages];
     }
-
     if (this.currentPage >= this.totalPages - 3) {
-      return [
-        1,
-        'ellipsis',
-        this.totalPages - 4,
-        this.totalPages - 3,
-        this.totalPages - 2,
-        this.totalPages - 1,
-        this.totalPages,
-      ];
+      return [1, 'ellipsis', this.totalPages - 4, this.totalPages - 3, this.totalPages - 2, this.totalPages - 1, this.totalPages];
     }
-
-    return [
-      1,
-      'ellipsis',
-      this.currentPage - 1,
-      this.currentPage,
-      this.currentPage + 1,
-      'ellipsis',
-      this.totalPages,
-    ];
+    return [1, 'ellipsis', this.currentPage - 1, this.currentPage, this.currentPage + 1, 'ellipsis', this.totalPages];
   }
 
-  get currentItems(): Transaction[] {
+  get currentItems(): TableRow[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.transactionData.slice(start, start + this.itemsPerPage);
+    return this.tableData.slice(start, start + this.itemsPerPage);
   }
 
   get firstItemIndex(): number {
-    return this.transactionData.length === 0
-      ? 0
-      : (this.currentPage - 1) * this.itemsPerPage + 1;
+    return this.tableData.length === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
   }
 
   get lastItemIndex(): number {
-    return Math.min(this.currentPage * this.itemsPerPage, this.transactionData.length);
+    return Math.min(this.currentPage * this.itemsPerPage, this.tableData.length);
   }
 
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
+  get editableColumns(): TableColumn[] {
+    return this.columns.filter((column) => column.editable !== false);
   }
 
-  onItemsPerPageChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    this.itemsPerPage = Number(select.value);
+  get hasStatusColumn(): boolean {
+    return this.columns.some((column) => column.key === 'status');
+  }
+
+  getCellValue(row: TableRow, key: string): string {
+    return String(row[key] ?? '');
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+  }
+
+  onItemsPerPageChange(event: Event): void {
+    this.itemsPerPage = Number((event.target as HTMLSelectElement).value);
     this.currentPage = 1;
   }
 
-  openCreateForm() {
+  openCreateForm(): void {
     this.editingIndex = null;
-    this.formData = this.createEmptyTransaction();
+    this.formData = this.createEmptyRow();
     this.isFormOpen = true;
   }
 
-  openEditForm(item: Transaction) {
-    this.editingIndex = this.transactionData.indexOf(item);
-    this.formData = { ...item };
+  openEditForm(row: TableRow): void {
+    this.editingIndex = this.tableData.indexOf(row);
+    this.formData = { ...row };
     this.isFormOpen = true;
   }
 
-  closeForm() {
+  closeForm(): void {
     this.isFormOpen = false;
   }
 
-  saveTransaction() {
-    const transaction = { ...this.formData };
-
+  saveRow(): void {
+    const row = { ...this.formData };
     if (this.editingIndex === null) {
-      this.transactionData = [transaction, ...this.transactionData];
+      this.tableData = [row, ...this.tableData];
       this.currentPage = 1;
-      this.transactionCreated.emit(transaction);
+      this.rowCreated.emit(row);
     } else {
-      this.transactionData[this.editingIndex] = transaction;
-      this.transactionUpdated.emit(transaction);
+      this.tableData[this.editingIndex] = row;
+      this.rowUpdated.emit(row);
     }
-
     this.closeForm();
   }
 
-  handleDelete(item: Transaction) {
-    if (!window.confirm(`Delete ${item.action}?`)) {
-      return;
-    }
-
-    this.transactionData = this.transactionData.filter((transaction) => transaction !== item);
+  handleDelete(row: TableRow): void {
+    const firstColumn = this.columns[0]?.key;
+    const label = firstColumn ? this.getCellValue(row, firstColumn) : 'this row';
+    if (!window.confirm(`Delete ${label}?`)) return;
+    this.tableData = this.tableData.filter((item) => item !== row);
     this.currentPage = Math.min(this.currentPage, this.totalPages || 1);
-    this.transactionDeleted.emit(item);
+    this.rowDeleted.emit(row);
   }
 
-  private createEmptyTransaction(): Transaction {
-    return {
-      image: '/images/brand/brand-08.svg',
-      action: '',
-      date: '',
-      amount: '',
-      category: '',
-      type: 'Purchase',
-      quantity: 1,
-      account: 'Main account',
-      method: 'Card',
-      status: 'Pending',
-    };
-  }
-
-  getBadgeColor(status: string): 'success' | 'warning' | 'error' {
-    if (status === 'Success') return 'success';
-    if (status === 'Pending') return 'warning';
+  getBadgeColor(value: unknown): 'success' | 'warning' | 'error' {
+    if (value === 'Success' || value === 'Active' || value === true) return 'success';
+    if (value === 'Pending') return 'warning';
     return 'error';
+  }
+
+  private createEmptyRow(): TableRow {
+    return this.columns.reduce((row, column) => {
+      row[column.key] = '';
+      return row;
+    }, {} as TableRow);
   }
 }

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { Transaction } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
+import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 
 @Injectable({ providedIn: 'root' })
 export class MascotasService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async getAll(): Promise<Transaction[]> {
+  async getAll(): Promise<TableRow[]> {
     const { data, error } = await this.supabase.client.from('pets').select('*').order('created_at');
     if (error) throw error;
     return (data ?? []).map((pet) => ({
@@ -14,7 +14,7 @@ export class MascotasService {
       image: '/images/brand/brand-07.svg',
       action: pet.name ?? '',
       date: pet.birth_date ?? '',
-      amount: pet.weight ? `${pet.weight} kg` : '',
+      amount: pet.weight ?? '',
       category: pet.breed ?? '',
       type: pet.pet_size ?? 'Pet',
       quantity: 0,
@@ -24,29 +24,32 @@ export class MascotasService {
     }));
   }
 
-  async create(transaction: Transaction) {
-    return this.supabase.client.from('pets').insert({
-      name: transaction.action,
-      breed: transaction.category,
-      pet_size: transaction.type,
-      weight: Number.parseFloat(transaction.amount) || null,
-      allergies: transaction.account,
-      pet_sex: transaction.method,
+  async create(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('pets').insert({
+      name: String(transaction['action'] ?? ''),
+      breed: String(transaction['category'] ?? ''),
+      pet_size: String(transaction['type'] ?? ''),
+      weight: Number.parseFloat(String(transaction['amount'] ?? '')) || null,
+      allergies: String(transaction['account'] ?? ''),
+      pet_sex: String(transaction['method'] ?? ''),
     });
+    if (error) throw error;
   }
 
-  async remove(transaction: Transaction) {
-    return this.supabase.client.from('pets').delete().eq('id', transaction.id);
+  async remove(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('pets').delete().eq('id', transaction['id']);
+    if (error) throw error;
   }
 
-  async update(transaction: Transaction) {
-    return this.supabase.client.from('pets').update({
-      name: transaction.action,
-      breed: transaction.category,
-      pet_size: transaction.type,
-      weight: Number.parseFloat(transaction.amount) || null,
-      allergies: transaction.account,
-      pet_sex: transaction.method,
-    }).eq('id', transaction.id);
+  async update(transaction: TableRow) {
+    const { error } = await this.supabase.client.from('pets').update({
+      name: String(transaction['action'] ?? ''),
+      breed: String(transaction['category'] ?? ''),
+      pet_size: String(transaction['type'] ?? ''),
+      weight: Number.parseFloat(String(transaction['amount'] ?? '')) || null,
+      allergies: String(transaction['account'] ?? ''),
+      pet_sex: String(transaction['method'] ?? ''),
+    }).eq('id', transaction['id']);
+    if (error) throw error;
   }
 }

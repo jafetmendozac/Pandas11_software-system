@@ -21,7 +21,7 @@
       </h3> -->
       @if (allowCreate) {
       <app-button size="sm" (btnClick)="openCreateForm()">
-        Add transaction
+        Add row
       </app-button>
       }
     </div>
@@ -33,15 +33,11 @@
       <table class="min-w-[1100px] table-auto">
         <thead class="border-gray-100 border-y dark:border-white/[0.05]">
           <tr>
-            <th class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Name</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Date</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Price</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Category</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Type</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Quantity</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Account</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Method</th>
-            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">Status</th>
+            @for (column of columns; track column.key) {
+            <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+              {{ column.label }}
+            </th>
+            }
             <th class="px-4 py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
               <span class="sr-only">Action</span>
             </th>
@@ -50,47 +46,17 @@
         <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
           @for (item of currentItems; track $index) {
           <tr>
-            <td class="w-1/2 px-2 py-3 sm:w-auto sm:px-4 sm:py-4">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8">
-                  <img width="32" height="32" [src]="item.image" class="size-8" alt="brand" />
-                </div>
-                <div>
-                  <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-                    {{ item.action }}
-                  </span>
-                </div>
-              </div>
-            </td>
+            @for (column of columns; track column.key) {
             <td class="px-4 py-4 text-gray-700 whitespace-nowrap text-theme-sm dark:text-gray-400">
-              {{ item.date }}
-            </td>
-            <td class="px-2 py-3 text-gray-700 text-theme-sm dark:text-gray-400 sm:px-4 sm:py-4">
-              {{ item.amount }}
-            </td>
-            <td class="px-4 py-4 text-gray-700 text-theme-sm dark:text-gray-400">
-              {{ item.category }}
-            </td>
-            <td class="px-4 py-4 text-gray-700 text-theme-sm dark:text-gray-400">
-              {{ item.type || 'Purchase' }}
-            </td>
-            <td class="px-4 py-4 text-gray-700 text-theme-sm dark:text-gray-400">
-              {{ item.quantity || 0 }}
-            </td>
-            <td class="px-4 py-4 text-gray-700 whitespace-nowrap text-theme-sm dark:text-gray-400">
-              {{ item.account || 'Main account' }}
-            </td>
-            <td class="px-4 py-4 text-gray-700 text-theme-sm dark:text-gray-400">
-              {{ item.method || 'Card' }}
-            </td>
-            <td class="px-2 py-3 text-gray-700 text-theme-sm dark:text-gray-400 sm:px-4 sm:py-4">
-              <app-badge
-                size="sm"
-                [color]="getBadgeColor(item.status)"
-              >
-                {{ item.status }}
+              @if (column.key === 'status') {
+              <app-badge size="sm" [color]="getBadgeColor(item[column.key])">
+                {{ getCellValue(item, column.key) }}
               </app-badge>
+              } @else {
+              {{ getCellValue(item, column.key) }}
+              }
             </td>
+            }
             <td class="w-12 px-2 py-3 text-gray-700 text-theme-sm dark:text-gray-400 sm:px-4 sm:py-4">
               <div class="relative inline-block">
                 <app-table-dropdown>
@@ -149,44 +115,31 @@
     <article class="rounded-xl border border-gray-200 p-4 dark:border-white/[0.08] dark:bg-gray-900/30">
       <div class="flex items-start justify-between gap-3">
         <div class="flex min-w-0 items-center gap-3">
-          <img width="32" height="32" [src]="item.image" class="size-8 shrink-0" alt="brand" />
           <div class="min-w-0">
             <h4 class="truncate font-medium text-gray-800 text-theme-sm dark:text-white/90">
-              {{ item.action }}
+              {{ columns[0]?.label || 'Row' }}
             </h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.date }}</p>
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ getCellValue(item, columns[0]?.key || '') }}
+            </p>
           </div>
         </div>
-        <app-badge size="sm" [color]="getBadgeColor(item.status)">
-          {{ item.status }}
+        @if (hasStatusColumn) {
+        <app-badge size="sm" [color]="getBadgeColor(item['status'])">
+          {{ getCellValue(item, 'status') }}
         </app-badge>
+        }
       </div>
 
       <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        @for (column of columns; track column.key) {
         <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Price</dt>
-          <dd class="mt-0.5 font-medium text-gray-700 dark:text-gray-300">{{ item.amount }}</dd>
+          <dt class="text-xs text-gray-500 dark:text-gray-400">{{ column.label }}</dt>
+          <dd class="mt-0.5 truncate font-medium text-gray-700 dark:text-gray-300">
+            {{ getCellValue(item, column.key) }}
+          </dd>
         </div>
-        <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Category</dt>
-          <dd class="mt-0.5 font-medium text-gray-700 dark:text-gray-300">{{ item.category }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Type</dt>
-          <dd class="mt-0.5 font-medium text-gray-700 dark:text-gray-300">{{ item.type || 'Purchase' }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Quantity</dt>
-          <dd class="mt-0.5 font-medium text-gray-700 dark:text-gray-300">{{ item.quantity || 0 }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Account</dt>
-          <dd class="mt-0.5 truncate font-medium text-gray-700 dark:text-gray-300">{{ item.account || 'Main account' }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs text-gray-500 dark:text-gray-400">Method</dt>
-          <dd class="mt-0.5 font-medium text-gray-700 dark:text-gray-300">{{ item.method || 'Card' }}</dd>
-        </div>
+        }
       </dl>
 
       @if (allowEdit || allowDelete) {
@@ -252,7 +205,7 @@
           </svg>
         </div>
         <span class="text-xs whitespace-nowrap sm:text-sm">
-          Showing {{ firstItemIndex }}-{{ lastItemIndex }} of {{ transactionData.length }}
+          Showing {{ firstItemIndex }}-{{ lastItemIndex }} of {{ tableData.length }}
         </span>
       </div>
 
@@ -317,117 +270,39 @@
   (close)="closeForm()"
   className="max-w-[584px] p-5 lg:p-8"
 >
-  <form (ngSubmit)="saveTransaction()">
+  <form (ngSubmit)="saveRow()">
     <h4 class="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
-      {{ editingIndex === null ? 'Add transaction' : 'Edit transaction' }}
+      {{ editingIndex === null ? 'Add row' : 'Edit row' }}
     </h4>
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-      <label class="sm:col-span-2">
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Name</span>
-        <input
-          name="action"
-          [(ngModel)]="formData.action"
-          required
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          placeholder="Bought AAPL"
-        />
-      </label>
-
+      @for (column of editableColumns; track column.key) {
       <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date</span>
-        <input
-          name="date"
-          [(ngModel)]="formData.date"
-          required
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          placeholder="Nov 23, 01:00 PM"
-        />
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Price</span>
-        <input
-          name="amount"
-          [(ngModel)]="formData.amount"
-          required
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          placeholder="$2,567.88"
-        />
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Category</span>
-        <input
-          name="category"
-          [(ngModel)]="formData.category"
-          required
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          placeholder="Finance"
-        />
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Type</span>
+        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">{{ column.label }}</span>
+        @if (column.options?.length) {
         <select
-          name="type"
-          [(ngModel)]="formData.type"
+          [name]="column.key"
+          [ngModel]="formData[column.key]"
+          (ngModelChange)="formData[column.key] = $event"
+          required
           class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         >
-          <option value="Purchase">Purchase</option>
-          <option value="Sale">Sale</option>
-          <option value="Transfer">Transfer</option>
+          @for (option of column.options; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Quantity</span>
+        } @else {
         <input
-          name="quantity"
-          type="number"
-          min="1"
-          [(ngModel)]="formData.quantity"
+          [name]="column.key"
+          [type]="column.type || 'text'"
+          [ngModel]="formData[column.key]"
+          (ngModelChange)="formData[column.key] = column.type === 'number' ? +$event : $event"
           required
           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
+        }
       </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Account</span>
-        <input
-          name="account"
-          [(ngModel)]="formData.account"
-          required
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          placeholder="Main account"
-        />
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Method</span>
-        <select
-          name="method"
-          [(ngModel)]="formData.method"
-          class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-        >
-          <option value="Card">Card</option>
-          <option value="Cash">Cash</option>
-          <option value="Transfer">Transfer</option>
-        </select>
-      </label>
-
-      <label>
-        <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Status</span>
-        <select
-          name="status"
-          [(ngModel)]="formData.status"
-          class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-        >
-          <option value="Success">Success</option>
-          <option value="Pending">Pending</option>
-          <option value="Failed">Failed</option>
-        </select>
-      </label>
+      }
     </div>
 
     <div class="mt-6 flex justify-end gap-3">
@@ -436,7 +311,7 @@
         type="submit"
         class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
       >
-        Save transaction
+        Save row
       </button>
     </div>
   </form>

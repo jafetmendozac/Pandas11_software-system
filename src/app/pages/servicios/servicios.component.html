@@ -3,10 +3,11 @@
   <app-component-card title="Servicios del negocio">
     <app-personalized-table
       title="Servicios"
-      [transactionData]="transactionData"
-      (transactionCreated)="createService($event)"
-      (transactionUpdated)="updateService($event)"
-      (transactionDeleted)="deleteService($event)"
+      [tableData]="tableData"
+      [columns]="columns"
+      (rowCreated)="createService($event)"
+      (rowUpdated)="updateService($event)"
+      (rowDeleted)="deleteService($event)"
     />
   </app-component-card>
 </div>

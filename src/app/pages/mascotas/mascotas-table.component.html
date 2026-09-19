@@ -4,10 +4,11 @@
     <app-component-card title="Listado de mascotas">
       <app-personalized-table
         title="Mascotas"
-        [transactionData]="transactionData"
-        (transactionCreated)="createPet($event)"
-        (transactionUpdated)="updatePet($event)"
-        (transactionDeleted)="deletePet($event)"
+        [tableData]="tableData"
+        [columns]="columns"
+        (rowCreated)="createPet($event)"
+        (rowUpdated)="updatePet($event)"
+        (rowDeleted)="deletePet($event)"
       />
     </app-component-card>
   </div>
