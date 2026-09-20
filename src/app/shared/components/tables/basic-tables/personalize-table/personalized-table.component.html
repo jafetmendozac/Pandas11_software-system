@@ -174,35 +174,13 @@
       <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
         <label for="items-per-page" class="whitespace-nowrap">Rows per page</label>
         <div class="relative">
-          <select
+          <app-custom-select
             id="items-per-page"
+            [options]="itemsPerPageOptions.map(option => ({ value: option, label: option.toString() }))"
             [value]="itemsPerPage"
-            (change)="onItemsPerPageChange($event)"
-            class="h-10 min-w-20 appearance-none rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 shadow-theme-xs ltr:pr-10 rtl:pl-10 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-brand-800"
-          >
-            @for (option of itemsPerPageOptions; track option) {
-            <option [value]="option" class="text-gray-700 dark:bg-gray-900 dark:text-gray-300">
-              {{ option }}
-            </option>
-            }
-          </select>
-          <svg
-            class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-700 ltr:right-3 rtl:left-3 dark:text-gray-400"
-            width="18"
-            height="18"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M4.79175 8.02075L10.0001 13.2291L15.2084 8.02075"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+            (valueChange)="onItemsPerPageChange($event)"
+            className="min-w-20"
+          ></app-custom-select>
         </div>
         <span class="text-xs whitespace-nowrap sm:text-sm">
           Showing {{ firstItemIndex }}-{{ lastItemIndex }} of {{ tableData.length }}

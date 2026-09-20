@@ -5,7 +5,7 @@ import { ButtonComponent } from '../../../ui/button/button.component';
 import { TableDropdownComponent } from '../../../common/table-dropdown/table-dropdown.component';
 import { BadgeComponent } from '../../../ui/badge/badge.component';
 import { ModalComponent } from '../../../ui/modal/modal.component';
-
+import { CustomSelectComponent } from '../../../form/custom-select/custom-select.component';
 export type TableRow = Record<string, unknown>;
 
 export interface TableColumn {
@@ -27,6 +27,7 @@ type PaginationItem = number | 'ellipsis';
     TableDropdownComponent,
     BadgeComponent,
     ModalComponent,
+    CustomSelectComponent,
   ],
   templateUrl: './personalized-table.component.html',
   styles: ``
@@ -96,9 +97,11 @@ export class PersonalizedTable {
     if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
-  onItemsPerPageChange(event: Event): void {
-    this.itemsPerPage = Number((event.target as HTMLSelectElement).value);
-    this.currentPage = 1;
+  onItemsPerPageChange(value: string | number | null): void {
+    if (value !== null) {
+      this.itemsPerPage = Number(value);
+      this.currentPage = 1;
+    }
   }
 
   openCreateForm(): void {
