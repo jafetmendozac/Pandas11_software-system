@@ -8,10 +8,13 @@ import esLocale from 'fullcalendar/locales/es';
 import themePlugin from 'fullcalendar/themes/classic';
 import timeGridPlugin from 'fullcalendar/timegrid';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
+import { AppointmentsService, AppointmentRecord, AppointmentServiceSelection } from '../../shared/services/appointments.service';
+import { SupabaseService } from '../../shared/services/supabase.service';
 
 export interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
+    appointment?: AppointmentRecord;
   };
 }
 
@@ -37,6 +40,14 @@ export class CalendarioComponent implements OnInit {
   eventEndDate = '';
   eventLevel = 'Primary';
   isOpen = false;
+  clientId = '';
+  petId = '';
+  employeeId = '';
+  selectedServiceIds: string[] = [];
+  clients: Array<{ id: string; name: string }> = [];
+  pets: Array<{ id: string; client_id: string; name: string }> = [];
+  employees: Array<{ id: string; name: string }> = [];
+  services: Array<{ id: string; name: string; price: number; duration_minutes: number }> = [];
 
   currentView = 'timeGridWeek';
 
@@ -54,38 +65,18 @@ export class CalendarioComponent implements OnInit {
 
   calendarOptions!: CalendarOptions;
 
-  constructor(private elRef: ElementRef) {}
+  constructor(
+    private elRef: ElementRef,
+    private readonly appointmentsService: AppointmentsService,
+    private readonly supabase: SupabaseService,
+  ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     const isRtl = document.documentElement.dir === 'rtl';
     const locale = document.documentElement.lang || 'es';
 
-    this.events = [
-      {
-        id: '1',
-        title: 'Conferencia',
-        start: this.createDateTimeOffset(0, 9),
-        end: this.createDateTimeOffset(0, 10),
-        allDay: false,
-        extendedProps: { calendar: 'Danger' }
-      },
-      {
-        id: '2',
-        title: 'Reunión',
-        start: this.createDateTimeOffset(1, 11),
-        end: this.createDateTimeOffset(1, 12),
-        allDay: false,
-        extendedProps: { calendar: 'Success' }
-      },
-      {
-        id: '3',
-        title: 'Taller',
-        start: this.createDateTimeOffset(2, 14),
-        end: this.createDateTimeOffset(2, 16),
-        allDay: false,
-        extendedProps: { calendar: 'Primary' }
-      }
-    ];
+    await this.loadFormOptions();
+    this.events = (await this.appointmentsService.getAll()).map((appointment) => this.toCalendarEvent(appointment));
 
     this.calendarOptions = {
       plugins: [
@@ -320,8 +311,44 @@ export class CalendarioComponent implements OnInit {
           if (chunk) {
             this.renderViewSelect(chunk, this.currentView);
           }
+
         });
       }
+
+    };
+  }
+
+  private async loadFormOptions(): Promise<void> {
+    const [clients, pets, employees, services] = await Promise.all([
+      this.supabase.client.from('clients').select('id, first_name, last_name').order('first_name'),
+      this.supabase.client.from('pets').select('id, client_id, name').eq('active', true).order('name'),
+      this.supabase.client.from('profiles').select('id, first_name, last_name').eq('active', true).order('first_name'),
+      this.supabase.client.from('services').select('id, name, price, duration_minutes').eq('active', true).order('name'),
+    ]);
+    if (clients.error) throw clients.error;
+    if (pets.error) throw pets.error;
+    if (employees.error) throw employees.error;
+    if (services.error) throw services.error;
+    this.clients = (clients.data ?? []).map((item) => ({ id: item.id, name: `${item.first_name ?? ''} ${item.last_name ?? ''}`.trim() }));
+    this.pets = (pets.data ?? []) as typeof this.pets;
+    this.employees = (employees.data ?? []).map((item) => ({ id: item.id, name: `${item.first_name ?? ''} ${item.last_name ?? ''}`.trim() }));
+    this.services = (services.data ?? []) as typeof this.services;
+  }
+
+  get filteredPets() {
+    return this.pets.filter((pet) => pet.client_id === this.clientId);
+  }
+
+  private toCalendarEvent(appointment: AppointmentRecord): CalendarEvent {
+    const start = `${appointment.appointment_date}T${appointment.start_time}`;
+    const end = `${appointment.appointment_date}T${appointment.end_time}`;
+    return {
+      id: appointment.id,
+      title: this.clients.find((client) => client.id === appointment.client_id)?.name || 'Cita',
+      start,
+      end,
+      allDay: false,
+      extendedProps: { calendar: 'Primary', appointment },
     };
   }
 
@@ -431,6 +458,10 @@ export class CalendarioComponent implements OnInit {
     this.eventStartDate = this.toDateTimeInputValue(new Date());
     this.eventEndDate = this.toDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000));
     this.eventLevel = 'Primary';
+    this.clientId = '';
+    this.petId = '';
+    this.employeeId = '';
+    this.selectedServiceIds = [];
     this.openModal();
   }
 
@@ -439,6 +470,10 @@ export class CalendarioComponent implements OnInit {
     this.eventStartDate = this.toDateTimeInputValue(selectInfo.start);
     this.eventEndDate = this.toDateTimeInputValue(selectInfo.end ?? new Date(selectInfo.start.getTime() + 60 * 60 * 1000));
     this.eventLevel = 'Primary';
+    this.clientId = '';
+    this.petId = '';
+    this.employeeId = '';
+    this.selectedServiceIds = [];
     this.openModal();
   }
 
@@ -461,35 +496,42 @@ export class CalendarioComponent implements OnInit {
     this.eventStartDate = event.start ? this.toDateTimeInputValue(event.start) : '';
     this.eventEndDate = event.end ? this.toDateTimeInputValue(event.end) : this.eventStartDate;
     this.eventLevel = event.extendedProps?.calendar || 'Primary';
+    const appointment = event.extendedProps?.appointment as AppointmentRecord | undefined;
+    this.clientId = appointment?.client_id ?? '';
+    this.petId = appointment?.pet_id ?? '';
+    this.employeeId = appointment?.employee_id ?? '';
+    this.selectedServiceIds = appointment?.appointment_services?.map((service) => service.service_id) ?? [];
     this.openModal();
   }
 
-  handleAddOrUpdateEvent() {
-    const titleVal = this.eventTitle.trim() || (this.selectedEvent ? 'Cita' : 'Nueva cita');
+  async handleAddOrUpdateEvent() {
+    if (!this.clientId || !this.petId || !this.employeeId || this.selectedServiceIds.length === 0 || !this.eventStartDate) return;
+    const start = new Date(this.eventStartDate);
+    const duration = this.services
+      .filter((service) => this.selectedServiceIds.includes(service.id))
+      .reduce((total, service) => total + Number(service.duration_minutes || 0), 0);
+    const end = new Date(start.getTime() + duration * 60_000);
+    this.eventEndDate = this.toDateTimeInputValue(end);
+    const appointmentDate = this.eventStartDate.slice(0, 10);
+    const appointmentServices: AppointmentServiceSelection[] = this.services
+      .filter((service) => this.selectedServiceIds.includes(service.id))
+      .map((service) => ({ service_id: service.id, price: service.price, duration_minutes: service.duration_minutes }));
+    const payload: AppointmentRecord = {
+      client_id: this.clientId,
+      pet_id: this.petId,
+      employee_id: this.employeeId,
+      appointment_date: appointmentDate,
+      start_time: `${this.eventStartDate.slice(11, 16)}:00`,
+      end_time: `${this.eventEndDate.slice(11, 16)}:00`,
+      status: 'SCHEDULED',
+      appointment_services: appointmentServices,
+    };
     if (this.selectedEvent) {
-      this.events = this.events.map(ev =>
-        ev.id === this.selectedEvent!.id
-          ? {
-              ...ev,
-              title: titleVal,
-              start: this.eventStartDate,
-              end: this.eventEndDate || this.eventStartDate,
-              allDay: false,
-              extendedProps: { calendar: this.eventLevel || 'Primary' }
-            }
-          : ev
-      );
+      await this.appointmentsService.update(this.selectedEvent.id as string, payload);
     } else {
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: titleVal,
-        start: this.eventStartDate,
-        end: this.eventEndDate || this.eventStartDate,
-        allDay: false,
-        extendedProps: { calendar: this.eventLevel || 'Primary' }
-      };
-      this.events = [...this.events, newEvent];
+      await this.appointmentsService.create(payload);
     }
+    this.events = (await this.appointmentsService.getAll()).map((appointment) => this.toCalendarEvent(appointment));
 
     const api = this.calendarComponent?.getApi();
     if (api) {
@@ -506,6 +548,10 @@ export class CalendarioComponent implements OnInit {
     this.eventStartDate = '';
     this.eventEndDate = '';
     this.eventLevel = 'Primary';
+    this.clientId = '';
+    this.petId = '';
+    this.employeeId = '';
+    this.selectedServiceIds = [];
     this.selectedEvent = null;
   }
 

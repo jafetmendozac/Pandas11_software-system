@@ -22,6 +22,7 @@ import { CalendarioComponent } from './pages/agenda/calendario.component';
 import { ClientesTableComponent } from './pages/clientes/clientes-table.component';
 import { MascotasTableComponent } from './pages/mascotas/mascotas-table.component';
 import { ServiciosComponent } from './pages/servicios/servicios.component';
+import { EmpleadosComponent } from './pages/empleados/empleados.component';
 
 export const routes: Routes = [
   {
@@ -49,6 +50,11 @@ export const routes: Routes = [
         path:'servicios',
         component:ServiciosComponent,
         title:'Servicios | Spa & Boutique Pandas 11'
+      },
+      {
+        path:'empleados',
+        component:EmpleadosComponent,
+        title:'Empleados | Spa & Boutique Pandas 11'
       },
       {
         path:'calendar',

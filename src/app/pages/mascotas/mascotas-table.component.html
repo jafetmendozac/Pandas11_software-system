@@ -1,15 +1,77 @@
 <app-page-breadcrumb pageTitle="Mascotas" />
 <div class="space-y-6">
-  <div>
-    <app-component-card title="Listado de mascotas">
-      <app-personalized-table
-        title="Mascotas"
-        [tableData]="tableData"
-        [columns]="columns"
-        (rowCreated)="createPet($event)"
-        (rowUpdated)="updatePet($event)"
-        (rowDeleted)="deletePet($event)"
-      />
-    </app-component-card>
-  </div>
+  <app-component-card title="Listado de mascotas">
+    <div class="mb-5 flex justify-end">
+      <button type="button" (click)="openCreate()" class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">Añadir mascota</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-start text-sm">
+        <thead class="border-y border-gray-100 dark:border-white/[0.05]">
+          <tr>
+            <th class="px-4 py-3 font-medium text-gray-500">Nombre</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Cliente</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Raza</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Sexo</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Pelaje</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Estado</th>
+            <th class="px-4 py-3 font-medium text-gray-500">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+          @for (pet of pets; track pet.id) {
+            <tr>
+              <td class="px-4 py-3 text-gray-800 dark:text-white/90">{{ pet.name }}</td>
+              <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ clientName(pet.client_id) }}</td>
+              <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ pet.breed || '-' }}</td>
+              <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ pet.pet_sex || '-' }}</td>
+              <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ pet.pet_coat_type || '-' }}</td>
+              <td class="px-4 py-3" [class]="pet.active ? 'text-success-600' : 'text-error-600'">{{ pet.active ? 'Activo' : 'Inactivo' }}</td>
+              <td class="px-4 py-3">
+                <button type="button" (click)="openEdit(pet)" class="me-3 text-brand-500">Editar</button>
+                <button type="button" (click)="remove(pet)" class="text-error-500">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </app-component-card>
+
+  @if (isFormOpen) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90">{{ editingId ? 'Editar mascota' : 'Añadir mascota' }}</h3>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="text-sm text-gray-700 dark:text-gray-300">Cliente *
+          <select [(ngModel)]="form.client_id" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800">
+            <option value="">Selecciona un cliente</option>
+            @for (client of clients; track client.id) { <option [value]="client.id">{{ client.name }}</option> }
+          </select>
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Nombre *
+          <input [(ngModel)]="form.name" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800" />
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Raza
+          <input [(ngModel)]="form.breed" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800" />
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Tipo de pelaje
+          <select [(ngModel)]="form.pet_coat_type" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800">
+            <option value="">Selecciona</option><option value="SHORT">Corto</option><option value="MEDIUM">Medio</option><option value="LONG">Largo</option><option value="WIRE">Alambre</option><option value="CURLY">Rizado</option><option value="HAIRLESS">Sin pelo</option>
+          </select>
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Sexo
+          <select [(ngModel)]="form.pet_sex" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800"><option value="">Selecciona</option><option value="MALE">Macho</option><option value="FEMALE">Hembra</option><option value="UNKNOWN">Desconocido</option></select>
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Tamaño
+          <select [(ngModel)]="form.pet_size" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800"><option value="">Selecciona</option><option value="SMALL">Pequeño</option><option value="MEDIUM">Mediano</option><option value="LARGE">Grande</option><option value="EXTRA_LARGE">Extra grande</option></select>
+        </label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Fecha de nacimiento <input type="date" [(ngModel)]="form.birth_date" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800" /></label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Fecha de fallecimiento <input type="date" [(ngModel)]="form.death_date" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800" /></label>
+        <label class="text-sm text-gray-700 dark:text-gray-300">Peso <input type="number" [(ngModel)]="form.weight" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800" /></label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" [(ngModel)]="form.bites" /> Puede morder</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" [(ngModel)]="form.active" /> Activo</label>
+        <label class="text-sm text-gray-700 dark:text-gray-300 sm:col-span-2">Notas <textarea [(ngModel)]="form.notes" class="mt-1.5 min-h-20 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"></textarea></label>
+      </div>
+      <div class="mt-5 flex justify-end gap-3"><button type="button" (click)="isFormOpen = false" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm">Cancelar</button><button type="button" (click)="save()" class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm text-white">Guardar</button></div>
+    </div>
+  }
 </div>
