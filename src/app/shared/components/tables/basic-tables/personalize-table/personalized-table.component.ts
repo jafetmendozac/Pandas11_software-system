@@ -12,6 +12,7 @@ export interface TableColumn {
   key: string;
   label: string;
   editable?: boolean;
+  required?: boolean;
   type?: 'text' | 'number' | 'date';
   options?: Array<{ label: string; value: string }>;
 }
@@ -89,8 +90,13 @@ export class PersonalizedTable {
     return this.columns.some((column) => column.key === 'status');
   }
 
-  getCellValue(row: TableRow, key: string): string {
-    return String(row[key] ?? '');
+  getCellValue(row: TableRow, key: string, column?: TableColumn): string {
+    const value = row[key];
+    if (column?.options?.length) {
+      const selectedOption = column.options.find((option) => String(option.value) === String(value ?? ''));
+      return selectedOption?.label ?? String(value ?? '');
+    }
+    return String(value ?? '');
   }
 
   goToPage(page: number): void {

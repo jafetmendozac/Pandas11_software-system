@@ -53,7 +53,7 @@
                 {{ getCellValue(item, column.key) }}
               </app-badge>
               } @else {
-              {{ getCellValue(item, column.key) }}
+              {{ getCellValue(item, column.key, column) }}
               }
             </td>
             }
@@ -120,7 +120,7 @@
               {{ columns[0]?.label || 'Row' }}
             </h4>
             <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ getCellValue(item, columns[0]?.key || '') }}
+              {{ getCellValue(item, columns[0]?.key || '', columns[0]) }}
             </p>
           </div>
         </div>
@@ -136,7 +136,7 @@
         <div>
           <dt class="text-xs text-gray-500 dark:text-gray-400">{{ column.label }}</dt>
           <dd class="mt-0.5 truncate font-medium text-gray-700 dark:text-gray-300">
-            {{ getCellValue(item, column.key) }}
+          {{ getCellValue(item, column.key, column) }}
           </dd>
         </div>
         }
@@ -262,9 +262,10 @@
           [name]="column.key"
           [ngModel]="formData[column.key]"
           (ngModelChange)="formData[column.key] = $event"
-          required
+          [required]="column.required !== false"
           class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         >
+          <option value="">Select {{ column.label }}</option>
           @for (option of column.options; track option.value) {
           <option [value]="option.value">{{ option.label }}</option>
           }
@@ -274,8 +275,8 @@
           [name]="column.key"
           [type]="column.type || 'text'"
           [ngModel]="formData[column.key]"
-          (ngModelChange)="formData[column.key] = column.type === 'number' ? +$event : $event"
-          required
+          (ngModelChange)="formData[column.key] = column.type === 'number' ? ($event === '' ? '' : +$event) : $event"
+          [required]="column.required !== false"
           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
         }
