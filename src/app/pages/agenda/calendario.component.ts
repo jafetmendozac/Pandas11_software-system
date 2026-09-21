@@ -8,10 +8,20 @@ import esLocale from 'fullcalendar/locales/es';
 import themePlugin from 'fullcalendar/themes/classic';
 import timeGridPlugin from 'fullcalendar/timegrid';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
+import {
+  AppointmentInput,
+  AppointmentWithRelations,
+  AppointmentsService,
+  ClientOption,
+  EmployeeOption,
+  PetOption,
+  ServiceOption,
+} from '../../shared/services/appointments.service';
 
 export interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
+    appointment?: AppointmentWithRelations;
   };
 }
 
@@ -36,6 +46,18 @@ export class CalendarioComponent implements OnInit {
   eventStartDate = '';
   eventEndDate = '';
   eventLevel = 'Primary';
+  selectedClientId = '';
+  selectedPetId = '';
+  selectedEmployeeId = '';
+  selectedServiceIds: string[] = [];
+  status = 'scheduled';
+  clients: ClientOption[] = [];
+  pets: PetOption[] = [];
+  filteredPets: PetOption[] = [];
+  employees: EmployeeOption[] = [];
+  services: ServiceOption[] = [];
+  isSaving = false;
+  errorMessage = '';
   isOpen = false;
 
   currentView = 'timeGridWeek';
@@ -54,38 +76,15 @@ export class CalendarioComponent implements OnInit {
 
   calendarOptions!: CalendarOptions;
 
-  constructor(private elRef: ElementRef) {}
+  constructor(
+    private readonly elRef: ElementRef,
+    private readonly appointmentsService: AppointmentsService,
+  ) {}
 
   ngOnInit() {
     const isRtl = document.documentElement.dir === 'rtl';
     const locale = document.documentElement.lang || 'es';
-
-    this.events = [
-      {
-        id: '1',
-        title: 'Conferencia',
-        start: this.createDateTimeOffset(0, 9),
-        end: this.createDateTimeOffset(0, 10),
-        allDay: false,
-        extendedProps: { calendar: 'Danger' }
-      },
-      {
-        id: '2',
-        title: 'Reunión',
-        start: this.createDateTimeOffset(1, 11),
-        end: this.createDateTimeOffset(1, 12),
-        allDay: false,
-        extendedProps: { calendar: 'Success' }
-      },
-      {
-        id: '3',
-        title: 'Taller',
-        start: this.createDateTimeOffset(2, 14),
-        end: this.createDateTimeOffset(2, 16),
-        allDay: false,
-        extendedProps: { calendar: 'Primary' }
-      }
-    ];
+    void this.loadInitialData();
 
     this.calendarOptions = {
       plugins: [
@@ -429,7 +428,7 @@ export class CalendarioComponent implements OnInit {
   handleOpenAddModal() {
     this.resetModalFields();
     this.eventStartDate = this.toDateTimeInputValue(new Date());
-    this.eventEndDate = this.toDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000));
+    this.recalculateEndDate();
     this.eventLevel = 'Primary';
     this.openModal();
   }
@@ -437,9 +436,31 @@ export class CalendarioComponent implements OnInit {
   handleDateSelect(selectInfo: DateSelectInfo) {
     this.resetModalFields();
     this.eventStartDate = this.toDateTimeInputValue(selectInfo.start);
-    this.eventEndDate = this.toDateTimeInputValue(selectInfo.end ?? new Date(selectInfo.start.getTime() + 60 * 60 * 1000));
+    this.recalculateEndDate();
     this.eventLevel = 'Primary';
     this.openModal();
+  }
+
+  onClientChange(clientId: string) {
+    this.selectedClientId = clientId;
+    this.filteredPets = this.pets.filter((pet) => pet.client_id === clientId);
+    if (!this.filteredPets.some((pet) => pet.id === this.selectedPetId)) {
+      this.selectedPetId = '';
+    }
+  }
+
+  onServiceSelectionChange(rawValue: string[] | string | null) {
+    if (!rawValue) {
+      this.selectedServiceIds = [];
+      this.recalculateEndDate();
+      return;
+    }
+    this.selectedServiceIds = Array.isArray(rawValue) ? rawValue : [rawValue];
+    this.recalculateEndDate();
+  }
+
+  onStartDateChange() {
+    this.recalculateEndDate();
   }
 
   handleEventClick(clickInfo: EventClickInfo) {
@@ -459,46 +480,56 @@ export class CalendarioComponent implements OnInit {
     };
     this.eventTitle = event.title;
     this.eventStartDate = event.start ? this.toDateTimeInputValue(event.start) : '';
-    this.eventEndDate = event.end ? this.toDateTimeInputValue(event.end) : this.eventStartDate;
+    this.eventEndDate = event.end ? this.toDateTimeInputValue(event.end) : '';
     this.eventLevel = event.extendedProps?.calendar || 'Primary';
+    const appointment = event.extendedProps?.appointment as AppointmentWithRelations | undefined;
+    this.selectedClientId = appointment?.client_id ?? '';
+    this.onClientChange(this.selectedClientId);
+    this.selectedPetId = appointment?.pet_id ?? '';
+    this.selectedEmployeeId = appointment?.employee_id ?? '';
+    this.selectedServiceIds =
+      appointment?.appointment_services?.map((service) => service.service_id) ?? [];
+    this.status = appointment?.status ?? 'scheduled';
+    this.eventTitle = appointment?.notes ?? event.title ?? '';
+    this.recalculateEndDate();
     this.openModal();
   }
 
-  handleAddOrUpdateEvent() {
-    const titleVal = this.eventTitle.trim() || (this.selectedEvent ? 'Cita' : 'Nueva cita');
-    if (this.selectedEvent) {
-      this.events = this.events.map(ev =>
-        ev.id === this.selectedEvent!.id
-          ? {
-              ...ev,
-              title: titleVal,
-              start: this.eventStartDate,
-              end: this.eventEndDate || this.eventStartDate,
-              allDay: false,
-              extendedProps: { calendar: this.eventLevel || 'Primary' }
-            }
-          : ev
-      );
-    } else {
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: titleVal,
-        start: this.eventStartDate,
-        end: this.eventEndDate || this.eventStartDate,
-        allDay: false,
-        extendedProps: { calendar: this.eventLevel || 'Primary' }
-      };
-      this.events = [...this.events, newEvent];
+  async handleAddOrUpdateEvent() {
+    this.errorMessage = '';
+    if (
+      !this.eventStartDate ||
+      !this.selectedClientId ||
+      !this.selectedPetId ||
+      !this.selectedEmployeeId ||
+      this.selectedServiceIds.length === 0
+    ) {
+      this.errorMessage = 'Completa cliente, mascota, empleado, fecha de inicio y al menos un servicio.';
+      return;
     }
 
-    const api = this.calendarComponent?.getApi();
-    if (api) {
-      api.removeAllEvents();
-      this.events.forEach(ev => api.addEvent(ev));
+    const payload = this.buildAppointmentInput();
+    if (!payload) {
+      this.errorMessage = 'No se pudo calcular la hora de finalización.';
+      return;
     }
 
-    this.closeModal();
-    this.resetModalFields();
+    this.isSaving = true;
+    try {
+      if (this.selectedEvent?.id) {
+        await this.appointmentsService.update(String(this.selectedEvent.id), payload);
+      } else {
+        await this.appointmentsService.create(payload);
+      }
+      await this.loadAppointments();
+      this.closeModal();
+      this.resetModalFields();
+    } catch (error) {
+      console.error('No se pudo guardar la cita.', error);
+      this.errorMessage = 'No se pudo guardar la cita en Supabase.';
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   resetModalFields() {
@@ -506,6 +537,13 @@ export class CalendarioComponent implements OnInit {
     this.eventStartDate = '';
     this.eventEndDate = '';
     this.eventLevel = 'Primary';
+    this.selectedClientId = '';
+    this.selectedPetId = '';
+    this.selectedEmployeeId = '';
+    this.selectedServiceIds = [];
+    this.status = 'scheduled';
+    this.filteredPets = [];
+    this.errorMessage = '';
     this.selectedEvent = null;
   }
 
@@ -518,11 +556,136 @@ export class CalendarioComponent implements OnInit {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  private createDateTimeOffset(daysFromToday: number, hour: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + daysFromToday);
-    date.setHours(hour, 0, 0, 0);
-    return date.toISOString();
+  private async loadInitialData() {
+    try {
+      const [clients, pets, employees, services] = await Promise.all([
+        this.appointmentsService.getClients(),
+        this.appointmentsService.getPets(),
+        this.appointmentsService.getEmployees(),
+        this.appointmentsService.getServices(),
+      ]);
+      this.clients = clients;
+      this.pets = pets;
+      this.filteredPets = [];
+      this.employees = employees;
+      this.services = services;
+      await this.loadAppointments();
+    } catch (error) {
+      console.error('No se pudieron cargar los datos de agenda.', error);
+      this.errorMessage = 'No se pudieron cargar los datos de agenda desde Supabase.';
+    }
+  }
+
+  private async loadAppointments() {
+    const appointments = await this.appointmentsService.getAll();
+    this.events = appointments.map((appointment) => this.mapAppointmentToEvent(appointment));
+    this.refreshCalendarEvents();
+  }
+
+  private refreshCalendarEvents() {
+    const api = this.calendarComponent?.getApi();
+    if (!api) return;
+    api.removeAllEvents();
+    this.events.forEach((event) => api.addEvent(event));
+  }
+
+  private mapAppointmentToEvent(appointment: AppointmentWithRelations): CalendarEvent {
+    const startIso = this.combineDateAndTime(appointment.appointment_date, appointment.start_time);
+    const endIso = this.combineDateAndTime(appointment.appointment_date, appointment.end_time);
+    const client = this.getSingleRelation(appointment.client);
+    const pet = this.getSingleRelation(appointment.pet);
+    const clientName = this.getPersonName(client?.first_name, client?.last_name);
+    const petName = pet?.name?.trim() || 'Mascota';
+    const notes = appointment.notes?.trim();
+    const title = notes || `${petName} · ${clientName || 'Cliente'}`;
+    const statusLevel = this.mapStatusToCalendarLevel(appointment.status);
+    return {
+      id: appointment.id,
+      title,
+      start: startIso,
+      end: endIso,
+      allDay: false,
+      extendedProps: {
+        calendar: statusLevel,
+        appointment,
+      },
+    };
+  }
+
+  private buildAppointmentInput(): AppointmentInput | null {
+    const startDate = new Date(this.eventStartDate);
+    if (Number.isNaN(startDate.getTime())) {
+      return null;
+    }
+    const totalDuration = this.getSelectedServicesDurationMinutes();
+    const endDate = new Date(startDate.getTime() + totalDuration * 60 * 1000);
+    this.eventEndDate = this.toDateTimeInputValue(endDate);
+    const selectedServices = this.services.filter((service) => this.selectedServiceIds.includes(service.id));
+
+    return {
+      client_id: this.selectedClientId,
+      pet_id: this.selectedPetId,
+      employee_id: this.selectedEmployeeId,
+      appointment_date: this.eventStartDate.split('T')[0],
+      start_time: `${this.eventStartDate.split('T')[1] || '00:00'}:00`,
+      end_time: `${this.eventEndDate.split('T')[1] || '00:00'}:00`,
+      status: this.status || 'scheduled',
+      notes: this.eventTitle.trim(),
+      services: selectedServices.map((service) => ({
+        service_id: service.id,
+        price: Number(service.price ?? 0),
+        duration_minutes: Number(service.duration_minutes ?? 0),
+      })),
+    };
+  }
+
+  private getSelectedServicesDurationMinutes(): number {
+    return this.services
+      .filter((service) => this.selectedServiceIds.includes(service.id))
+      .reduce((total, service) => total + Number(service.duration_minutes ?? 0), 0);
+  }
+
+  private recalculateEndDate() {
+    if (!this.eventStartDate) {
+      this.eventEndDate = '';
+      return;
+    }
+    const startDate = new Date(this.eventStartDate);
+    if (Number.isNaN(startDate.getTime())) {
+      this.eventEndDate = '';
+      return;
+    }
+    const totalDuration = this.getSelectedServicesDurationMinutes();
+    const endDate = new Date(startDate.getTime() + totalDuration * 60 * 1000);
+    this.eventEndDate = this.toDateTimeInputValue(endDate);
+  }
+
+  private mapStatusToCalendarLevel(status: string | null | undefined): string {
+    const normalized = (status || 'scheduled').toLowerCase();
+    if (normalized === 'cancelled' || normalized === 'canceled' || normalized === 'no_show') {
+      return 'Danger';
+    }
+    if (normalized === 'completed') {
+      return 'Success';
+    }
+    if (normalized === 'rescheduled' || normalized === 'pending') {
+      return 'Warning';
+    }
+    return 'Primary';
+  }
+
+  private combineDateAndTime(date: string, time: string): string {
+    const normalizedTime = time.length === 5 ? `${time}:00` : time;
+    return `${date}T${normalizedTime}`;
+  }
+
+  private getPersonName(firstName?: string | null, lastName?: string | null): string {
+    return `${firstName ?? ''} ${lastName ?? ''}`.trim();
+  }
+
+  private getSingleRelation<T>(value: T | T[] | null | undefined): T | undefined {
+    if (!value) return undefined;
+    return Array.isArray(value) ? value[0] : value;
   }
 
   openModal() {

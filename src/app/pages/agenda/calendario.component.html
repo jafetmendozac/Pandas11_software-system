@@ -22,16 +22,108 @@
       <div class="mt-8">
         <div>
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Título de la cita
+            Notas de la cita
           </label>
           <input
             id="event-title"
             type="text"
             [(ngModel)]="eventTitle"
-            placeholder="Escribe el título de la cita"
+            placeholder="Escribe notas opcionales para la cita"
             class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
           />
         </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Cliente
+          </label>
+          <select
+            [(ngModel)]="selectedClientId"
+            (ngModelChange)="onClientChange($event)"
+            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="">Selecciona un cliente</option>
+            @for (client of clients; track client.id) {
+              <option [value]="client.id">
+                {{ (client.first_name ?? '') + ' ' + (client.last_name ?? '') }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Mascota
+          </label>
+          <select
+            [(ngModel)]="selectedPetId"
+            [disabled]="!selectedClientId"
+            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:ring-3 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="">
+              {{ selectedClientId ? 'Selecciona una mascota' : 'Primero selecciona un cliente' }}
+            </option>
+            @for (pet of filteredPets; track pet.id) {
+              <option [value]="pet.id">
+                {{ pet.name ?? 'Mascota sin nombre' }}
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Empleado
+          </label>
+          <select
+            [(ngModel)]="selectedEmployeeId"
+            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="">Selecciona un empleado</option>
+            @for (employee of employees; track employee.id) {
+              <option [value]="employee.id">
+                {{ (employee.first_name ?? '') + ' ' + (employee.last_name ?? '') }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Estado
+          </label>
+          <select
+            [(ngModel)]="status"
+            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="scheduled">Programada</option>
+            <option value="completed">Completada</option>
+            <option value="pending">Pendiente</option>
+            <option value="cancelled">Cancelada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Servicios (selección múltiple)
+        </label>
+        <select
+          multiple
+          [ngModel]="selectedServiceIds"
+          (ngModelChange)="onServiceSelectionChange($event)"
+          class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 min-h-28 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+        >
+          @for (service of services; track service.id) {
+            <option [value]="service.id">
+              {{ service.name ?? 'Servicio' }} · {{ service.duration_minutes ?? 0 }} min · ${{ service.price ?? 0 }}
+            </option>
+          }
+        </select>
       </div>
 
       <!-- Event Color -->
@@ -79,6 +171,7 @@
             id="event-start-date"
             type="datetime-local"
             [(ngModel)]="eventStartDate"
+            (ngModelChange)="onStartDateChange()"
             (click)="$any($event.target).showPicker?.()"
             class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
           />
@@ -100,7 +193,7 @@
             id="event-end-date"
             type="datetime-local"
             [(ngModel)]="eventEndDate"
-            (click)="$any($event.target).showPicker?.()"
+            readonly
             class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
           />
           <span class="absolute top-1/2 right-3.5 -translate-y-1/2 pointer-events-none text-gray-700 dark:text-gray-400">
@@ -110,6 +203,12 @@
           </span>
         </div>
       </div>
+
+      @if (errorMessage) {
+        <p class="mt-4 text-sm text-error-500 dark:text-error-400">
+          {{ errorMessage }}
+        </p>
+      }
 
       <!-- Modal Footer -->
       <div class="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
@@ -123,9 +222,10 @@
         <button
           (click)="handleAddOrUpdateEvent()"
           type="button"
+          [disabled]="isSaving"
           class="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
         >
-          {{ selectedEvent ? 'Guardar cambios' : 'Añadir cita' }}
+          {{ isSaving ? 'Guardando...' : (selectedEvent ? 'Guardar cambios' : 'Añadir cita') }}
         </button>
       </div>
     </div>
