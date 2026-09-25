@@ -13,6 +13,8 @@ export interface TableColumn {
   label: string;
   editable?: boolean;
   required?: boolean;
+  placeholder?: string;
+  helpText?: string;
   type?: 'text' | 'number' | 'date';
   options?: Array<{ label: string; value: string }>;
 }

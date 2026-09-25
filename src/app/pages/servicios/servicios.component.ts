@@ -17,13 +17,36 @@ import { Service, ServiciosService } from '../../shared/services/servicios.servi
 export class ServiciosComponent implements OnInit {
   tableData: Service[] = [];
   columns: TableColumn[] = [
-    { key: 'name', label: 'Nombre' },
-    { key: 'description', label: 'Descripción' },
-    { key: 'price', label: 'Precio', type: 'number' },
-    { key: 'duration_minutes', label: 'Duración (min)', type: 'number' },
+    {
+      key: 'name',
+      label: 'Nombre',
+      placeholder: 'Ej. Baño completo',
+      helpText: 'Escribe el nombre que verá el cliente.',
+    },
+    {
+      key: 'description',
+      label: 'Descripción',
+      placeholder: 'Ej. Baño, secado y cepillado',
+      helpText: 'Describe brevemente qué incluye el servicio.',
+    },
+    {
+      key: 'price',
+      label: 'Precio',
+      type: 'number',
+      placeholder: 'Ej. 25000',
+      helpText: 'Ingresa el precio en pesos, sin separadores.',
+    },
+    {
+      key: 'duration_minutes',
+      label: 'Duración (min)',
+      type: 'number',
+      placeholder: 'Ej. 60',
+      helpText: 'Indica la duración aproximada en minutos.',
+    },
     {
       key: 'requires_specialist',
-      label: 'Principal',
+      label: 'Especialidad',
+      helpText: 'Define quién puede realizar este servicio.',
       options: [
         { label: 'Cualquier empleado', value: 'false' },
         { label: 'Solo el principal', value: 'true' },

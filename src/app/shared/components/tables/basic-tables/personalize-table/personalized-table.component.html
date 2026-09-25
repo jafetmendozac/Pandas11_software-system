@@ -257,6 +257,9 @@
       @for (column of editableColumns; track column.key) {
       <label>
         <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">{{ column.label }}</span>
+        @if (column.helpText) {
+        <span class="mb-2 block text-xs text-gray-500 dark:text-gray-400">{{ column.helpText }}</span>
+        }
         @if (column.options?.length) {
         <select
           [name]="column.key"
@@ -274,6 +277,7 @@
         <input
           [name]="column.key"
           [type]="column.type || 'text'"
+          [placeholder]="column.placeholder || ''"
           [ngModel]="formData[column.key]"
           (ngModelChange)="formData[column.key] = column.type === 'number' ? ($event === '' ? '' : +$event) : $event"
           [required]="column.required !== false"
