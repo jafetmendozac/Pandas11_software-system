@@ -261,18 +261,13 @@
         <span class="mb-2 block text-xs text-gray-500 dark:text-gray-400">{{ column.helpText }}</span>
         }
         @if (column.options?.length) {
-        <select
-          [name]="column.key"
-          [ngModel]="formData[column.key]"
-          (ngModelChange)="formData[column.key] = $event"
-          [required]="column.required !== false"
-          class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-        >
-          <option value="">Selecciona {{ column.label }}</option>
-          @for (option of column.options; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+        <app-custom-select
+          [options]="column.options"
+          [placeholder]="'Selecciona ' + column.label"
+          [value]="getFormValue(column.key)"
+          (valueChange)="formData[column.key] = $event"
+          className="dark:bg-dark-900"
+        ></app-custom-select>
         } @else {
         <input
           [name]="column.key"

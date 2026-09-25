@@ -33,8 +33,8 @@ export class ServiciosComponent implements OnInit {
       key: 'price',
       label: 'Precio',
       type: 'number',
-      placeholder: 'Ej. 25000',
-      helpText: 'Ingresa el precio en pesos, sin separadores.',
+      placeholder: 'Ej. 75',
+      helpText: 'Ingresa el precio en soles.',
     },
     {
       key: 'duration_minutes',

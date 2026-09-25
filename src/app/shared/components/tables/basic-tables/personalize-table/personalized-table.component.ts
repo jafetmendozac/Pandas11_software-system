@@ -105,6 +105,10 @@ export class PersonalizedTable {
     return String(value ?? '');
   }
 
+  getFormValue(key: string): string {
+    return String(this.formData[key] ?? '');
+  }
+
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
