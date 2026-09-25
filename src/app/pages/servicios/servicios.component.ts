@@ -25,16 +25,16 @@ export class ServiciosComponent implements OnInit {
       key: 'requires_specialist',
       label: 'Principal',
       options: [
-        { label: 'Any employee', value: 'false' },
-        { label: 'Principal only', value: 'true' },
+        { label: 'Cualquier empleado', value: 'false' },
+        { label: 'Solo el principal', value: 'true' },
       ],
     },
     {
       key: 'active',
       label: 'Estado',
       options: [
-        { label: 'Active', value: 'true' },
-        { label: 'Inactive', value: 'false' },
+        { label: 'Activo', value: 'true' },
+        { label: 'Inactivo', value: 'false' },
       ],
     },
   ];

@@ -34,10 +34,10 @@ type PaginationItem = number | 'ellipsis';
   styles: ``
 })
 export class PersonalizedTable {
-  @Input() title = 'Data';
-  @Input() addLabel = 'Add row';
-  @Input() createTitle = 'Add row';
-  @Input() editTitle = 'Edit row';
+  @Input() title = 'Datos';
+  @Input() addLabel = 'Añadir registro';
+  @Input() createTitle = 'Añadir registro';
+  @Input() editTitle = 'Editar registro';
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;
@@ -99,7 +99,7 @@ export class PersonalizedTable {
       const selectedOption = column.options.find((option) => String(option.value) === String(value ?? ''));
       return selectedOption?.label ?? String(value ?? '');
     }
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
     return String(value ?? '');
   }
 
@@ -146,7 +146,7 @@ export class PersonalizedTable {
   handleDelete(row: TableRow): void {
     const firstColumn = this.columns[0]?.key;
     const label = firstColumn ? this.getCellValue(row, firstColumn) : 'this row';
-    if (!window.confirm(`Delete ${label}?`)) return;
+    if (!window.confirm(`¿Eliminar ${label}?`)) return;
     this.tableData = this.tableData.filter((item) => item !== row);
     this.currentPage = Math.min(this.currentPage, this.totalPages || 1);
     this.rowDeleted.emit(row);
