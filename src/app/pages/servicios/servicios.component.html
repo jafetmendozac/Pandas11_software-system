@@ -3,6 +3,9 @@
   <app-component-card title="Servicios del negocio">
     <app-personalized-table
       title="Servicios"
+      addLabel="Añadir servicio"
+      createTitle="Añadir servicio"
+      editTitle="Editar servicio"
       [tableData]="tableData"
       [columns]="columns"
       (rowCreated)="createService($event)"

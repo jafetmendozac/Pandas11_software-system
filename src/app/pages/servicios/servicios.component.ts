@@ -17,13 +17,13 @@ import { Service, ServiciosService } from '../../shared/services/servicios.servi
 export class ServiciosComponent implements OnInit {
   tableData: Service[] = [];
   columns: TableColumn[] = [
-    { key: 'name', label: 'Name' },
-    { key: 'description', label: 'Description' },
-    { key: 'price', label: 'Price', type: 'number' },
-    { key: 'duration_minutes', label: 'Duration (min)', type: 'number' },
+    { key: 'name', label: 'Nombre' },
+    { key: 'description', label: 'Descripción' },
+    { key: 'price', label: 'Precio', type: 'number' },
+    { key: 'duration_minutes', label: 'Duración (min)', type: 'number' },
     {
       key: 'requires_specialist',
-      label: 'Availability',
+      label: 'Principal',
       options: [
         { label: 'Any employee', value: 'false' },
         { label: 'Principal only', value: 'true' },
@@ -31,7 +31,7 @@ export class ServiciosComponent implements OnInit {
     },
     {
       key: 'active',
-      label: 'State',
+      label: 'Estado',
       options: [
         { label: 'Active', value: 'true' },
         { label: 'Inactive', value: 'false' },

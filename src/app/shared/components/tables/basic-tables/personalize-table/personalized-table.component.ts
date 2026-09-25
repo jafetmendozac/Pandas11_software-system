@@ -35,6 +35,9 @@ type PaginationItem = number | 'ellipsis';
 })
 export class PersonalizedTable {
   @Input() title = 'Data';
+  @Input() addLabel = 'Add row';
+  @Input() createTitle = 'Add row';
+  @Input() editTitle = 'Edit row';
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;
