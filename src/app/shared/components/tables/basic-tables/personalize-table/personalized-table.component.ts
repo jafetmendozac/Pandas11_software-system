@@ -96,6 +96,7 @@ export class PersonalizedTable {
       const selectedOption = column.options.find((option) => String(option.value) === String(value ?? ''));
       return selectedOption?.label ?? String(value ?? '');
     }
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     return String(value ?? '');
   }
 
@@ -156,7 +157,7 @@ export class PersonalizedTable {
 
   private createEmptyRow(): TableRow {
     return this.columns.reduce((row, column) => {
-      row[column.key] = '';
+      row[column.key] = column.options?.[0]?.value ?? '';
       return row;
     }, {} as TableRow);
   }

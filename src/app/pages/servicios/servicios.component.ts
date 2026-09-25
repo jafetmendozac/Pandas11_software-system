@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
-import { ServiciosService } from '../../shared/services/servicios.service';
+import { Service, ServiciosService } from '../../shared/services/servicios.service';
 
 @Component({
   selector: 'app-servicios',
@@ -15,22 +15,28 @@ import { ServiciosService } from '../../shared/services/servicios.service';
   styles: ``
 })
 export class ServiciosComponent implements OnInit {
-  tableData: TableRow[] = [];
+  tableData: Service[] = [];
   columns: TableColumn[] = [
-    { key: 'action', label: 'Name' },
-    { key: 'category', label: 'Description' },
-    { key: 'amount', label: 'Price', type: 'number' },
-    { key: 'date', label: 'Duration', type: 'number' },
+    { key: 'name', label: 'Name' },
+    { key: 'description', label: 'Description' },
+    { key: 'price', label: 'Price', type: 'number' },
+    { key: 'duration_minutes', label: 'Duration (min)', type: 'number' },
     {
-      key: 'type',
-      label: 'Type',
+      key: 'requires_specialist',
+      label: 'Availability',
       options: [
-        { label: 'General', value: 'General' },
-        { label: 'Specialist', value: 'Specialist' },
+        { label: 'Any employee', value: 'false' },
+        { label: 'Principal only', value: 'true' },
       ],
     },
-    { key: 'account', label: 'State' },
-    { key: 'status', label: 'Status' },
+    {
+      key: 'active',
+      label: 'State',
+      options: [
+        { label: 'Active', value: 'true' },
+        { label: 'Inactive', value: 'false' },
+      ],
+    },
   ];
 
   constructor(private readonly serviciosService: ServiciosService) {}

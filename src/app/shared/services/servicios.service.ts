@@ -2,52 +2,62 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 
+export interface Service extends TableRow {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration_minutes: number;
+  requires_specialist: boolean;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ServiciosService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async getAll(): Promise<TableRow[]> {
+  async getAll(): Promise<Service[]> {
     const { data, error } = await this.supabase.client.from('services').select('*').order('created_at');
     if (error) throw error;
-    return (data ?? []).map((service) => ({
-      id: service.id,
-      image: '/images/brand/brand-15.svg',
-      action: service.name ?? '',
-      date: service.duration_minutes ?? '',
-      amount: service.price ?? '',
-      category: service.description ?? '',
-      type: service.requires_specialist ? 'Specialist' : 'General',
-      quantity: 0,
-      account: service.active === false ? 'Inactive' : 'Active',
-      method: 'Service',
-      status: service.active === false ? 'Failed' : 'Success',
-    }));
+    return (data ?? []) as Service[];
   }
 
-  async create(transaction: TableRow) {
+  async create(service: TableRow) {
     const { error } = await this.supabase.client.from('services').insert({
-      name: String(transaction['action'] ?? ''),
-      description: String(transaction['category'] ?? ''),
-      price: Number.parseFloat(String(transaction['amount'] ?? '').replace(/[^0-9.]/g, '')) || 0,
-      duration_minutes: Number.parseInt(String(transaction['date'] ?? ''), 10) || 0,
-      requires_specialist: transaction['type'] === 'Specialist',
+      name: String(service['name'] ?? ''),
+      description: String(service['description'] ?? ''),
+      price: Number(service['price'] ?? 0),
+      duration_minutes: Number(service['duration_minutes'] ?? 0),
+      requires_specialist: service['requires_specialist'] === true || service['requires_specialist'] === 'true',
+      active: service['active'] !== false && service['active'] !== 'false',
     });
     if (error) throw error;
   }
 
-  async remove(transaction: TableRow) {
-    const { error } = await this.supabase.client.from('services').delete().eq('id', transaction['id']);
+  async remove(service: TableRow) {
+    const { error } = await this.supabase.client
+      .from('services')
+      .update({
+        active: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', service['id']);
+
     if (error) throw error;
   }
 
-  async update(transaction: TableRow) {
+  async update(service: TableRow) {
     const { error } = await this.supabase.client.from('services').update({
-      name: String(transaction['action'] ?? ''),
-      description: String(transaction['category'] ?? ''),
-      price: Number.parseFloat(String(transaction['amount'] ?? '').replace(/[^0-9.]/g, '')) || 0,
-      duration_minutes: Number.parseInt(String(transaction['date'] ?? ''), 10) || 0,
-      requires_specialist: transaction['type'] === 'Specialist',
-    }).eq('id', transaction['id']);
+      name: String(service['name'] ?? ''),
+      description: String(service['description'] ?? ''),
+      price: Number(service['price'] ?? 0),
+      duration_minutes: Number(service['duration_minutes'] ?? 0),
+      requires_specialist: service['requires_specialist'] === true || service['requires_specialist'] === 'true',
+      active: service['active'] !== false && service['active'] !== 'false',
+      updated_at: new Date().toISOString(),
+    }).eq('id', service['id']);
     if (error) throw error;
   }
 }
