@@ -17,16 +17,19 @@ import { ImagesComponent } from './pages/ui-elements/images/images.component';
 import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
+import { ConfirmEmailComponent } from './pages/auth-pages/confirm-email/confirm-email.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { CalendarioComponent } from './pages/agenda/calendario.component';
 import { ClientesTableComponent } from './pages/clientes/clientes-table.component';
 import { MascotasTableComponent } from './pages/mascotas/mascotas-table.component';
 import { ServiciosComponent } from './pages/servicios/servicios.component';
+import { authGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path:'',
     component:AppLayoutComponent,
+    canActivate: [authGuard],
     children:[
       {
         path: '',
@@ -138,6 +141,11 @@ export const routes: Routes = [
     path:'signup',
     component:SignUpComponent,
     title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
+  },
+  {
+    path:'confirm-email',
+    component:ConfirmEmailComponent,
+    title:'Confirma tu correo | Spa & Boutique Pandas 11'
   },
   // error pages
   {

@@ -1,0 +1,35 @@
+<app-auth-page-layout>
+  <main class="flex flex-col justify-center flex-1 w-full max-w-md px-6 mx-auto lg:w-1/2">
+    <div class="text-center">
+      <div class="flex items-center justify-center w-16 h-16 mx-auto mb-6 rounded-full bg-success-50 dark:bg-success-500/10">
+        <svg class="w-8 h-8 text-success-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.5 12 14l9-5.5M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z" />
+        </svg>
+      </div>
+
+      <h1 class="mb-3 font-semibold text-gray-800 text-title-md dark:text-white/90">
+        Revisa tu correo electrónico
+      </h1>
+      <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+        Te enviamos un enlace de confirmación{{ email ? ' a ' : '' }}
+        @if (email) {
+          <strong class="font-medium text-gray-700 dark:text-gray-200">{{ email }}</strong>
+        }
+        .
+      </p>
+      <p class="mb-8 text-sm text-gray-500 dark:text-gray-400">
+        Abre el mensaje en Gmail y confirma tu correo para activar tu cuenta. Revisa también la carpeta de spam.
+      </p>
+
+      <a
+        routerLink="/signin"
+        class="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+      >
+        Ir a iniciar sesión
+      </a>
+      <a routerLink="/signup" class="inline-block mt-4 text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400">
+        Usar otro correo
+      </a>
+    </div>
+  </main>
+</app-auth-page-layout>

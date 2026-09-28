@@ -21,7 +21,7 @@
       </div>
 
       <!-- OAuth Buttons -->
-     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
+     <!-- <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
         <button class="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
           <svg
             width="20"
@@ -62,10 +62,10 @@
           </svg>
           Sign in with X
         </button>
-      </div>
+      </div> -->
 
       <!-- Divider -->
-      <div class="relative py-3 sm:py-5">
+      <!-- <div class="relative py-3 sm:py-5">
         <div class="absolute inset-0 flex items-center">
           <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
         </div>
@@ -74,7 +74,7 @@
             Or
           </span>
         </div>
-      </div>
+      </div> -->
 
       <!-- Form -->
       <form (ngSubmit)="onSignIn()" class="space-y-6">
@@ -87,6 +87,7 @@
             name="email"
             class="form-input"
             required
+            (valueChange)="email = $event.toString()"
           />
         </div>
 
@@ -101,6 +102,7 @@
               class="form-input"
               className="ltr:pr-11 rtl:pl-11"
               required
+              (valueChange)="password = $event.toString()"
             />
             <span
               (click)="togglePasswordVisibility()"
@@ -133,11 +135,16 @@
         <app-button
           className="w-full"
           size="sm"
+          [disabled]="isLoading"
           (btnClick)="onSignIn()"
         >
-          Sign in
+          {{ isLoading ? 'Signing in...' : 'Sign in' }}
         </app-button>
       </form>
+
+      @if (errorMessage) {
+      <p class="mt-3 text-sm text-error-500" role="alert">{{ errorMessage }}</p>
+      }
 
       <div class="mt-5">
         <p class="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">

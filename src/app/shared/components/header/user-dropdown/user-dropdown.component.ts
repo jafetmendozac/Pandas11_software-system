@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { SupabaseService } from '../../../services/supabase.service';
 
 export interface Language {
   id: string;
@@ -49,7 +50,11 @@ export class UserDropdownComponent implements OnInit {
     },
   ];
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(
+    private elementRef: ElementRef,
+    private readonly supabase: SupabaseService,
+    private readonly router: Router,
+  ) {}
 
   ngOnInit(): void {
     const savedDir = localStorage.getItem('dir');
@@ -77,6 +82,16 @@ export class UserDropdownComponent implements OnInit {
   closeDropdown(): void {
     this.isOpen = false;
     this.subDropdownOpen = false;
+  }
+
+  async signOut(): Promise<void> {
+    try {
+      await this.supabase.signOut();
+      this.closeDropdown();
+      await this.router.navigateByUrl('/signin');
+    } catch (error) {
+      console.error('No se pudo cerrar la sesión.', error);
+    }
   }
 
   toggleSubDropdown(event: Event): void {

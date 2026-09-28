@@ -31,6 +31,33 @@ export class SupabaseService {
     return data;
   }
 
+  async signUpWithEmail(email: string, password: string, metadata?: Record<string, string>) {
+    const { data, error } = await this.supabase.auth.signUp({
+      email,
+      password,
+      options: metadata ? { data: metadata } : undefined,
+    });
+    if (error) {
+      throw error;
+    }
+    return data;
+  }
+
+  async getSession() {
+    const { data, error } = await this.supabase.auth.getSession();
+    if (error) {
+      throw error;
+    }
+    return data.session;
+  }
+
+  async signOut() {
+    const { error } = await this.supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
+  }
+
   // Ejemplo de un método para obtener datos
   async getClients() {
     const { data, error } = await this.supabase
