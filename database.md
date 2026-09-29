@@ -1,5 +1,30 @@
 // https://dbdiagram.io/Í
 
+Table roles {
+  id uuid [pk]
+  name text [unique]        // OWNER, ADMIN, RECEPTIONIST, GROOMER
+  description text
+}
+
+Table permissions {
+  id uuid [pk]
+  code text [unique]        // 'appointments.create', 'payments.refund', 'reports.view'
+  description text
+}
+
+Table role_permissions {
+  role_id uuid [ref: > roles.id]
+  permission_id uuid [ref: > permissions.id]
+  indexes { (role_id, permission_id) [pk] }
+}
+
+Table user_roles {
+  user_id uuid [ref: > profiles.id]
+  role_id uuid [ref: > roles.id]
+  branch_id uuid [ref: > branches.id] // el rol puede ser por sucursal
+  indexes { (user_id, role_id, branch_id) [pk] }
+}
+
 // Tipos ENUM requeridos para pets
 Enum pet_sex {
   MALE
