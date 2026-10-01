@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ModalService } from '../../../services/modal.service';
+import { ProfilesService } from '../../../services/profiles.service';
 import { InputFieldComponent } from '../../form/input/input-field.component';
 
 import { ModalComponent } from '../../ui/modal/modal.component';
@@ -17,34 +18,78 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './user-meta-card.component.html',
   styles: ``
 })
-export class UserMetaCardComponent {
+export class UserMetaCardComponent implements OnInit {
 
-  constructor(public modal: ModalService) {}
+  constructor(
+    public modal: ModalService,
+    private readonly profilesService: ProfilesService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   isInfoModalOpen = false;
-  openInfoModal() { this.isInfoModalOpen = true; }
-  closeInfoModal() { this.isInfoModalOpen = false; }
+  isSaving = false;
+  errorMessage = '';
+  accessMethod = '';
 
-  // Example user data (could be made dynamic)
   user = {
-    firstName: 'Chowdury',
-    lastName: 'Musharof',
-    role: 'Team Manager',
-    location: 'Arizona, United States.',
+    firstName: '',
+    lastName: '',
+    email: '',
+    active: true,
     avatar: '/images/user/owner.png',
-    social: {
-      facebook: 'https://www.facebook.com/PimjoHQ',
-      x: 'https://x.com/PimjoHQ',
-      linkedin: 'https://www.linkedin.com/company/pimjohq',
-      instagram: 'https://instagram.com/pimjohq',
-    },
-    email: 'randomuser@pimjo.com',
-    phone: '+09 363 398 46',
-    bio: 'Team Manager',
   };
 
-  handleInfoSave() {
-    console.log('Saving profile changes:', this.user);
-    this.closeInfoModal();
+  get fullName(): string {
+    const name = `${this.user.firstName} ${this.user.lastName}`.trim();
+    return name || this.user.email || 'Sin nombre';
+  }
+
+  async ngOnInit() {
+    try {
+      const account = await this.profilesService.getCurrent();
+      this.user.email = account.email;
+      this.user.firstName = account.profile?.first_name ?? account.metadata.first_name ?? '';
+      this.user.lastName = account.profile?.last_name ?? account.metadata.last_name ?? '';
+      this.user.active = account.profile?.active ?? true;
+      this.accessMethod = account.providerLabel;
+      this.changeDetectorRef.detectChanges();
+    } catch (error) {
+      console.error('No se pudo cargar el perfil.', error);
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : 'No se pudo cargar el perfil.';
+    }
+  }
+
+  openInfoModal() {
+    this.errorMessage = '';
+    this.isInfoModalOpen = true;
+  }
+
+  closeInfoModal() {
+    this.isInfoModalOpen = false;
+    this.errorMessage = '';
+  }
+
+  async handleInfoSave() {
+    if (this.isSaving) return;
+    this.isSaving = true;
+    this.errorMessage = '';
+    try {
+      await this.profilesService.update({
+        first_name: this.user.firstName.trim(),
+        last_name: this.user.lastName.trim(),
+      });
+      this.closeInfoModal();
+      this.changeDetectorRef.detectChanges();
+    } catch (error) {
+      console.error('No se pudo guardar el perfil.', error);
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : 'No se pudo guardar el perfil.';
+    } finally {
+      this.isSaving = false;
+      this.changeDetectorRef.detectChanges();
+    }
   }
 }

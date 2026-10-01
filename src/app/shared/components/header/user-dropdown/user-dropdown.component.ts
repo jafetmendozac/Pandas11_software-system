@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { SupabaseService } from '../../../services/supabase.service';
+import { ProfilesService } from '../../../services/profiles.service';
 
 export interface Language {
   id: string;
@@ -21,6 +22,14 @@ export class UserDropdownComponent implements OnInit {
   isOpen = false;
   subDropdownOpen = false;
   currentLocale = 'en';
+  firstName = '';
+  lastName = '';
+  email = '';
+
+  get displayName(): string {
+    const name = `${this.firstName} ${this.lastName}`.trim();
+    return name || this.email || 'Mi cuenta';
+  }
 
   languages: Language[] = [
     {
@@ -53,6 +62,7 @@ export class UserDropdownComponent implements OnInit {
   constructor(
     private elementRef: ElementRef,
     private readonly supabase: SupabaseService,
+    private readonly profilesService: ProfilesService,
     private readonly router: Router,
   ) {}
 
@@ -64,6 +74,19 @@ export class UserDropdownComponent implements OnInit {
     } else {
       this.currentLocale = 'en';
       document.documentElement.setAttribute('dir', 'ltr');
+    }
+
+    void this.loadAccount();
+  }
+
+  private async loadAccount(): Promise<void> {
+    try {
+      const account = await this.profilesService.getCurrent();
+      this.email = account.email;
+      this.firstName = account.profile?.first_name ?? '';
+      this.lastName = account.profile?.last_name ?? '';
+    } catch (error) {
+      console.error('No se pudo cargar la cuenta.', error);
     }
   }
 
