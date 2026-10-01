@@ -1,0 +1,26 @@
+<app-page-breadcrumb pageTitle="Empleados" />
+<div class="space-y-6">
+  @if (errorMessage()) {
+    <p class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
+      {{ errorMessage() }}
+    </p>
+  }
+  <app-component-card title="Empleados del negocio">
+    @if (loading()) {
+      <p>Cargando empleados...</p>
+    } @else {
+      <app-personalized-table
+        addLabel="Añadir empleado"
+        createTitle="Añadir empleado"
+        editTitle="Editar empleado"
+        searchKey="phone"
+        searchPlaceholder="Buscar por teléfono..."
+        [tableData]="tableData()"
+        [columns]="columns"
+        (rowCreated)="createEmployee($event)"
+        (rowUpdated)="updateEmployee($event)"
+        (rowDeleted)="deleteEmployee($event)">
+      </app-personalized-table>
+    }
+  </app-component-card>
+</div>

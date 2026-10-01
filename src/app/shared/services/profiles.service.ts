@@ -23,9 +23,24 @@ export interface CurrentAccount {
   };
 }
 
+export function profileLabel(profile: Profile | null | undefined): string {
+  if (!profile) return 'Perfil sin nombre';
+  const name = `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim();
+  return name || 'Perfil sin nombre';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProfilesService {
   constructor(private readonly supabase: SupabaseService) {}
+
+  async getAll(): Promise<Profile[]> {
+    const { data, error } = await this.supabase.client
+      .from('profiles')
+      .select('id, first_name, last_name, active, created_at, updated_at')
+      .order('first_name', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return (data ?? []) as Profile[];
+  }
 
   async getCurrent(): Promise<CurrentAccount> {
     const { data, error } = await this.supabase.client.auth.getUser();
