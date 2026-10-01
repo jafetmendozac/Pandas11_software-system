@@ -46,6 +46,8 @@ export class PersonalizedTable {
   @Input() itemsPerPageOptions: number[] = [5, 10, 15];
   @Input() columns: TableColumn[] = [];
   @Input() tableData: TableRow[] = [];
+  @Input() searchKey = '';
+  @Input() searchPlaceholder = 'Buscar...';
 
   @Output() rowCreated = new EventEmitter<TableRow>();
   @Output() rowUpdated = new EventEmitter<TableRow>();
@@ -53,12 +55,22 @@ export class PersonalizedTable {
 
   currentPage = 1;
   itemsPerPage = 5;
+  searchTerm = '';
   isFormOpen = false;
   editingIndex: number | null = null;
   formData: TableRow = {};
 
   get totalPages(): number {
-    return Math.ceil(this.tableData.length / this.itemsPerPage);
+    return Math.ceil(this.filteredTableData.length / this.itemsPerPage);
+  }
+
+  get filteredTableData(): TableRow[] {
+    const term = this.searchTerm.trim().toLocaleLowerCase();
+    if (!term || !this.searchKey) return this.tableData;
+
+    return this.tableData.filter((row) =>
+      String(row[this.searchKey] ?? '').toLocaleLowerCase().includes(term),
+    );
   }
 
   get paginationItems(): PaginationItem[] {
@@ -76,15 +88,20 @@ export class PersonalizedTable {
 
   get currentItems(): TableRow[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.tableData.slice(start, start + this.itemsPerPage);
+    return this.filteredTableData.slice(start, start + this.itemsPerPage);
   }
 
   get firstItemIndex(): number {
-    return this.tableData.length === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
+    return this.filteredTableData.length === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
   }
 
   get lastItemIndex(): number {
-    return Math.min(this.currentPage * this.itemsPerPage, this.tableData.length);
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredTableData.length);
+  }
+
+  onSearch(term: string): void {
+    this.searchTerm = term;
+    this.currentPage = 1;
   }
 
   get editableColumns(): TableColumn[] {

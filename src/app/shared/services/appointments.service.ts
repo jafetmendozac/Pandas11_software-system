@@ -259,11 +259,17 @@ export class AppointmentsService {
   async getServices(): Promise<ServiceOption[]> {
     const { data, error } = await this.supabase.client
       .from('services')
-      .select('id, name, price, duration_minutes, active')
+      .select('id, name, base_price, base_duration_minutes, active')
       .eq('active', true)
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return (data ?? []) as ServiceOption[];
+    return (data ?? []).map((service) => ({
+      id: service.id,
+      name: service.name,
+      price: service.base_price,
+      duration_minutes: service.base_duration_minutes,
+      active: service.active,
+    }));
   }
 }

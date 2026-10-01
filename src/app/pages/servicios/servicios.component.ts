@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
@@ -15,7 +15,10 @@ import { Service, ServiciosService } from '../../shared/services/servicios.servi
   styles: ``
 })
 export class ServiciosComponent implements OnInit {
-  tableData: Service[] = [];
+  tableData = signal<Service[]>([]);
+  errorMessage = signal('');
+  loading = signal(true);
+
   columns: TableColumn[] = [
     {
       key: 'name',
@@ -30,14 +33,14 @@ export class ServiciosComponent implements OnInit {
       helpText: 'Describe brevemente qué incluye el servicio.',
     },
     {
-      key: 'price',
+      key: 'base_price',
       label: 'Precio',
       type: 'number',
       placeholder: 'Ej. 75',
       helpText: 'Ingresa el precio en soles.',
     },
     {
-      key: 'duration_minutes',
+      key: 'base_duration_minutes',
       label: 'Duración (min)',
       type: 'number',
       placeholder: 'Ej. 60',
@@ -60,27 +63,50 @@ export class ServiciosComponent implements OnInit {
         { label: 'Inactivo', value: 'false' },
       ],
     },
+    {
+      key: 'visible_to_clients',
+      label: 'Visible para clientes',
+      options: [
+        { label: 'Sí', value: 'true' },
+        { label: 'No', value: 'false' },
+      ],
+    },
   ];
 
   constructor(private readonly serviciosService: ServiciosService) {}
 
   async ngOnInit() {
+    await this.loadServices();
+  }
+
+  private async loadServices(): Promise<void> {
+    this.loading.set(true);
+    this.errorMessage.set('');
     try {
-      this.tableData = await this.serviciosService.getAll();
+      const data = await this.serviciosService.getAll();
+      this.tableData.set(data);
     } catch (error) {
-      console.error('No se pudieron cargar los servicios.', error);
+      console.error('Error cargando servicios:', error);
+      this.errorMessage.set(
+        error instanceof Error ? error.message : 'No se pudieron cargar los servicios.'
+      );
+    } finally {
+      this.loading.set(false);
     }
   }
 
   async createService(transaction: TableRow) {
     await this.serviciosService.create(transaction);
+    await this.loadServices();
   }
 
   async deleteService(transaction: TableRow) {
     await this.serviciosService.remove(transaction);
+    await this.loadServices();
   }
 
   async updateService(transaction: TableRow) {
     await this.serviciosService.update(transaction);
+    await this.loadServices();
   }
 }
