@@ -1,15 +1,23 @@
 <app-page-breadcrumb pageTitle="Clientes" />
 <div class="space-y-6">
-  <div>
-    <app-component-card title="Listado de clientes">
-      <app-personalized-table
-        title="Clientes"
-        [tableData]="tableData"
-        [columns]="columns"
-        (rowCreated)="createClient($event)"
-        (rowUpdated)="updateClient($event)"
-        (rowDeleted)="deleteClient($event)"
-      />
-    </app-component-card>
-  </div>
+  @if (errorMessage) {
+    <p class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
+      {{ errorMessage }}
+    </p>
+  }
+  <app-component-card title="Listado de clientes">
+    <app-personalized-table
+      title="Clientes"
+      addLabel="Añadir cliente"
+      createTitle="Añadir cliente"
+      editTitle="Editar cliente"
+      searchKey="first_name"
+      searchPlaceholder="Buscar por nombre..."
+      [tableData]="tableData"
+      [columns]="columns"
+      (rowCreated)="createClient($event)"
+      (rowUpdated)="updateClient($event)"
+      (rowDeleted)="deleteClient($event)"
+    />
+  </app-component-card>
 </div>
