@@ -3,6 +3,7 @@ import { PageBreadcrumbComponent } from "../../shared/components/common/page-bre
 import { ComponentCardComponent } from "../../shared/components/common/component-card/component-card.component";
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
+import { Profile, ProfilesService, profileLabel } from '../../shared/services/profiles.service';
 
 
 @Component({
@@ -18,7 +19,15 @@ import { Client, ClientesService } from '../../shared/services/clientes.service'
 export class ClientesTableComponent implements OnInit {
   tableData: Client[] = [];
   errorMessage = '';
+  profiles: Profile[] = [];
   columns: TableColumn[] = [
+    {
+      key: 'profile_id',
+      label: 'Perfil relacionado',
+      helpText: 'Une este cliente con un perfil existente.',
+      required: false,
+      options: [],
+    },
     {
       key: 'first_name',
       label: 'Nombre',
@@ -83,7 +92,10 @@ export class ClientesTableComponent implements OnInit {
     },
   ];
 
-  constructor(private readonly clientesService: ClientesService) {}
+  constructor(
+    private readonly clientesService: ClientesService,
+    private readonly profilesService: ProfilesService,
+  ) {}
 
   async ngOnInit() {
     await this.loadClients();
@@ -91,7 +103,26 @@ export class ClientesTableComponent implements OnInit {
 
   private async loadClients(): Promise<void> {
     try {
-      this.tableData = await this.clientesService.getAll();
+      const [clients, profiles] = await Promise.all([
+        this.clientesService.getAll(),
+        this.profilesService.getAll(),
+      ]);
+      this.tableData = clients;
+      this.profiles = profiles;
+      this.columns = this.columns.map((column) =>
+        column.key === 'profile_id'
+          ? {
+              ...column,
+              options: [
+                { label: 'Sin perfil', value: '' },
+                ...profiles.map((profile) => ({
+                  label: profileLabel(profile),
+                  value: profile.id,
+                })),
+              ],
+            }
+          : column,
+      );
     } catch (error) {
       console.error('No se pudieron cargar los clientes.', error);
       this.errorMessage = error instanceof Error

@@ -38,6 +38,7 @@ export class ClientesService {
     const now = new Date().toISOString();
     const { error } = await this.supabase.client.from('clients').insert({
       id: crypto.randomUUID(),
+      profile_id: this.toNullableString(client['profile_id']),
       first_name: String(client['first_name'] ?? ''),
       last_name: String(client['last_name'] ?? ''),
       phone: this.toNullableString(client['phone']),
@@ -68,6 +69,7 @@ export class ClientesService {
 
   async update(client: TableRow) {
     const { error } = await this.supabase.client.from('clients').update({
+      profile_id: this.toNullableString(client['profile_id']),
       first_name: String(client['first_name'] ?? ''),
       last_name: String(client['last_name'] ?? ''),
       phone: this.toNullableString(client['phone']),
