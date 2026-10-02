@@ -934,6 +934,36 @@ html.dark full-calendar,
   @apply min-h-screen;
 }
 
+/* Appointments calendar: fit the viewport instead of growing the page */
+.custom-calendar--fit {
+  height: var(--fit-h, 72vh);
+}
+.custom-calendar--fit .fc.fc-media-screen {
+  min-height: 0;
+}
+
+/* Day headers: full weekday on desktop, single initial on small screens */
+.custom-calendar .fc-dow-initial {
+  display: none;
+}
+@media (max-width: 639px) {
+  .custom-calendar .fc-dow-name,
+  .custom-calendar .fc-dow-sep {
+    display: none;
+  }
+  .custom-calendar .fc-dow-initial {
+    display: inline;
+    margin-inline-end: 0.25em;
+  }
+  .custom-calendar .fc-col-header-cell-cushion {
+    padding-block: 0.5rem !important;
+    padding-inline: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+  }
+}
+
 /* yearly calender css start */
 .fc-multiMonth-view,
 .fc-multiMonthYear-view,

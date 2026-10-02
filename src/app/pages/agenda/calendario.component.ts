@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, DateSelectInfo, EventClickInfo, EventInput } from 'fullcalendar';
@@ -37,7 +37,7 @@ export interface CalendarEvent extends EventInput {
   templateUrl: './calendario.component.html',
   styles: ``
 })
-export class CalendarioComponent implements OnInit {
+export class CalendarioComponent implements OnInit, AfterViewInit {
   @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
 
   events: CalendarEvent[] = [];
@@ -210,15 +210,18 @@ export class CalendarioComponent implements OnInit {
           slotMinTime: '6:00:00',
           slotMaxTime: '19:00:00',
           slotHeaderFormat: { hour: 'numeric', hour12: true },
-          slotMinHeight: 80,
+          slotMinHeight: 56,
           expandRows: true,
           allDaySlot: true,
           dayHeaderContent: (arg: any) => {
-            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' })
-              .format(arg.date)
-              .toUpperCase();
+            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
+              arg.date
+            );
             const day = new Intl.DateTimeFormat(locale, { day: 'numeric' }).format(arg.date);
-            return `${weekday} - ${day}`;
+            const initial = weekday.charAt(0).toUpperCase();
+            return {
+              html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
+            };
           },
           dayHeaderClass: (data: any) =>
             `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
@@ -249,11 +252,14 @@ export class CalendarioComponent implements OnInit {
           expandRows: true,
           allDaySlot: true,
           dayHeaderContent: (arg: any) => {
-            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' })
-              .format(arg.date)
-              .toUpperCase();
+            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
+              arg.date
+            );
             const day = new Intl.DateTimeFormat(locale, { day: 'numeric' }).format(arg.date);
-            return `${weekday} - ${day}`;
+            const initial = weekday.charAt(0).toUpperCase();
+            return {
+              html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
+            };
           },
           dayHeaderClass: (data: any) =>
             `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
@@ -282,6 +288,7 @@ export class CalendarioComponent implements OnInit {
       // Body configuration
       borderless: true,
       expandRows: true,
+      height: '100%',
       slotMinHeight: 56,
       slotHeaderDividerClass:
         'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
@@ -319,9 +326,30 @@ export class CalendarioComponent implements OnInit {
           if (chunk) {
             this.renderViewSelect(chunk, this.currentView);
           }
+          this.updateFitHeight();
         });
       }
     };
+  }
+
+  ngAfterViewInit() {
+    this.updateFitHeight();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateFitHeight();
+  }
+
+  private updateFitHeight() {
+    requestAnimationFrame(() => {
+      const host: HTMLElement | null =
+        this.elRef.nativeElement.querySelector('.custom-calendar');
+      if (!host) return;
+      const offsetTop = host.getBoundingClientRect().top + window.scrollY;
+      const available = Math.max(420, Math.round(window.innerHeight - offsetTop - 24));
+      host.style.setProperty('--fit-h', `${available}px`);
+    });
   }
 
   renderViewSelect(containerEl: HTMLElement, activeViewKey: string) {
