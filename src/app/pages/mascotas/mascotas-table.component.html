@@ -1,15 +1,28 @@
 <app-page-breadcrumb pageTitle="Mascotas" />
 <div class="space-y-6">
+  @if (errorMessage()) {
+    <p class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
+      {{ errorMessage() }}
+    </p>
+  }
   <div>
-    <app-component-card title="Listado de mascotas">
-      <app-personalized-table
-        title="Mascotas"
-        [tableData]="tableData"
-        [columns]="columns"
-        (rowCreated)="createPet($event)"
-        (rowUpdated)="updatePet($event)"
-        (rowDeleted)="deletePet($event)"
-      />
+    <app-component-card title="Mascotas del negocio">
+      @if (loading()) {
+        <p>Cargando mascotas...</p>
+      } @else {
+        <app-personalized-table
+          addLabel="Añadir mascota"
+          createTitle="Añadir mascota"
+          editTitle="Editar mascota"
+          searchKey="name"
+          searchPlaceholder="Buscar por nombre..."
+          [tableData]="tableData()"
+          [columns]="columns"
+          (rowCreated)="createPet($event)"
+          (rowUpdated)="updatePet($event)"
+          (rowDeleted)="deletePet($event)"
+        />
+      }
     </app-component-card>
   </div>
 </div>

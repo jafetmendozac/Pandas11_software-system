@@ -2,80 +2,132 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 
+export type PetSex = 'MALE' | 'FEMALE' | 'UNKNOWN';
+export type PetSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
+export type PetCoatType = 'SHORT' | 'MEDIUM' | 'LONG' | 'WIRE' | 'CURLY' | 'HAIRLESS';
+
+export interface Pet extends TableRow {
+  id: string;
+  client_id: string;
+  name: string | null;
+  breed: string | null;
+  pet_sex: PetSex | null;
+  pet_size: PetSize | null;
+  pet_coat_type: PetCoatType | null;
+  weight_kg: number | null;
+  allergies: string | null;
+  bites: boolean;
+  client_notes: string | null;
+  birth_date: string | null;
+  death_date: string | null;
+  active: boolean;
+  deleted_at: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MascotasService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async getAll(): Promise<TableRow[]> {
-    const { data, error } = await this.supabase.client.from('pets').select('*').order('created_at');
+  async getAll(): Promise<Pet[]> {
+    const { data, error } = await this.supabase.client
+      .from('pets')
+      .select(
+        'id, client_id, name, breed, pet_sex, pet_size, pet_coat_type, weight_kg, allergies, bites, client_notes, birth_date, death_date, active, deleted_at, created_at, updated_at'
+      )
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false, nullsFirst: false });
     if (error) throw error;
-    return (data ?? []).map((pet) => ({
-      id: pet.id,
-      image: '/images/brand/brand-07.svg',
-      client_id: pet.client_id ?? '',
-      action: pet.name ?? '',
-      birth_date: pet.birth_date ?? '',
-      death_date: pet.death_date ?? '',
-      amount: pet.weight ?? '',
-      category: pet.breed ?? '',
-      type: pet.pet_size ?? 'Pet',
-      quantity: 0,
-      account: pet.allergies ?? '',
-      method: pet.pet_sex ?? '',
-      pet_coat_type: pet.pet_coat_type ?? '',
-      bites: pet.bites === true ? 'true' : 'false',
-      notes: pet.notes ?? '',
-      active: pet.active === false ? 'false' : 'true',
-      status: pet.active === false ? 'Failed' : 'Success',
+    return ((data ?? []) as Pet[]).map((pet) => ({
+      ...pet,
+      created_at: this.formatDateTime(pet.created_at),
     }));
   }
 
-  async create(transaction: TableRow) {
+  async create(pet: TableRow) {
+    const clientId = String(pet['client_id'] ?? '').trim();
+    if (!clientId) throw new Error('Selecciona un cliente para la mascota.');
+
+    const now = new Date().toISOString();
     const { error } = await this.supabase.client.from('pets').insert({
-      client_id: String(transaction['client_id'] ?? '').trim() || null,
-      name: String(transaction['action'] ?? ''),
-      breed: String(transaction['category'] ?? ''),
-      pet_size: String(transaction['type'] ?? ''),
-      weight: Number.parseFloat(String(transaction['amount'] ?? '')) || null,
-      allergies: String(transaction['account'] ?? ''),
-      pet_sex: String(transaction['method'] ?? ''),
-      pet_coat_type: String(transaction['pet_coat_type'] ?? '') || null,
-      bites: this.toBoolean(transaction['bites']),
-      notes: String(transaction['notes'] ?? '').trim() || null,
-      active: this.toBoolean(transaction['active'], true),
-      birth_date: String(transaction['birth_date'] ?? '').trim() || null,
-      death_date: String(transaction['death_date'] ?? '').trim() || null,
+      id: crypto.randomUUID(),
+      client_id: clientId,
+      name: this.toNullableString(pet['name']),
+      breed: this.toNullableString(pet['breed']),
+      pet_sex: this.toNullableString(pet['pet_sex']),
+      pet_size: this.toNullableString(pet['pet_size']),
+      pet_coat_type: this.toNullableString(pet['pet_coat_type']),
+      weight_kg: this.toNullableNumber(pet['weight_kg']),
+      allergies: this.toNullableString(pet['allergies']),
+      bites: this.toBoolean(pet['bites']),
+      client_notes: this.toNullableString(pet['client_notes']),
+      birth_date: this.toNullableString(pet['birth_date']),
+      death_date: this.toNullableString(pet['death_date']),
+      active: pet['active'] !== false && pet['active'] !== 'false',
+      deleted_at: null,
+      created_at: now,
+      updated_at: now,
     });
     if (error) throw error;
   }
 
-  async remove(transaction: TableRow) {
-    const { error } = await this.supabase.client.from('pets').delete().eq('id', transaction['id']);
+  async remove(pet: TableRow) {
+    const now = new Date().toISOString();
+    const { error } = await this.supabase.client
+      .from('pets')
+      .update({
+        deleted_at: now,
+        active: false,
+        updated_at: now,
+      })
+      .eq('id', pet['id']);
     if (error) throw error;
   }
 
-  async update(transaction: TableRow) {
-    const { error } = await this.supabase.client.from('pets').update({
-      client_id: String(transaction['client_id'] ?? '').trim() || null,
-      name: String(transaction['action'] ?? ''),
-      breed: String(transaction['category'] ?? ''),
-      pet_size: String(transaction['type'] ?? ''),
-      weight: Number.parseFloat(String(transaction['amount'] ?? '')) || null,
-      allergies: String(transaction['account'] ?? ''),
-      pet_sex: String(transaction['method'] ?? ''),
-      pet_coat_type: String(transaction['pet_coat_type'] ?? '') || null,
-      bites: this.toBoolean(transaction['bites']),
-      notes: String(transaction['notes'] ?? '').trim() || null,
-      active: this.toBoolean(transaction['active'], true),
-      birth_date: String(transaction['birth_date'] ?? '').trim() || null,
-      death_date: String(transaction['death_date'] ?? '').trim() || null,
-    }).eq('id', transaction['id']);
+  async update(pet: TableRow) {
+    const clientId = String(pet['client_id'] ?? '').trim();
+    if (!clientId) throw new Error('Selecciona un cliente para la mascota.');
+
+    const { error } = await this.supabase.client
+      .from('pets')
+      .update({
+        client_id: clientId,
+        name: this.toNullableString(pet['name']),
+        breed: this.toNullableString(pet['breed']),
+        pet_sex: this.toNullableString(pet['pet_sex']),
+        pet_size: this.toNullableString(pet['pet_size']),
+        pet_coat_type: this.toNullableString(pet['pet_coat_type']),
+        weight_kg: this.toNullableNumber(pet['weight_kg']),
+        allergies: this.toNullableString(pet['allergies']),
+        bites: this.toBoolean(pet['bites']),
+        client_notes: this.toNullableString(pet['client_notes']),
+        birth_date: this.toNullableString(pet['birth_date']),
+        death_date: this.toNullableString(pet['death_date']),
+        active: pet['active'] !== false && pet['active'] !== 'false',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', pet['id']);
     if (error) throw error;
   }
 
-  private toBoolean(value: unknown, fallback = false): boolean {
+  private formatDateTime(isoDate: string | null | undefined): string {
+    if (!isoDate) return '';
+    return isoDate.replace('T', ' ').slice(0, 16);
+  }
+
+  private toNullableString(value: unknown): string | null {
+    const text = String(value ?? '').trim();
+    return text || null;
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    const parsed = Number.parseFloat(String(value ?? ''));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private toBoolean(value: unknown): boolean {
     if (typeof value === 'boolean') return value;
-    if (typeof value === 'string') return value.toLowerCase() === 'true';
-    return fallback;
+    return value === 'true';
   }
 }
