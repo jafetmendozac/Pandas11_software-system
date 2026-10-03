@@ -83,6 +83,15 @@
                     </button>
                   </div>
                   <div dropdown-content>
+                    @if (detailsLabel) {
+                    <button
+                      type="button"
+                      (click)="rowDetails.emit(item)"
+                      class="text-xs flex w-full rounded-lg px-3 py-2 text-start font-medium text-brand-500 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10"
+                    >
+                      {{ detailsLabel }}
+                    </button>
+                    }
                     @if (allowEdit) {
                     <button
                       type="button"
@@ -145,8 +154,17 @@
         }
       </dl>
 
-      @if (allowEdit || allowDelete) {
+      @if (detailsLabel || allowEdit || allowDelete) {
       <div class="mt-4 flex justify-end gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.08]">
+        @if (detailsLabel) {
+        <button
+          type="button"
+          (click)="rowDetails.emit(item)"
+          class="rounded-lg px-3 py-2 text-xs font-medium text-brand-500 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10"
+        >
+          {{ detailsLabel }}
+        </button>
+        }
         @if (allowEdit) {
         <button
           type="button"

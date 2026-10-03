@@ -48,10 +48,12 @@ export class PersonalizedTable {
   @Input() tableData: TableRow[] = [];
   @Input() searchKey = '';
   @Input() searchPlaceholder = 'Buscar...';
+  @Input() detailsLabel = '';
 
   @Output() rowCreated = new EventEmitter<TableRow>();
   @Output() rowUpdated = new EventEmitter<TableRow>();
   @Output() rowDeleted = new EventEmitter<TableRow>();
+  @Output() rowDetails = new EventEmitter<TableRow>();
 
   currentPage = 1;
   itemsPerPage = 5;
