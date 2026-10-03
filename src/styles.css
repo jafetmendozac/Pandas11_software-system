@@ -946,6 +946,17 @@ html.dark full-calendar,
 .custom-calendar .fc-dow-initial {
   display: none;
 }
+
+/* FullCalendar 7 renders the day-header cushion as a column flex: keep our
+   "lun - 28" markup in a single row instead of stacking the pieces */
+.custom-calendar .fc-day-head {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+.custom-calendar .fc-dow-sep {
+  padding-inline: 0.2em;
+}
+
 @media (max-width: 639px) {
   .custom-calendar .fc-dow-name,
   .custom-calendar .fc-dow-sep {
@@ -955,13 +966,29 @@ html.dark full-calendar,
     display: inline;
     margin-inline-end: 0.25em;
   }
-  .custom-calendar .fc-col-header-cell-cushion {
+  .custom-calendar .fc-day-head {
     padding-block: 0.5rem !important;
     padding-inline: 0 !important;
     font-size: 11px !important;
     line-height: 1.2 !important;
     white-space: nowrap;
   }
+}
+
+/* Sundays are blocked: no appointments can be created */
+.custom-calendar .fc-day-blocked,
+.custom-calendar .fc-day-blocked-header {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(148, 163, 184, 0.16) 0 6px,
+    transparent 6px 12px
+  ) !important;
+}
+.custom-calendar .fc-day-blocked {
+  cursor: not-allowed;
+}
+.custom-calendar .fc-day-blocked-header .fc-day-head {
+  color: var(--color-gray-400, #98a2b3) !important;
 }
 
 /* yearly calender css start */

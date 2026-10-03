@@ -207,12 +207,12 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
         },
         timeGridWeek: {
           slotDuration: '01:00:00',
-          slotMinTime: '6:00:00',
-          slotMaxTime: '19:00:00',
+          slotMinTime: '7:00:00',
+          slotMaxTime: '18:00:00',
           slotHeaderFormat: { hour: 'numeric', hour12: true },
           slotMinHeight: 56,
           expandRows: true,
-          allDaySlot: true,
+          allDaySlot: false,
           dayHeaderContent: (arg: any) => {
             const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
               arg.date
@@ -223,23 +223,17 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
               html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
             };
           },
-          dayHeaderClass: (data: any) =>
-            `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
-              data.isToday ? 'bg-gray-100/70! dark:bg-gray-800/60!' : ''
-            }`,
+          dayHeaderClass: this.timeGridDayHeaderClass,
           dayHeaderInnerClass: (data: any) =>
-            `px-3! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
+            `fc-day-head px-3! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
               data.isToday ? 'font-semibold! text-brand-500! dark:text-brand-400!' : ''
             }`,
           slotHeaderDividerClass:
             'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
           slotHeaderClass:
-            'px-3! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
+            'px-0! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
           slotLaneClass: 'border-gray-100! dark:border-gray-800/60!',
-          dayLaneClass: (data: any) =>
-            `border-gray-200! dark:border-gray-800! ${
-              data.isToday ? 'bg-brand-50/15! dark:bg-brand-500/[0.03]!' : ''
-            }`,
+          dayLaneClass: this.timeGridDayLaneClass,
           allDayDividerClass:
             'border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!',
           allDayHeaderClass:
@@ -247,10 +241,12 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
         },
         timeGridDay: {
           slotDuration: '00:30:00',
+          slotMinTime: '7:00:00',
+          slotMaxTime: '18:00:00',
           slotHeaderFormat: { hour: 'numeric', hour12: true },
           slotMinHeight: 48,
           expandRows: true,
-          allDaySlot: true,
+          allDaySlot: false,
           dayHeaderContent: (arg: any) => {
             const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
               arg.date
@@ -261,23 +257,17 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
               html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
             };
           },
-          dayHeaderClass: (data: any) =>
-            `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
-              data.isToday ? 'bg-gray-100/70! dark:bg-gray-800/60!' : ''
-            }`,
+          dayHeaderClass: this.timeGridDayHeaderClass,
           dayHeaderInnerClass: (data: any) =>
-            `px-4! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
+            `fc-day-head px-4! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
               data.isToday ? 'font-semibold! text-brand-500! dark:text-brand-400!' : ''
             }`,
           slotHeaderDividerClass:
             'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
           slotHeaderClass:
-            'px-3! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
+            'px-0! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
           slotLaneClass: 'border-gray-100! dark:border-gray-800/60!',
-          dayLaneClass: (data: any) =>
-            `border-gray-200! dark:border-gray-800! ${
-              data.isToday ? 'bg-brand-50/15! dark:bg-brand-500/[0.03]!' : ''
-            }`,
+          dayLaneClass: this.timeGridDayLaneClass,
           allDayDividerClass:
             'border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!',
           allDayHeaderClass:
@@ -315,7 +305,13 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
 
       selectable: true,
       events: this.events,
-      select: (info) => this.handleDateSelect(info),
+      select: (info) => {
+        if (this.touchesSunday(info.start, info.end)) {
+          this.calendarComponent?.getApi().unselect();
+          return;
+        }
+        this.handleDateSelect(info);
+      },
       eventClick: (info) => this.handleEventClick(info),
       eventContent: (arg) => this.renderEventContent(arg),
       datesSet: (arg: any) => {
@@ -350,6 +346,25 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
       const available = Math.max(420, Math.round(window.innerHeight - offsetTop - 24));
       host.style.setProperty('--fit-h', `${available}px`);
     });
+  }
+
+  private readonly timeGridDayHeaderClass = (data: any) =>
+    `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
+      data.isToday ? 'bg-gray-100/70! dark:bg-gray-800/60!' : ''
+    } ${this.isSunday(data.date) ? 'fc-day-blocked-header' : ''}`;
+
+  private readonly timeGridDayLaneClass = (data: any) =>
+    `border-gray-200! dark:border-gray-800! ${
+      data.isToday ? 'bg-brand-50/15! dark:bg-brand-500/[0.03]!' : ''
+    } ${this.isSunday(data.date) ? 'fc-day-blocked' : ''}`;
+
+  private isSunday(date: Date | string | number): boolean {
+    return new Date(date).getDay() === 0;
+  }
+
+  private touchesSunday(start: Date, end: Date): boolean {
+    const lastSelected = new Date(end.getTime() - 1);
+    return start.getDay() === 0 || lastSelected.getDay() === 0;
   }
 
   renderViewSelect(containerEl: HTMLElement, activeViewKey: string) {
@@ -458,6 +473,9 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
     this.eventStartDate = this.toDateTimeInputValue(new Date());
     this.recalculateEndDate();
     this.eventLevel = 'Primary';
+    if (this.isSunday(this.eventStartDate)) {
+      this.errorMessage = 'Los domingos no se pueden agendar citas. Elige otra fecha.';
+    }
     this.openModal();
   }
 
@@ -488,6 +506,7 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
   }
 
   onStartDateChange() {
+    this.errorMessage = '';
     this.recalculateEndDate();
   }
 
@@ -533,6 +552,11 @@ export class CalendarioComponent implements OnInit, AfterViewInit {
       this.selectedServiceIds.length === 0
     ) {
       this.errorMessage = 'Completa cliente, mascota, empleado, fecha de inicio y al menos un servicio.';
+      return;
+    }
+
+    if (this.isSunday(this.eventStartDate) && !this.selectedEvent?.id) {
+      this.errorMessage = 'Los domingos no se pueden agendar citas. Elige otra fecha.';
       return;
     }
 
