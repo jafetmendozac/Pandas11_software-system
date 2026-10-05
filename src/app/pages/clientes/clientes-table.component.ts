@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { ComponentCardComponent } from "../../shared/components/common/component-card/component-card.component";
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
@@ -137,6 +137,7 @@ export class ClientesTableComponent implements OnInit {
     private readonly clientesService: ClientesService,
     private readonly profilesService: ProfilesService,
     private readonly mascotasService: MascotasService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
@@ -144,6 +145,7 @@ export class ClientesTableComponent implements OnInit {
   }
 
   private async loadClients(): Promise<void> {
+    this.errorMessage = '';
     try {
       const [clients, profiles, pets] = await Promise.all([
         this.clientesService.getAll(),
@@ -172,6 +174,8 @@ export class ClientesTableComponent implements OnInit {
       this.errorMessage = error instanceof Error
         ? error.message
         : 'No se pudieron cargar los clientes.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -222,6 +226,8 @@ export class ClientesTableComponent implements OnInit {
       this.selectedClientPets = pets.filter((pet) => pet.client_id === this.selectedClient?.id);
     } catch (error) {
       this.petsErrorMessage = error instanceof Error ? error.message : 'No se pudo guardar la mascota.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 
