@@ -34,6 +34,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children:[
       {
+        path: 'configuracion',
+        loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent),
+        title: 'Settings | Spa & Boutique Pandas 11',
+      },
+      {
         path: '',
         component: EcommerceComponent,
         pathMatch: 'full',
