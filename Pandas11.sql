@@ -98,25 +98,58 @@ CREATE TYPE "billing_doc_status" AS ENUM (
 
 -- ---------- TABLAS ----------
 
+-- CREATE TABLE "profiles" (
+--   "id" uuid PRIMARY KEY,
+--   "first_name" text,
+--   "last_name" text,
+--   "active" boolean DEFAULT true,
+--   "created_at" timestamptz,
+--   "updated_at" timestamptz
+-- );
 CREATE TABLE "profiles" (
-  "id" uuid PRIMARY KEY,
-  "first_name" text,
-  "last_name" text,
-  "active" boolean DEFAULT true,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+    id uuid PRIMARY KEY
+        REFERENCES auth.users(id)
+        ON DELETE CASCADE,
+
+    first_name text,
+    last_name text,
+
+    active boolean NOT NULL DEFAULT true,
+
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- CREATE TABLE "roles" (
+--   "id" uuid PRIMARY KEY,
+--   "name" text UNIQUE,
+--   "description" text
+-- );
 CREATE TABLE "roles" (
-  "id" uuid PRIMARY KEY,
-  "name" text UNIQUE,
-  "description" text
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  code text NOT NULL UNIQUE,
+  name text NOT NULL UNIQUE,
+  description text,
+
+  active boolean NOT NULL DEFAULT true,
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- CREATE TABLE "permissions" (
+--   "id" uuid PRIMARY KEY,
+--   "code" text UNIQUE,
+--   "description" text
+-- );
 CREATE TABLE "permissions" (
-  "id" uuid PRIMARY KEY,
-  "code" text UNIQUE,
-  "description" text
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  code text NOT NULL UNIQUE,
+  description text NOT NULL,
+
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "role_permissions" (
