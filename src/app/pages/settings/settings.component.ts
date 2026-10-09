@@ -4,17 +4,19 @@ import { RouterLink } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { ThemeService } from '../../shared/services/theme.service';
+import { RoleSettingsComponent } from '../../shared/components/settings/role-settings/role-settings.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent],
+  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent, RoleSettingsComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
   private readonly themeService = inject(ThemeService);
   theme: 'light' | 'dark' = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   direction: 'ltr' | 'rtl' = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
+  section: 'home' | 'appearance' | 'roles' = 'home';
   message = '';
   error = false;
 

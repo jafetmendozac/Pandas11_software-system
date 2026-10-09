@@ -132,6 +132,7 @@ CREATE TABLE "roles" (
   name text NOT NULL UNIQUE,
   description text,
 
+  is_system boolean NOT NULL DEFAULT false,
   active boolean NOT NULL DEFAULT true,
 
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -152,15 +153,27 @@ CREATE TABLE "permissions" (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- CREATE TABLE "role_permissions" (
+--   "role_id" uuid,
+--   "permission_id" uuid,
+--   PRIMARY KEY ("role_id", "permission_id")
+-- );
+
+-- CREATE TABLE "user_roles" (
+--   "user_id" uuid,
+--   "role_id" uuid,
+--   PRIMARY KEY ("user_id", "role_id")
+-- );
+
 CREATE TABLE "role_permissions" (
-  "role_id" uuid,
-  "permission_id" uuid,
+  "role_id" uuid NOT NULL REFERENCES "roles"("id") ON DELETE CASCADE,
+  "permission_id" uuid NOT NULL REFERENCES "permissions"("id") ON DELETE CASCADE,
   PRIMARY KEY ("role_id", "permission_id")
 );
 
 CREATE TABLE "user_roles" (
-  "user_id" uuid,
-  "role_id" uuid,
+  "user_id" uuid NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "role_id" uuid NOT NULL REFERENCES "roles"("id") ON DELETE CASCADE,
   PRIMARY KEY ("user_id", "role_id")
 );
 

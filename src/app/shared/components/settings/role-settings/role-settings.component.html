@@ -1,0 +1,86 @@
+<section class="space-y-6" aria-labelledby="access-title">
+  <div><h2 id="access-title" class="text-xl font-semibold text-gray-800 dark:text-white/90">Roles &amp; permissions</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create roles and manage their existing permissions.</p></div>
+  @if (notice()) {
+    <p role="status" aria-live="polite" class="rounded-xl border p-4 text-sm" [class]="failed() ? 'border-error-200 bg-error-50 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400' : 'border-success-200 bg-success-50 text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400'">{{ notice() }}</p>
+  }
+  @if (loading()) {
+    <p role="status" class="text-sm text-gray-500 dark:text-gray-400">Loading roles and permissions…</p>
+  } @else if (loadFailed()) {
+    <button type="button" (click)="load()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Retry loading</button>
+  } @else {
+    <nav aria-label="Role settings" class="flex flex-wrap gap-3">
+      <button type="button" (click)="tab = 'roles'" [disabled]="busy()" [attr.aria-pressed]="tab === 'roles'" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700" [class.border-brand-500]="tab === 'roles'">Manage roles</button>
+      <button type="button" (click)="tab = 'permissions'" [disabled]="busy()" [attr.aria-pressed]="tab === 'permissions'" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700" [class.border-brand-500]="tab === 'permissions'">Link permissions</button>
+    </nav>
+    @if (tab === 'roles') {
+    @if (showRoleForm) {
+    <div class="grid gap-6">
+      <app-component-card [title]="editingId ? 'Edit role' : 'Create role'" desc="Role codes and names must be unique.">
+        <form #roleForm="ngForm" (ngSubmit)="saveRole()">
+          <fieldset [disabled]="busy()" class="space-y-4 disabled:opacity-60">
+            <div><label for="role-code" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Code <span aria-hidden="true">*</span></label>
+              <input id="role-code" name="code" required pattern=".*\S.*" [(ngModel)]="role.code" placeholder="e.g. receptionist" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
+            <div><label for="role-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Name <span aria-hidden="true">*</span></label>
+              <input id="role-name" name="name" required pattern=".*\S.*" [(ngModel)]="role.name" placeholder="e.g. Receptionist" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
+            <div><label for="role-description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+              <textarea id="role-description" name="description" rows="2" [(ngModel)]="role.description" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea></div>
+            <label class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" name="active" [(ngModel)]="role.active" class="h-4 w-4 accent-brand-500" />Active role</label>
+            <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="roleForm.invalid || busy()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">{{ editingId ? 'Save role' : 'Create role' }}</button>
+              <button type="button" (click)="resetRole()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button></div>
+          </fieldset>
+        </form>
+      </app-component-card>
+    </div>
+    }
+    <div class="flex justify-end"><button type="button" (click)="createRole()" [disabled]="busy()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Create role</button></div>
+    <app-component-card title="Roles" desc="Manage roles and their access. Delete deactivates a role without removing its assignments.">
+      <div class="space-y-3">
+        @for (item of roles(); track item.id) {
+          <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700" [class.border-brand-500]="selectedId() === item.id">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <button type="button" (click)="linkPermissions(item)" [disabled]="busy()" [attr.aria-pressed]="selectedId() === item.id" class="min-w-0 text-start focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50">
+                <span class="block break-words font-medium text-gray-800 dark:text-white/90">{{ item.name }} <span class="text-theme-xs text-gray-500 dark:text-gray-400">· {{ item.active ? 'Active' : 'Inactive' }}</span></span>
+                <span class="block break-all text-theme-xs text-gray-500 dark:text-gray-400">{{ item.code }}</span>
+                @if (item.description) { <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ item.description }}</span> }
+              </button>
+              <div class="flex flex-wrap gap-2">
+              <button type="button" (click)="edit(item)" [disabled]="busy()" [attr.aria-label]="'Edit role ' + item.name" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Edit</button>
+                <button type="button" (click)="linkPermissions(item)" [disabled]="busy()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Link permissions</button>
+                <button type="button" (click)="deactivate(item)" [disabled]="busy()" [attr.aria-label]="(item.active ? 'Delete role ' : 'Restore role ') + item.name" class="rounded-lg border border-error-200 px-4 py-2 text-sm font-medium text-error-600 hover:bg-error-50 focus-visible:outline-2 focus-visible:outline-error-500 disabled:opacity-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10">{{ item.active ? 'Delete' : 'Restore' }}</button>
+              </div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              @for (permission of rolePermissions(item.id); track permission.id) {
+                <span class="max-w-full break-all rounded-md bg-brand-50 px-2 py-1 text-theme-xs text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">{{ permission.code }}</span>
+              } @empty { <span class="text-theme-xs text-gray-500 dark:text-gray-400">No permissions assigned.</span> }
+            </div>
+          </div>
+        } @empty { <p class="text-sm text-gray-500 dark:text-gray-400">No roles yet. Use Create role to get started.</p> }
+      </div>
+    </app-component-card>
+    } @else {
+    <app-component-card title="Permission assignments" desc="Each change is saved immediately to the selected role.">
+      @if (selectedRole(); as selected) {
+        <div class="space-y-4">
+          <label for="selected-role" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+          <select id="selected-role" [ngModel]="selectedId()" (ngModelChange)="selectedId.set($event)" [disabled]="busy()" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            @for (item of roles(); track item.id) { <option [value]="item.id">{{ item.name }}{{ item.active ? '' : ' (Inactive)' }}</option> }
+          </select>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ rolePermissions(selected.id).length }} of {{ permissions().length }} permissions assigned to {{ selected.name }}.</p>
+          <label for="permission-search" class="sr-only">Search permissions</label>
+          <input id="permission-search" type="search" [(ngModel)]="search" placeholder="Search permission code or description…" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+          <div class="grid gap-3 sm:grid-cols-2" [attr.aria-busy]="busy()">
+            @for (item of filteredPermissions(); track item.id) {
+              <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                <input type="checkbox" [checked]="assigned(selected.id, item.id)" (change)="toggle(item, $event)" [disabled]="busy()" class="mt-1 h-4 w-4 shrink-0 accent-brand-500 disabled:opacity-50" />
+                <span class="min-w-0"><span class="block break-all text-sm font-medium text-gray-800 dark:text-white/90">{{ item.code }}</span><span class="mt-1 block text-theme-xs text-gray-500 dark:text-gray-400">{{ item.description }}</span></span>
+              </label>
+            } @empty { <p class="text-sm text-gray-500 dark:text-gray-400">{{ permissions().length ? 'No matching permissions.' : 'No permissions available to assign.' }}</p> }
+          </div>
+        </div>
+      } @else { <p class="text-sm text-gray-500 dark:text-gray-400">Create a role in Manage roles to start assigning permissions.</p> }
+    </app-component-card>
+    }
+  }
+</section>
