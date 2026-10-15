@@ -36,7 +36,7 @@ export const routes: Routes = [
       {
         path: 'configuracion',
         loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent),
-        title: 'Settings | Spa & Boutique Pandas 11',
+        title: 'Configuración | Spa & Boutique Pandas 11',
       },
       {
         path: '',

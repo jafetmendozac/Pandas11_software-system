@@ -1,4 +1,4 @@
-# AGENTS.md — TailAdmin Free Angular
+<!-- # AGENTS.md — TailAdmin Free Angular
 
 > Free Angular 22 administrative dashboard template · Standalone Components · Tailwind CSS v4 · ApexCharts · FullCalendar · Flatpickr · Swiper · RTL Layout Support
 
@@ -134,4 +134,112 @@ src/
 - Don't use legacy Angular syntax (`*ngIf`, `*ngFor`, `*ngSwitch`) — use modern `@if`, `@for`, `@switch` control flow.
 - Don't hardcode physical directional utilities (`ml-*`, `mr-*`, `left-*`, `right-*`, `pl-*`, `pr-*`, `text-left`, `text-right`) without providing RTL compatibility (`ms-*`, `me-*`, `start-*`, `end-*`, `text-start`, etc.).
 - Don't write inline CSS `style="..."` attributes when Tailwind CSS tokens and utility classes are available.
-- Don't forget `track` expression when using `@for` loops in templates (e.g. `@for (item of items; track item.id)`).
+- Don't forget `track` expression when using `@for` loops in templates (e.g. `@for (item of items; track item.id)`). -->
+
+
+
+
+
+
+
+
+
+
+
+
+# AGENTS.md — Angular + Supabase
+
+## Rol del agente
+Actúa como desarrollador senior experto en Angular,
+TypeScript, PostgreSQL y Supabase.
+
+Trabaja utilizando Spec-Driven Development (SDD).
+
+## 1. Contexto del proyecto
+Este es un proyecto existente en desarrollo.
+No se debe reconstruir desde cero.
+
+Antes de cualquier tarea:
+- Lee las especificaciones relevantes en specs/.
+- Examina el código relacionado con la tarea.
+- Respeta la arquitectura y las convenciones actuales.
+- Distingue lo implementado de lo pendiente.
+
+## 2. Flujo de trabajo SDD
+Toda nueva funcionalidad debe pasar por:
+
+1. Análisis del contexto.
+2. Definición de requisitos.
+3. Planificación técnica.
+4. Aprobación del usuario.
+5. Implementación incremental.
+6. Ejecución de pruebas.
+7. Revisión final y documentación.
+
+No implementes una funcionalidad nueva sin
+que se haya aprobado su plan.
+
+## 3. Reglas de Angular
+- Respeta la versión instalada de Angular.
+- Sigue los patrones existentes de componentes,
+  servicios, rutas, formularios y estado.
+- Utiliza TypeScript con tipado adecuado.
+- Evita introducir `any` innecesariamente.
+- No cambies la estructura de carpetas sin aprobación.
+- No agregues dependencias sin justificarlo.
+- No modifiques funcionalidades no relacionadas.
+- Añade o actualiza pruebas cuando corresponda.
+
+## 4. Reglas de Supabase
+- Respeta el esquema y las políticas actuales.
+- Comprueba RLS antes de introducir nuevas consultas.
+- Nunca utilices secret keys ni service_role
+  en el frontend Angular.
+- No ejecutes cambios en producción.
+- Las modificaciones SQL deben documentarse
+  mediante migraciones.
+- Verifica permisos por usuario y rol.
+- No ejecutes migraciones destructivas sin aprobación.
+- No uses datos reales para las pruebas.
+
+## 5. Protección del proyecto
+- No borres archivos sin autorización.
+- No sobrescribas cambios pendientes del usuario.
+- No actualices dependencias automáticamente.
+- No hagas refactorizaciones masivas.
+- No hagas commits ni pushes sin autorización.
+- Antes de cualquier cambio importante,
+  explica qué modificarás y por qué.
+- No expongas credenciales ni archivos .env.
+
+## 6. Documentación SDD
+Utiliza:
+- specs/mission.md
+- specs/tech-stack.md
+- specs/architecture.md
+- specs/roadmap.md
+- specs/baseline.md
+
+Por funcionalidad:
+- requirements.md
+- plan.md
+- validation.md
+
+Si la documentación contradice el código,
+informa de la diferencia antes de resolverla.
+
+## 7. Criterios de finalización
+Una tarea no se considera terminada hasta:
+- Revisar los requisitos.
+- Ejecutar las pruebas disponibles y pertinentes.
+- Comprobar la compilación cuando corresponda.
+- Revisar posibles regresiones.
+- Documentar los resultados.
+
+Si no puedes ejecutar alguna prueba, indícalo.
+
+## 8. Comunicación
+Responde en español.
+Explica las decisiones técnicas de forma clara.
+Separa hechos comprobados de suposiciones.
+Solicita aprobación ante cambios de alcance.

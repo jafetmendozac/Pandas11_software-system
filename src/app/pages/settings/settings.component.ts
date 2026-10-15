@@ -26,10 +26,10 @@ export class SettingsComponent {
       localStorage.setItem('dir', this.direction);
       document.documentElement.setAttribute('dir', this.direction);
       this.error = false;
-      this.message = 'Your preferences have been saved on this browser.';
+      this.message = 'Tus preferencias se han guardado en este navegador.';
     } catch {
       this.error = true;
-      this.message = 'Unable to save your preferences. Check your browser storage settings and try again.';
+      this.message = 'No se pudieron guardar tus preferencias. Revisa la configuración de almacenamiento del navegador e inténtalo de nuevo.';
     }
   }
 
