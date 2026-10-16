@@ -161,6 +161,7 @@ No se debe reconstruir desde cero.
 
 Antes de cualquier tarea:
 - Lee las especificaciones relevantes en specs/.
+- Consulta specs/business-rules.md e identifica las reglas aplicables y sus aclaraciones pendientes.
 - Examina el código relacionado con la tarea.
 - Respeta la arquitectura y las convenciones actuales.
 - Distingue lo implementado de lo pendiente.
@@ -219,11 +220,14 @@ Utiliza:
 - specs/architecture.md
 - specs/roadmap.md
 - specs/baseline.md
+- specs/business-rules.md
 
 Por funcionalidad:
 - requirements.md
 - plan.md
 - validation.md
+
+Relaciona los requisitos y criterios de aceptación con los IDs de reglas de negocio aplicables. Registra su validación y aclara las ambigüedades que condicionen la implementación antes de ejecutar el plan.
 
 Si la documentación contradice el código,
 informa de la diferencia antes de resolverla.

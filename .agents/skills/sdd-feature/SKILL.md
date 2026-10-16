@@ -15,6 +15,7 @@ comportamiento existente.
 
 ## Fase 1: Comprender
 - Leer AGENTS.md y las especificaciones.
+- Consultar specs/business-rules.md e identificar reglas aplicables y preguntas pendientes.
 - Revisar el código relacionado.
 - Identificar dependencias Angular y Supabase.
 - Aclarar requisitos y casos límite.
@@ -28,6 +29,7 @@ Crear en specs/features/<nombre>/:
 
 Los requisitos deben tener criterios de
 aceptación verificables.
+Referenciar los IDs de reglas de negocio aplicables y aclarar las ambigüedades que condicionen la implementación.
 
 ## Fase 3: Aprobar
 Presentar el plan y esperar autorización.
@@ -45,6 +47,7 @@ No modificar código todavía.
 - Validar migraciones, permisos y RLS
   cuando corresponda.
 - Revisar posibles regresiones.
+- Registrar evidencia de cumplimiento de las reglas aplicables en validation.md.
 
 ## Fase 6: Informar
 Entregar:

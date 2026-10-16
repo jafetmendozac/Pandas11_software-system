@@ -62,6 +62,8 @@ Evaluar pagos, notificaciones, facturación, portal público, vacunas, reportes 
 
 Conforme a `AGENTS.md`: contexto → requisitos → plan técnico → aprobación → implementación incremental → pruebas → revisión y documentación.
 
+Desde 2026-10-16, el análisis incluye [business-rules.md](business-rules.md). Cada funcionalidad debe referenciar los IDs RN aplicables en sus requisitos y registrar su cumplimiento en validación. Las reglas declaradas y las preguntas pendientes no acreditan implementación ni autorizan cambios de base de datos.
+
 Propuesta de ubicación futura, pendiente de revisión: `specs/features/<funcionalidad>/requirements.md`, `plan.md` y `validation.md`. No se crean esos archivos en esta entrega.
 
 - `requirements.md`: actores, reglas, permisos, errores y criterios de aceptación identificables.
