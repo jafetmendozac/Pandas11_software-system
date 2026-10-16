@@ -7,7 +7,7 @@ CREATE TYPE "pet_sex" AS ENUM (
 );
 
 CREATE TYPE "pet_size" AS ENUM (
-  'TOY'
+  'TOY',
   'SMALL',
   'MEDIUM',
   'LARGE',

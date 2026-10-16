@@ -72,7 +72,7 @@ export class RoleSettingsComponent implements OnInit {
       const saved = await this.service.setRoleActive(role.id, !role.active);
       this.roles.update(items => items.map(item => item.id === saved.id ? saved : item));
       if (this.editingId === role.id) this.resetRole();
-      this.success(saved.active ? 'Role restored.' : 'Role deleted logically. Its permissions and history are preserved.');
+      this.success(saved.active ? 'Rol restaurado.' : 'Rol eliminado de forma lógica. Se conservan sus permisos e historial.');
     } catch (error) { this.showError(error); }
     finally { this.busy.set(false); }
   }
@@ -80,14 +80,14 @@ export class RoleSettingsComponent implements OnInit {
   async saveRole(): Promise<void> {
     if (this.busy()) return;
     const input = { ...this.role, code: this.role.code.trim(), name: this.role.name.trim(), description: this.role.description?.trim() || null };
-    if (!input.code || !input.name) return this.showError(new Error('Role code and name are required.'));
+    if (!input.code || !input.name) return this.showError(new Error('El código y el nombre del rol son obligatorios.'));
     this.busy.set(true);
     try {
       const role = await this.service.saveRole(input, this.editingId || undefined);
       this.roles.update(items => [...items.filter(item => item.id !== role.id), role].sort((a, b) => a.name.localeCompare(b.name)));
       this.selectedId.set(role.id);
       this.resetRole();
-      this.success('Role saved. Open Link permissions to assign access.');
+      this.success('Rol guardado. Abre Asignar permisos para asignar accesos.');
     } catch (error) { this.showError(error); }
     finally { this.busy.set(false); }
   }
@@ -103,7 +103,7 @@ export class RoleSettingsComponent implements OnInit {
       this.assignments.update(items => enabled
         ? [...items, { role_id: roleId, permission_id: permission.id }]
         : items.filter(item => item.role_id !== roleId || item.permission_id !== permission.id));
-      this.success('Role permissions updated.');
+      this.success('Permisos del rol actualizados.');
     } catch (error) { this.showError(error); }
     finally { this.busy.set(false); }
   }
@@ -112,6 +112,6 @@ export class RoleSettingsComponent implements OnInit {
   private showError(error: unknown): void {
     this.failed.set(true);
     const details = error as { code?: string; message?: string };
-    this.notice.set(details?.code === '23505' ? 'This code or name already exists. Choose a unique value.' : details?.message || 'Unable to complete the request. Please try again.');
+    this.notice.set(details?.code === '23505' ? 'Este código o nombre ya existe. Elige un valor único.' : details?.message || 'No se pudo completar la solicitud. Inténtalo de nuevo.');
   }
 }

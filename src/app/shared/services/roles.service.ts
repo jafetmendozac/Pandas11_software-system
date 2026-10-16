@@ -49,12 +49,12 @@ export class RolesService {
         .upsert({ role_id: roleId, permission_id: permissionId }, { onConflict: 'role_id,permission_id' })
         .select('role_id').single();
       if (error) throw error;
-      if (!data) throw new Error('The permission could not be assigned.');
+      if (!data) throw new Error('No se pudo asignar el permiso.');
     } else {
       const { data, error } = await this.client.from('role_permissions').delete()
         .eq('role_id', roleId).eq('permission_id', permissionId).select('role_id');
       if (error) throw error;
-      if (!data?.length) throw new Error('The assignment was not removed. Refresh and check your access.');
+      if (!data?.length) throw new Error('No se eliminó la asignación. Actualiza la página y comprueba tus permisos de acceso.');
     }
   }
 }
