@@ -60,3 +60,17 @@ Prueba API adicional (solo fixtures locales):
 ```sh
 node scripts/test-clients-pets-api.mjs
 ```
+
+## Fase 2 — Servicios y precios
+
+Migración incremental `20261017210343_services_prices.sql`; no requiere reset. OWNER/ADMIN administran Servicios y Tarifas, STAFF consulta. CLIENT entra a `/catalogo` desde su perfil y solo calcula servicios activos y visibles. Recargar la aplicación después de aplicar la migración para obtener los permisos nuevos.
+
+Crear servicio con nombre, precio base y minutos positivos. Precio cero válido; usar punto decimal y máximo dos decimales (ej. 12.50), sin redondeo automático. En Tarifas, «Todos los tamaños/pelajes» representa NULL. Prioridad: coincidencia exacta → tamaño → pelaje → general → base. Cada regla define precio y duración completos. Desactivar servicio conserva sus tarifas.
+
+El simulador de Tarifas y catálogo muestra precio, duración y origen sin reservar citas ni incluir transporte. Los importes se calculan en PostgreSQL numeric y se entregan como texto decimal exacto. No hay valores comerciales sembrados; deben configurarse.
+
+```sh
+node scripts/test-services-prices-api.mjs
+```
+
+La prueba usa fixtures locales propios, incluidos 1002 servicios/tarifas para paginación, y limpia solo su prefijo aleatorio.

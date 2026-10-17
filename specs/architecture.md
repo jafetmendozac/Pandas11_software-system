@@ -128,3 +128,9 @@ Desarrollo aislado `Pandas11-identity-dev`, configuración Angular `local`, puer
 Nueva migración incremental instala clients, pets, pet_vaccinations, client_internal y pet_internal con dependencias y RLS. OWNER/ADMIN administran, STAFF consulta y CLIENT accede solo a su vínculo profile_id y mascotas; notas internas requieren permiso independiente. La propiedad de mascota no cambia por UPDATE. Retiro lógico oculta por relación sin eliminar antecedentes; archivo de personal es de lectura.
 
 ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; las RPC son invoker y respetan RLS. save_client y retiros son operaciones controladas con permisos explícitos. RecordsService mantiene vacunas y notas en consultas separadas. RecordDetailsComponent muestra ficha/antecedentes según permisos y marca cambios tras cargas asíncronas. La tabla compartida añade guardado asíncrono optativo y paginación remota conservando contratos legacy. /mis-datos ofrece consulta propia sin panel interno. Allergies boolean y tamaño TOY alineados con Pandas11.sql; fotos/adjuntos fuera del alcance.
+
+## Actualización Fase 2 — 2026-10-17
+
+services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/pelaje → tamaño → pelaje → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
+
+ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.

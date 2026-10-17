@@ -95,3 +95,7 @@ Identidad migrada y validada en instancia aislada identity-dev. 16 pruebas SQL y
 ## Evolución: Fase 1 — 2026-10-17
 
 Migración incremental local de clientes/mascotas y antecedentes aplicada preservando cuentas existentes. 30 pruebas SQL acumuladas y 42 comprobaciones API de Fase 1 correctas; UI integra consulta propia, vacunas y separación interna. El script adicional `node scripts/test-clients-pets-api.mjs` utiliza fixtures propios, incluyendo prueba de 1002 filas, y no requiere reset. Resultados Angular/build y límites en features/fase-1-clientes-mascotas/validation.md.
+
+## Evolución Fase 2 — 2026-10-17
+
+Nueva migración incremental de catálogo aplicada en identity-dev conservando datos actuales. 48 pruebas SQL, 50 comprobaciones API específicas y 28 pruebas Angular correctas; lint/build correctos. Nuevo script `scripts/test-services-prices-api.mjs`. Se calculan precios/duraciones por tarifa con resultado decimal seguro; no se declara integración con agenda ni despliegue remoto. Ver validación de la fase.

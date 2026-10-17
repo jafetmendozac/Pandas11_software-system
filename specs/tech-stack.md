@@ -88,3 +88,7 @@ Supabase CLI utilizada para crear migración, iniciar/reconstruir instancia loca
 ## Actualización Fase 1 — 2026-10-17
 
 Sin dependencias nuevas. RPC SQL invoker para búsqueda/paginación bajo RLS y RPC controladas de escritura. Nuevo script Node `scripts/test-clients-pets-api.mjs`, tests pgTAP de dominio y tests Angular de tabla/detalle. El desarrollo continúa con `npm run start:local`; no se sobrescribieron entornos previos.
+
+## Actualización Fase 2 — 2026-10-17
+
+Sin dependencias nuevas: PostgreSQL numeric para cálculo exacto y precios en texto decimal hacia Angular. Validadores compartidos en service-pricing.models.ts; simulador standalone con signals y pruebas Jasmine. Búsqueda RPC invoker y RLS de catálogo. Pruebas API adicionales en Node mediante supabase-js existente.

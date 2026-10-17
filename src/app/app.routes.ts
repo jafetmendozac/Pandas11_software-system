@@ -29,6 +29,7 @@ import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
+  { path: 'catalogo', loadComponent: () => import('./pages/servicios/catalog.component').then(m => m.ServiceCatalogComponent), canActivate: [profileGuard], title: 'Servicios y precios' },
   { path: 'mis-datos', loadComponent: () => import('./pages/clientes/my-records.component').then(m => m.MyRecordsComponent), canActivate: [profileGuard], title: 'Mis datos y mascotas' },
   { path: 'mi-perfil', component: ProfileComponent, canActivate: [profileGuard], title: 'Mi perfil' },
   {
@@ -63,11 +64,13 @@ export const routes: Routes = [
       },
       {
         path:'servicios',
+        data: { permission: 'services.read' },
         component:ServiciosComponent,
         title:'Servicios | Spa & Boutique Pandas 11'
       },
       {
         path:'tarifas',
+        data: { permission: 'service_prices.read' },
         component:TarifasComponent,
         title:'Tarifas | Spa & Boutique Pandas 11'
       },

@@ -1,28 +1,11 @@
 <app-page-breadcrumb pageTitle="Servicios" />
-<div class="space-y-6">
-  @if (errorMessage()) {
-    <p class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
-      {{ errorMessage() }}
-    </p>
-  }
-  <app-component-card title="Servicios del negocio">
-    @if (loading()) {
-      <p>Cargando servicios...</p>
-    } @else if (errorMessage()) {
-      <p class="text-red-500">{{ errorMessage() }}</p>
-    } @else {
-      <app-personalized-table
-        addLabel="Añadir servicio"
-        createTitle="Añadir servicio"
-        editTitle="Editar servicio"
-        searchKey="name"
-        searchPlaceholder="Buscar por nombre..."
-        [tableData]="tableData()"
-        [columns]="columns"
-        (rowCreated)="createService($event)"
-        (rowUpdated)="updateService($event)"
-        (rowDeleted)="deleteService($event)">
-      </app-personalized-table>
-    }
+<div class="space-y-5">
+  @if(errorMessage()){<p role="alert" class="text-error-600 dark:text-error-400">{{ errorMessage() }}</p>}
+  @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando servicios…</p>}
+  <app-component-card title="Servicios del negocio" desc="Desactivar conserva las tarifas. Puedes cambiar el estado de forma explícita al editar.">
+    <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
+      (queryChanged)="loadServices($event)" [saveAction]="saveService"
+      [allowCreate]="authorization.has('services.manage')" [allowEdit]="authorization.has('services.manage')" [allowDelete]="authorization.has('services.manage')"
+      addLabel="Añadir servicio" createTitle="Añadir servicio" editTitle="Editar servicio" searchPlaceholder="Buscar por nombre o descripción..." />
   </app-component-card>
 </div>

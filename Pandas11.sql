@@ -1,3 +1,4 @@
+-- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
 -- Clientes/mascotas: políticas y RPC versionados en
 -- supabase/migrations/20261017201505_clients_pets.sql.
 -- Identidad: políticas, funciones y catálogo versionados en
@@ -301,26 +302,26 @@ CREATE TABLE "appointment_internal" (
 );
 
 CREATE TABLE "services" (
-  "id" uuid PRIMARY KEY,
-  "name" text,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
   "description" text,
-  "base_price" numeric,
-  "base_duration_minutes" integer,
-  "requires_specialist" boolean,
-  "visible_to_clients" boolean DEFAULT true,
-  "active" boolean DEFAULT true,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "base_price" numeric NOT NULL CHECK (base_price >= 0 AND base_price < 'Infinity'::numeric AND base_price = round(base_price,2)),
+  "base_duration_minutes" integer NOT NULL CHECK (base_duration_minutes > 0),
+  "requires_specialist" boolean NOT NULL DEFAULT false,
+  "visible_to_clients" boolean NOT NULL DEFAULT true,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "service_prices" (
-  "id" uuid PRIMARY KEY,
-  "service_id" uuid,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "service_id" uuid NOT NULL,
   "pet_size" pet_size,
   "pet_coat_type" pet_coat_type,
-  "price" numeric,
-  "duration_minutes" integer,
-  CONSTRAINT "chk_sp_price" CHECK (price >= 0),
+  "price" numeric NOT NULL,
+  "duration_minutes" integer NOT NULL,
+  CONSTRAINT "chk_sp_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
   CONSTRAINT "chk_sp_duration" CHECK (duration_minutes > 0)
 );
 

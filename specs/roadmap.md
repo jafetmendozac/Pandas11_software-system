@@ -97,3 +97,7 @@ Plan aprobado e identidad implementada localmente con migración, RLS, permisos,
 ## Avance Fase 1 — 2026-10-17
 
 Plan aprobado e implementado localmente: clientes, mascotas, vacunas, notas internas, RLS de dominio, búsqueda/paginación y archivo de lectura. Cliente autenticado consulta datos propios desde /mis-datos; OWNER/ADMIN editan y STAFF consulta. Detalle de alergias interno y nota editable 1:1. Sin reset ni adopción remota. Storage, historia clínica/revisiones y otras fases siguen pendientes. Resultados en features/fase-1-clientes-mascotas/validation.md.
+
+## Avance Fase 2 — 2026-10-17
+
+Servicios y tarifas implementados localmente con prioridad aprobada, comodines/TOY, precisión decimal, simulador, catálogo propio y RLS. RN-11/RN-12 registran reglas confirmadas. Sin reset ni cambios remotos. Integración con citas, disponibilidad y transporte permanece pendiente. Evidencia en features/fase-2-servicios-precios/validation.md.
