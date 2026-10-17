@@ -60,6 +60,8 @@ Evaluar pagos, notificaciones, facturación, portal público, vacunas, reportes 
 
 ## Flujo obligatorio por funcionalidad
 
+Consultar [Pandas11.sql](../Pandas11.sql) como modelo local de referencia en cada análisis y plan. Identificar elementos afectados o declarar que no hay impacto de datos; contrastar con Angular y migraciones. Las discrepancias y modificaciones del modelo deben explicarse y aprobarse antes de implementar. El archivo no prueba el estado remoto ni autoriza su ejecución completa sobre una base existente. Los cambios aprobados deben conservar coherencia entre modelo, migraciones, tipos, servicios y especificaciones.
+
 Conforme a `AGENTS.md`: contexto → requisitos → plan técnico → aprobación → implementación incremental → pruebas → revisión y documentación.
 
 Desde 2026-10-16, el análisis incluye [business-rules.md](business-rules.md). Cada funcionalidad debe referenciar los IDs RN aplicables en sus requisitos y registrar su cumplimiento en validación. Las reglas declaradas y las preguntas pendientes no acreditan implementación ni autorizan cambios de base de datos.
@@ -79,11 +81,11 @@ Una contradicción documental se informa antes de resolverla. Una tarea no se de
 | D-01 | Fuente de verdad del esquema y procedencia del SQL local | Pendiente |
 | D-02 | Citas con una o varias mascotas y empleados; estados válidos | Pendiente |
 | D-03 | Registro público, asignación inicial de roles y matriz de permisos | Pendiente |
-| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Pendiente |
-| D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Pendiente |
+| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Parcial: lunes–sábado incluidos feriados, 07:00–18:00, último inicio 17:00 y finalización posterior permitida; resto pendiente (RN-01) |
+| D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Parcial: duración según tamaño y transporte fijado por administrador según hora/distancia; valores y prioridad pendientes (RN-04 a RN-06) |
 | D-06 | Estrategia de migraciones y entorno aislado de pruebas | Pendiente |
 | D-07 | Funcionalidad piloto y prioridad de etapas | Pendiente |
-| D-08 | Alcance de pagos, facturación, comunicaciones y portal público | Pendiente |
+| D-08 | Alcance de pagos, facturación, comunicaciones y portal público | Parcial: Yape/efectivo, adelanto de autorreserva S/ 20 con confirmación al verificar el owner y cobro final en toda cita creada por personal; resto pendiente (RN-02, RN-08, RN-09) |
 | D-09 | Idiomas de interfaz y herramientas adicionales de pruebas | Pendiente |
 
 No hay fechas ni compromisos de entrega aprobados. Riesgos principales: documentar demos como producto terminado, adoptar un esquema desactualizado, ampliar alcance sin aprobación y crear documentos sin evidencia de validación.
