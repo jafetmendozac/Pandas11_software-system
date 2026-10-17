@@ -323,7 +323,7 @@ CREATE TABLE "appointments" (
   "ends_at" timestamptz,
   "requires_pickup" boolean NOT NULL DEFAULT false,
   "pickup_address" text,
-  "pickup_fee" numeric DEFAULT 0.00;
+  "pickup_fee" numeric DEFAULT 0.00,
   "status" appointment_status,
   "source" appointment_source,
   "hold_expires_at" timestamptz,
