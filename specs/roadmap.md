@@ -89,3 +89,7 @@ Una contradicción documental se informa antes de resolverla. Una tarea no se de
 | D-09 | Idiomas de interfaz y herramientas adicionales de pruebas | Pendiente |
 
 No hay fechas ni compromisos de entrega aprobados. Riesgos principales: documentar demos como producto terminado, adoptar un esquema desactualizado, ampliar alcance sin aprobación y crear documentos sin evidencia de validación.
+
+## Avance de Fase 0 — 2026-10-17
+
+Plan aprobado e identidad implementada localmente con migración, RLS, permisos, guards, administración de asignaciones y pruebas. Solo OWNER administra seguridad inicialmente; registro CLIENT y correo confirmado; entorno desechable identity-dev independiente. Esto resuelve esas decisiones para identidad local, sin aprobar automáticamente otras fases ni adopción remota. El resultado no acredita políticas de las tablas del negocio. Ver `features/fase-0-fundamentos-seguridad/validation.md`.

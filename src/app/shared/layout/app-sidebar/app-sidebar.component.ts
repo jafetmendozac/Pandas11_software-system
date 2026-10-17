@@ -1,3 +1,4 @@
+import { AuthorizationService } from '../../services/authorization.service';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
@@ -148,6 +149,7 @@ export class AppSidebarComponent {
   private subscription: Subscription = new Subscription();
 
   constructor(
+    public authorization: AuthorizationService,
     public sidebarService: SidebarService,
     private router: Router,
     private cdr: ChangeDetectorRef

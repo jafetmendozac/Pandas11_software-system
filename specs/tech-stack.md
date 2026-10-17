@@ -80,3 +80,7 @@ El bloque inicial de instrucciones TailAdmin está comentado en `AGENTS.md`; no 
 Definir política de idiomas, entorno reproducible de desarrollo, estrategia de tipos de base de datos y herramientas adicionales de pruebas. Ninguna instalación o actualización forma parte de esta entrega.
 
 Fuentes: [package.json](../package.json), [angular.json](../angular.json), [tsconfig.json](../tsconfig.json), [configuración Supabase](../supabase/config.toml).
+
+## Actualización Fase 0 — 2026-10-17
+
+Supabase CLI utilizada para crear migración, iniciar/reconstruir instancia local, lint y pgTAP. Docker Server observado: 29.8.2. Se añadieron pruebas Jasmine/Karma de autorización y script API Node con supabase-js ya instalado, sin dependencias nuevas. `npm run start:local` genera un entorno ignorado con clave pública de la instancia 55321; los entornos previos no se sobrescriben.

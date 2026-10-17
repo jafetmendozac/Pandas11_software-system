@@ -25,13 +25,16 @@ import { MascotasTableComponent } from './pages/mascotas/mascotas-table.componen
 import { ServiciosComponent } from './pages/servicios/servicios.component';
 import { TarifasComponent } from './pages/tarifas/tarifas.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
-import { authGuard } from './shared/guards/auth.guard';
+import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
+  { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
+  { path: 'mi-perfil', component: ProfileComponent, canActivate: [profileGuard], title: 'Mi perfil' },
   {
     path:'',
     component:AppLayoutComponent,
     canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children:[
       {
         path: 'configuracion',

@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { ThemeService } from '../../shared/services/theme.service';
+import { AuthorizationService } from '../../shared/services/authorization.service';
 import { RoleSettingsComponent } from '../../shared/components/settings/role-settings/role-settings.component';
 
 @Component({
@@ -13,6 +14,7 @@ import { RoleSettingsComponent } from '../../shared/components/settings/role-set
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
+  readonly authorization = inject(AuthorizationService);
   private readonly themeService = inject(ThemeService);
   theme: 'light' | 'dark' = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   direction: 'ltr' | 'rtl' = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';

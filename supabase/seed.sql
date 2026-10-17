@@ -1,0 +1,1 @@
+-- Catálogo de identidad incluido en la migración. Sin usuarios ni credenciales reales.

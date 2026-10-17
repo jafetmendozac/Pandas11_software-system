@@ -26,14 +26,14 @@
             <div><label for="role-description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
               <textarea id="role-description" name="description" rows="2" [(ngModel)]="role.description" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea></div>
             <label class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" name="active" [(ngModel)]="role.active" class="h-4 w-4 accent-brand-500" />Rol activo</label>
-            <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="roleForm.invalid || busy()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">{{ editingId ? 'Guardar rol' : 'Crear rol' }}</button>
+            <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="roleForm.invalid || busy() || !authorization.has('roles.manage')" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">{{ editingId ? 'Guardar rol' : 'Crear rol' }}</button>
               <button type="button" (click)="resetRole()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Cancelar</button></div>
           </fieldset>
         </form>
       </app-component-card>
     </div>
     }
-    <div class="flex justify-end"><button type="button" (click)="createRole()" [disabled]="busy()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Crear rol</button></div>
+    <div class="flex justify-end"><button type="button" (click)="createRole()" [disabled]="busy() || !authorization.has('roles.manage')" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Crear rol</button></div>
     <app-component-card title="Roles" desc="Administra los roles y sus accesos. Eliminar desactiva el rol sin quitar sus asignaciones.">
       <div class="space-y-3">
         @for (item of roles(); track item.id) {
@@ -45,9 +45,9 @@
                 @if (item.description) { <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ item.description }}</span> }
               </button>
               <div class="flex flex-wrap gap-2">
-              <button type="button" (click)="edit(item)" [disabled]="busy()" [attr.aria-label]="'Editar rol ' + item.name" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Editar</button>
+              <button type="button" (click)="edit(item)" [disabled]="busy() || item.is_system || !authorization.has('roles.manage')" [attr.aria-label]="'Editar rol ' + item.name" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Editar</button>
                 <button type="button" (click)="linkPermissions(item)" [disabled]="busy()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Asignar permisos</button>
-                <button type="button" (click)="deactivate(item)" [disabled]="busy()" [attr.aria-label]="(item.active ? 'Eliminar rol ' : 'Restaurar rol ') + item.name" class="rounded-lg border border-error-200 px-4 py-2 text-sm font-medium text-error-600 hover:bg-error-50 focus-visible:outline-2 focus-visible:outline-error-500 disabled:opacity-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10">{{ item.active ? 'Eliminar' : 'Restaurar' }}</button>
+                <button type="button" (click)="deactivate(item)" [disabled]="busy() || item.is_system || !authorization.has('roles.manage')" [attr.aria-label]="(item.active ? 'Eliminar rol ' : 'Restaurar rol ') + item.name" class="rounded-lg border border-error-200 px-4 py-2 text-sm font-medium text-error-600 hover:bg-error-50 focus-visible:outline-2 focus-visible:outline-error-500 disabled:opacity-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10">{{ item.active ? 'Eliminar' : 'Restaurar' }}</button>
               </div>
             </div>
             <div class="mt-3 flex flex-wrap gap-2">
@@ -73,7 +73,7 @@
           <div class="grid gap-3 sm:grid-cols-2" [attr.aria-busy]="busy()">
             @for (item of filteredPermissions(); track item.id) {
               <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-                <input type="checkbox" [checked]="assigned(selected.id, item.id)" (change)="toggle(item, $event)" [disabled]="busy()" class="mt-1 h-4 w-4 shrink-0 accent-brand-500 disabled:opacity-50" />
+                <input type="checkbox" [checked]="assigned(selected.id, item.id)" (change)="toggle(item, $event)" [disabled]="busy() || selected.is_system || !authorization.has('role_permissions.manage')" class="mt-1 h-4 w-4 shrink-0 accent-brand-500 disabled:opacity-50" />
                 <span class="min-w-0"><span class="block break-all text-sm font-medium text-gray-800 dark:text-white/90">{{ item.code }}</span><span class="mt-1 block text-theme-xs text-gray-500 dark:text-gray-400">{{ item.description }}</span></span>
               </label>
             } @empty { <p class="text-sm text-gray-500 dark:text-gray-400">{{ permissions().length ? 'No se encontraron permisos coincidentes.' : 'No hay permisos disponibles para asignar.' }}</p> }
@@ -84,3 +84,33 @@
     }
   }
 </section>
+
+@if (!loading() && !loadFailed() && authorization.has('user_roles.manage')) {
+  <app-component-card title="Usuarios y roles" desc="Asigna acceso al personal. OWNER requiere administración privilegiada.">
+    <div class="space-y-4">
+      <label class="block text-gray-700 dark:text-gray-300">Usuario
+        <select [(ngModel)]="selectedUser" [disabled]="busy()" class="w-full rounded-lg border p-3 dark:bg-gray-900 dark:text-white">
+          <option value="">Selecciona un usuario</option>
+          @for (user of users; track user.id) { <option [value]="user.id">{{ user.first_name }} {{ user.last_name }} · {{ user.id }}</option> }
+        </select>
+      </label>
+      <label class="block text-gray-700 dark:text-gray-300">Rol
+        <select [(ngModel)]="selectedRoleId" [disabled]="busy()" class="w-full rounded-lg border p-3 dark:bg-gray-900 dark:text-white">
+          <option value="">Selecciona un rol</option>
+          @for (role of roles(); track role.id) { @if (role.code !== 'OWNER') { <option [value]="role.id">{{ role.name }}</option> } }
+        </select>
+      </label>
+      <button type="button" [disabled]="busy() || !selectedUser || !selectedRoleId" (click)="assignUser(true)" class="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">Asignar rol</button>
+      <button type="button" [disabled]="busy() || !selectedUser || !selectedRoleId" (click)="assignUser(false)" class="ms-3 rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">Retirar rol</button>
+      @for (user of users; track user.id) {
+        <div class="rounded-lg border border-gray-200 p-3 text-gray-700 dark:border-gray-700 dark:text-gray-300">
+          {{ user.first_name }} {{ user.last_name }} — {{ user.active ? 'Activo' : 'Inactivo' }}
+          @for (assignment of userAssignments; track assignment.user_id + assignment.role_id) {
+            @if (assignment.user_id === user.id) { @for (role of roles(); track role.id) { @if (role.id === assignment.role_id) { <span class="ms-2">{{ role.name }}</span> } } }
+          }
+          @if (authorization.has('profiles.manage')) { <button type="button" [disabled]="busy()" (click)="setUserActive(user.id, !user.active)" class="ms-3 text-brand-500">{{ user.active ? 'Desactivar' : 'Activar' }}</button> }
+        </div>
+      }
+    </div>
+  </app-component-card>
+}

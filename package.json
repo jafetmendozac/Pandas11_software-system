@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "start:local": "node scripts/local-environment.mjs && ng serve --configuration local"
   },
   "private": true,
   "dependencies": {

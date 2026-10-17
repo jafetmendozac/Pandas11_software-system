@@ -112,3 +112,13 @@ La configuración CLI tiene `schema_paths = []` y apunta a un `supabase/seed.sql
 El usuario debe aprobar el modelo canónico de citas, estados, relación empleado–perfil, tarifas comodín, reglas horarias y matriz de permisos. También debe confirmar qué archivos reflejan el despliegue y la estrategia de migraciones. No se resuelve ninguna discrepancia mediante cambios de código en esta entrega.
 
 Fuentes: [rutas](../src/app/app.routes.ts), [guard](../src/app/shared/guards/auth.guard.ts), [servicio de citas](../src/app/shared/services/appointments.service.ts), [SQL](../Pandas11.sql), [funciones](../functions_triggers.sql), [DBML](../database.md), [configuración Supabase](../supabase/config.toml).
+
+## Actualización Fase 0 — 2026-10-17
+
+Esta sección actualiza las observaciones históricas de identidad anteriores. `supabase/migrations/20261017152256_identity_foundation.sql` reproduce las cinco tablas de identidad del modelo local y añade catálogo, RLS, grants y funciones seguras. El resto del esquema sigue sin migrar en este entorno parcial.
+
+`AuthorizationService` consulta usuario confirmado, perfil activo y `my_permissions`; guards comprueban `panel.access` en entrada y navegación hija. Cliente dispone de `/mi-perfil`; acceso denegado en `/access-denied`. Configuración distingue apariencia de seguridad. Owner gestiona roles personalizados, usuarios y asignaciones; no puede alterar owners/roles de sistema mediante API. Los perfiles no se insertan libremente desde Angular.
+
+Helpers SECURITY DEFINER con search_path vacío evitan recursión RLS. El registro crea perfil y CLIENT sin confiar roles a metadata. Perfil/rol inactivo deja de otorgar permisos. La rotación owner se reserva a administración privilegiada; por API se impide retirar o desactivar cualquier owner.
+
+Desarrollo aislado `Pandas11-identity-dev`, configuración Angular `local`, puertos 553xx y confirmación por correo local. Ver `supabase/README.md`. No cambia el esquema remoto ni garantiza autorización de las otras tablas del negocio.

@@ -1,0 +1,45 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(16);
+select set_config('test.owner',gen_random_uuid()::text,true);
+select set_config('test.client',gen_random_uuid()::text,true);
+select set_config('test.staff',gen_random_uuid()::text,true);
+insert into auth.users(id,email,raw_user_meta_data) values
+ (current_setting('test.owner')::uuid,'test-'||current_setting('test.owner')||'@test.invalid','{}'),
+ (current_setting('test.client')::uuid,'test-'||current_setting('test.client')||'@test.invalid','{"role":"OWNER"}'),
+ (current_setting('test.staff')::uuid,'test-'||current_setting('test.staff')||'@test.invalid','{}');
+insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
+insert into public.user_roles select current_setting('test.staff')::uuid,id from public.roles where code='STAFF';
+select is((select count(*)::integer from public.profiles where id in (current_setting('test.owner')::uuid,current_setting('test.client')::uuid,current_setting('test.staff')::uuid)),3,'Auth crea perfiles');
+select is((select count(*)::integer from public.user_roles ur join public.roles r on r.id=ur.role_id where ur.user_id=current_setting('test.client')::uuid and r.code='OWNER'),0,'Metadata no concede OWNER');
+select set_config('test.owner_role',(select id::text from public.roles where code='OWNER'),true);
+set local role anon;
+select throws_ok('select * from public.profiles','42501',null,'Anon sin acceso');
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.client'),true);
+set local role authenticated;
+select is((select count(*)::integer from public.profiles),1,'Cliente solo perfil propio');
+select is(public.has_permission('panel.access'),false,'Cliente sin panel');
+select throws_ok($$update public.profiles set active=false$$,'42501',null,'Cliente no cambia active');
+select throws_ok($$insert into public.user_roles values (current_setting('test.client')::uuid,current_setting('test.owner_role')::uuid)$$,'42501',null,'Cliente no se asigna owner');
+select lives_ok($$update public.profiles set first_name='Nombre' where id=auth.uid()$$,'Editar nombres propios');
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.staff'),true);
+set local role authenticated;
+select is(public.has_permission('panel.access'),true,'Personal con panel');
+select is(public.has_permission('roles.manage'),false,'Personal sin gestión roles');
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
+set local role authenticated;
+select is(public.has_permission('roles.manage'),true,'Owner administra');
+select throws_ok($$select public.set_profile_active(current_setting('test.owner')::uuid,false)$$,'42501',null,'Owner protegido de baja');
+select throws_ok($$delete from public.user_roles where user_id=auth.uid() and role_id=(select id from public.roles where code='OWNER')$$,'42501',null,'Owner no pierde rol');
+select lives_ok($$insert into public.roles(code,name) values('TEST_'||gen_random_uuid()::text,'Prueba '||gen_random_uuid()::text)$$,'Owner crea rol no protegido');
+select lives_ok($$select public.set_profile_active(current_setting('test.staff')::uuid,false)$$,'Owner desactiva personal');
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.staff'),true);
+set local role authenticated;
+select is(public.has_permission('panel.access'),false,'Revocación inmediata de perfil inactivo');
+reset role;
+select * from finish();
+rollback;

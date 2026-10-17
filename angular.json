@@ -63,6 +63,16 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "local": {
+              "optimization": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.local.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -75,6 +85,9 @@
             },
             "development": {
               "buildTarget": "ng-tailadmin:build:development"
+            },
+            "local": {
+              "buildTarget": "ng-tailadmin:build:local"
             }
           },
           "defaultConfiguration": "development"

@@ -1,3 +1,7 @@
+-- Identidad: políticas, funciones y catálogo versionados en
+-- supabase/migrations/20261017152256_identity_foundation.sql.
+-- Este archivo describe el modelo completo; no ejecutarlo como migración automática.
+
 -- ---------- ENUMS ----------
 
 CREATE TYPE "pet_sex" AS ENUM (

@@ -87,3 +87,7 @@ Estas pruebas son propuestas para planes posteriores, no tareas autorizadas en e
 Se desconoce el esquema remoto completo, las políticas aplicadas, los roles reales, los triggers desplegados y qué flujos han sido comprobados por el usuario. No se infieren a partir del SQL local.
 
 Las decisiones pendientes están centralizadas en [roadmap.md](roadmap.md). La revisión de estos documentos debe preceder a cualquier otra tarea. La aprobación de documentación no debe interpretarse como autorización automática para implementar, instalar paquetes o ejecutar migraciones.
+
+## Evolución: Fase 0 — 2026-10-17
+
+Identidad migrada y validada en instancia aislada identity-dev. 16 pruebas SQL y 26 comprobaciones API correctas, lint sin errores; tipos, build y pruebas Angular de autorización ejecutados. Las observaciones iniciales de ausencia de migraciones/pruebas ya no describen la identidad actual. El resto del modelo y la base remota no están validados. Resultados y límites en `features/fase-0-fundamentos-seguridad/validation.md`; instrucciones en `../supabase/README.md`. Instancia local activa, sin cuentas sintéticas persistentes tras los tests.
