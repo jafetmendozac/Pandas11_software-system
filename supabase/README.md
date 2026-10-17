@@ -36,7 +36,7 @@ El script API rechaza URLs distintas a la instancia 55321, utiliza secretos excl
 
 ## Modelo y límites
 
-La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Después de Fase 1 también instala clientes, mascotas, vacunas y notas internas. Las demás tablas del negocio siguen pendientes. `panel.access` habilita el panel; no acredita autorización de datos de citas, clientes o pagos. Esas tablas necesitan RLS por dominio en fases posteriores.
+La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–3 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas y las cuatro tablas laborales. Las tablas de citas, pagos y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; no acredita autorización de datos de citas, clientes o pagos. Esas tablas necesitan RLS por dominio en fases posteriores.
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
 
@@ -74,3 +74,21 @@ node scripts/test-services-prices-api.mjs
 ```
 
 La prueba usa fixtures locales propios, incluidos 1002 servicios/tarifas para paginación, y limpia solo su prefijo aleatorio.
+
+## Fase 3 — Empleados y disponibilidad
+
+Migración incremental `20261017212614_employees_availability.sql`: employees, employee_schedules, business_hours y time_blocks. Aplicada solo en identity-dev; no requiere reset. Seis tramos comerciales sembrados: lunes–sábado 07–18. No se crean empleados, turnos personales ni bloqueos de ejemplo persistentes.
+
+Ejecutar la aplicación con `npm run start:local` y recargar para recibir los permisos nuevos. En **Empleados**, OWNER/ADMIN pueden vincular un perfil activo, elegir Asistente (baño) o Baño y corte y editar teléfono/estado. El perfil vinculado no se sustituye y la creación de empleado no asigna roles de acceso. STAFF solo consulta; CLIENT no accede al calendario laboral ni a motivos/teléfonos internos.
+
+Seleccionar **Horarios y disponibilidad** en las acciones del empleado. Configurar turnos por día (partidos o consecutivos), horario del local y bloqueos personales o de todo el local. Las horas/fechas usan America/Lima y los intervalos son [inicio, fin): un bloqueo que termina a09 no impide empezar a09. Domingo no permite turnos ni atención. Los turnos de una persona no se solapan; las escrituras por RPC se serializan para proteger también peticiones concurrentes. No escribir directamente a estas tablas desde Angular.
+
+La consulta puede mostrar ventanas por fecha o evaluar un intervalo y si requiere corte. Último inicio17; finalización después de18 solo con turno explícito que la cubra. Se distinguen cobertura laboral y admisión de nuevo inicio. Sin horario del local o turno del empleado no se habilita el tramo.
+
+**Límite:** «Horario habilitado; ocupación de citas/recojos no verificada». Registrar manualmente ausencias, descansos, recojos y compromisos como bloqueos hasta integrar agenda. El cálculo no crea reservas ni garantiza que no haya citas fuera de esos bloqueos. No calcula precio ni tiempo de transporte.
+
+```sh
+node scripts/test-employees-availability-api.mjs
+```
+
+72 comprobaciones locales, incluidos roles, concurrencia, turnos/bloqueos, Lima, feriados y paginación >1000. Usa cuentas sintéticas, limpia UUIDs/prefijos propios y preserva la configuración comercial previa. El script requiere el calendario local confirmado para los intervalos de sus ensayos. Evidencia completa en [validación Fase 3](../specs/features/fase-3-empleados-disponibilidad/validation.md).

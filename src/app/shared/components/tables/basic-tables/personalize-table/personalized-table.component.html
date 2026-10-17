@@ -205,7 +205,7 @@
           ></app-custom-select>
         </div>
         <span class="text-xs whitespace-nowrap sm:text-sm">
-          Mostrando {{ firstItemIndex }}-{{ lastItemIndex }} de {{ tableData.length }}
+          Mostrando {{ firstItemIndex }}-{{ lastItemIndex }} de {{ serverTotal ?? tableData.length }}
         </span>
       </div>
 
@@ -296,6 +296,7 @@
         <input
           [name]="column.key"
           [type]="column.type || 'text'"
+          [attr.step]="column.type === 'time' || column.type === 'datetime-local' ? '1' : null"
           [placeholder]="column.placeholder || ''"
           [ngModel]="formData[column.key]"
           (ngModelChange)="formData[column.key] = column.type === 'number' ? ($event === '' ? '' : +$event) : $event"

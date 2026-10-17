@@ -15,7 +15,7 @@ export interface TableColumn {
   required?: boolean;
   placeholder?: string;
   helpText?: string;
-  type?: 'text' | 'number' | 'date';
+  type?: 'text' | 'number' | 'date' | 'time' | 'datetime-local';
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }

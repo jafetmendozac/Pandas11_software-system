@@ -185,42 +185,44 @@ CREATE TABLE "user_roles" (
 );
 
 CREATE TABLE "employees" (
-  "id" uuid PRIMARY KEY,
-  "profile_id" uuid UNIQUE,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "profile_id" uuid NOT NULL UNIQUE,
   "phone" text,
-  "skill_level" skill_level,
-  "active" boolean DEFAULT true,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "skill_level" skill_level NOT NULL,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "employee_schedules" (
-  "id" uuid PRIMARY KEY,
-  "employee_id" uuid,
-  "weekday" smallint,
-  "start_time" time,
-  "end_time" time,
-  CONSTRAINT "chk_emp_sched_weekday" CHECK (weekday BETWEEN 0 AND 6),
-  CONSTRAINT "chk_emp_sched_range" CHECK (end_time > start_time)
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "employee_id" uuid NOT NULL,
+  "weekday" smallint NOT NULL,
+  "start_time" time NOT NULL,
+  "end_time" time NOT NULL,
+  CONSTRAINT "chk_emp_sched_weekday" CHECK (weekday BETWEEN 1 AND 6),
+  CONSTRAINT "chk_emp_sched_range" CHECK (end_time > start_time AND end_time < time '24:00')
 );
 
 CREATE TABLE "business_hours" (
-  "id" uuid PRIMARY KEY,
-  "weekday" smallint,
-  "open_time" time,
-  "close_time" time,
-  CONSTRAINT "chk_bh_weekday" CHECK (weekday BETWEEN 0 AND 6),
-  CONSTRAINT "chk_bh_range" CHECK (close_time > open_time)
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "weekday" smallint NOT NULL,
+  "open_time" time NOT NULL,
+  "close_time" time NOT NULL,
+  CONSTRAINT "chk_bh_weekday" CHECK (weekday BETWEEN 1 AND 6),
+  CONSTRAINT "chk_bh_range" CHECK (close_time > open_time AND close_time < time '24:00')
 );
 
 CREATE TABLE "time_blocks" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "employee_id" uuid,
-  "starts_at" timestamptz,
-  "ends_at" timestamptz,
-  "reason" text,
-  "created_by" uuid,
-  CONSTRAINT "chk_time_blocks_range" CHECK (ends_at > starts_at)
+  "starts_at" timestamptz NOT NULL,
+  "ends_at" timestamptz NOT NULL,
+  "reason" text NOT NULL CHECK (length(btrim(reason)) > 0),
+  "created_by" uuid NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "chk_time_blocks_range" CHECK (isfinite(starts_at) AND isfinite(ends_at) AND ends_at > starts_at)
 );
 
 CREATE TABLE "business_settings" (

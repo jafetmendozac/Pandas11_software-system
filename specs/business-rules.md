@@ -10,13 +10,13 @@ Fuente: solicitud inicial y respuestas posteriores del usuario. Estas definicion
 
 | ID | Regla | Estado de definición |
 |---|---|---|
-| RN-01 | Atención de lunes a sábado, incluidos feriados, con horario disponible de 07:00 a 18:00. Domingo es descanso. Se permite que un servicio termine después de las 18:00 | Confirmado: último inicio a las 17:00; zona horaria operativa pendiente |
+| RN-01 | Atención de lunes a sábado, incluidos feriados, con horario disponible de 07:00 a 18:00. Domingo es descanso. Se permite que un servicio termine después de las 18:00 | Confirmado: último inicio a las 17:00 y zona America/Lima (plan de Fase 3 aprobado) |
 | RN-02 | Medios de pago: Yape o efectivo | Confirmado |
 | RN-03 | Actualmente trabajan dos personas; pueden avanzar con hasta dos perros diferentes simultáneamente, uno por trabajador, sujeto a sus habilidades | Confirmado; no equivale a dos ingresos por hora ni define un máximo de perros por cita |
 | RN-04 | Baño y corte tiene una referencia inicial de 2 horas, pero la duración depende del tamaño del perro | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
 | RN-05 | Solo baño tiene una referencia inicial de 1 hora, pero la duración depende del tamaño; un perro muy pequeño puede requerir menos tiempo | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
 | RN-06 | Recojo significa transportar al perro hacia el local; no incluye llevarlo de regreso. El administrador fija el precio del transporte según la hora y la distancia | Confirmado: un trabajador realiza el recojo y queda ocupado durante el traslado; estimación de tiempo pendiente |
-| RN-07 | Un trabajador puede cortar y bañar; el otro solo puede bañar. Un trabajador sin habilidad de corte no puede realizar ese servicio | Confirmado; asignación técnica de habilidades a empleados pendiente de especificar |
+| RN-07 | Un trabajador puede cortar y bañar; el otro solo puede bañar. Un trabajador sin habilidad de corte no puede realizar ese servicio | Confirmado; Fase 3 usa ALL_SERVICES para baño/corte y ASSISTANT para baño |
 | RN-08 | Cuando el cliente reserva por sí mismo, se solicita un adelanto fijo de S/ 20 (PEN). La cita queda confirmada cuando el propietario (owner) verifica el pago | Confirmado; vencimiento y liberación de reserva pendientes |
 | RN-09 | Cuando el personal registra la cita, se cobra al final del servicio, tanto si el cliente tiene cuenta como si no | Confirmado; no se exige el adelanto de autorreserva en este flujo |
 | RN-10 | Un trabajador puede bañar al perro y luego pasarlo al trabajador habilitado para cortar | Confirmado; reserva de tiempos por etapa pendiente de especificar |
@@ -45,7 +45,7 @@ Las referencias de 1 y 2 horas no son duraciones fijas universales. No se invent
 
 | ID | Pregunta | Reglas afectadas |
 |---|---|---|
-| PN-01 | ¿El horario operativo corresponde a America/Lima? | RN-01 |
+| PN-01 | Resuelto por aprobación del plan de Fase 3: America/Lima | RN-01 |
 | PN-02 | ¿Cuánto dura baño y baño con corte para cada tamaño? ¿Quién puede ajustar la duración de una cita? | RN-04, RN-05 |
 | PN-03 | ¿Cómo se estima la duración del recojo y qué trabajador puede realizarlo? | RN-06, RN-03 |
 | PN-04 | ¿Cuánto tiempo se reserva para baño y para corte en un servicio compartido? ¿Se permite espera entre etapas? | RN-03, RN-07, RN-10 |
@@ -83,3 +83,13 @@ Estas diferencias quedan informadas, sin modificar código o base de datos.
 ## Validación de esta entrega
 
 Solo se incorporan reglas y referencias al flujo documental. La revisión es de contenido, enlaces y diff; no corresponde compilar Angular por estos cambios. No se ejecutaron pruebas funcionales, conexiones a Supabase ni cambios SQL.
+
+## Fase 3 aprobada e implementada localmente — 2026-10-17
+
+- RN-01: lunes–sábado incluyendo feriados, domingo de descanso, último inicio 17:00 y zona America/Lima. Fin después de18 requiere un turno configurado que lo cubra; no se prolonga implícitamente el trabajo de una persona.
+- RN-03/RN-07: empleado y perfil vinculado activos; ALL_SERVICES habilita baño/corte, ASSISTANT solo baño. Los dos trabajadores actuales no se convierten en un límite permanente de registros. Crear empleado no asigna roles de acceso.
+- RN-06: recojos, descansos y ausencias se representan por bloqueos manuales mientras no exista integración con agenda. Un bloqueo global afecta a todo el local; solapados se unen para no descontar dos veces.
+- Turnos partidos/consecutivos permitidos de lunes a sábado, dentro del mismo día; intervalos [inicio, fin). Sin turno u horario del local no se habilita ese tramo. No se inventa pausa de almuerzo.
+- OWNER/ADMIN gestionan y STAFF consulta. CLIENT/anon no acceden a teléfonos ni motivos laborales. La asociación de perfil es única e inmutable a través de la API.
+
+Evidencia: [validación de Fase 3](features/fase-3-empleados-disponibilidad/validation.md). La consulta no reserva ni garantiza exclusividad; la UI declara «Horario habilitado; ocupación de citas/recojos no verificada». RN-10 (relevo) todavía requiere etapas/ocupación de agenda, no implementadas aquí.

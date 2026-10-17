@@ -76,6 +76,7 @@ export const routes: Routes = [
       },
       {
         path:'empleados',
+        data: { permission: 'employees.read' },
         component:EmpleadosComponent,
         title:'Empleados | Spa & Boutique Pandas 11'
       },

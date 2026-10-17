@@ -81,7 +81,7 @@ Una contradicción documental se informa antes de resolverla. Una tarea no se de
 | D-01 | Fuente de verdad del esquema y procedencia del SQL local | Pendiente |
 | D-02 | Citas con una o varias mascotas y empleados; estados válidos | Pendiente |
 | D-03 | Registro público, asignación inicial de roles y matriz de permisos | Pendiente |
-| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Parcial: lunes–sábado incluidos feriados, 07:00–18:00, último inicio 17:00 y finalización posterior permitida; resto pendiente (RN-01) |
+| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Fase 3 aprobada/validada localmente: America/Lima, turnos, bloqueos, último inicio17 y fin extendido explícito. Ocupación automática de agenda pendiente (RN-01) |
 | D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Parcial: duración según tamaño y transporte fijado por administrador según hora/distancia; valores y prioridad pendientes (RN-04 a RN-06) |
 | D-06 | Estrategia de migraciones y entorno aislado de pruebas | Pendiente |
 | D-07 | Funcionalidad piloto y prioridad de etapas | Pendiente |
@@ -101,3 +101,11 @@ Plan aprobado e implementado localmente: clientes, mascotas, vacunas, notas inte
 ## Avance Fase 2 — 2026-10-17
 
 Servicios y tarifas implementados localmente con prioridad aprobada, comodines/TOY, precisión decimal, simulador, catálogo propio y RLS. RN-11/RN-12 registran reglas confirmadas. Sin reset ni cambios remotos. Integración con citas, disponibilidad y transporte permanece pendiente. Evidencia en features/fase-2-servicios-precios/validation.md.
+
+## Avance Fase 3 — 2026-10-17
+
+Implementada y validada localmente tras aprobación: empleados vinculados a perfiles activos, habilidades y desactivación, turnos recurrentes partidos, horario del local y bloqueos personales/globales. RLS y RPC por permiso; protección concurrente de solapamientos. Consulta laboral por fecha/intervalo en America/Lima, con unión/resta de bloqueos, último inicio17 y fin extendido solo si el turno lo cubre.
+
+43 pruebas Angular, 76 SQL acumuladas y 190 comprobaciones API de Fases 0–3 correctas; lint y build correctos. Evidencia en [validación](features/fase-3-empleados-disponibilidad/validation.md).
+
+Pendiente para una siguiente fase: acordar el contrato canónico de citas, integrar servicios/precios/empleados, ocupación transaccional de citas y recojos y etapas de relevo. Hasta entonces se usan bloqueos manuales y se muestra la ocupación automática como no verificada. Sin cambios remotos; adopción/despliegue remoto sigue requiriendo un plan específico.

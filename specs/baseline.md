@@ -99,3 +99,25 @@ Migración incremental local de clientes/mascotas y antecedentes aplicada preser
 ## Evolución Fase 2 — 2026-10-17
 
 Nueva migración incremental de catálogo aplicada en identity-dev conservando datos actuales. 48 pruebas SQL, 50 comprobaciones API específicas y 28 pruebas Angular correctas; lint/build correctos. Nuevo script `scripts/test-services-prices-api.mjs`. Se calculan precios/duraciones por tarifa con resultado decimal seguro; no se declara integración con agenda ni despliegue remoto. Ver validación de la fase.
+
+## Evolución Fase 3 — 2026-10-17
+
+Inicio de implementación: rama `chore/introducir-sdd`, HEAD `3ded0a5`; únicamente el directorio de especificaciones de Fase 3 estaba sin seguimiento. Sin commits ni pushes de esta entrega.
+
+Preflight local no encontró las cuatro tablas laborales. Nueva migración `20261017212614_employees_availability.sql` creada y aplicada con Supabase CLI mediante migration up --local, sin reset. Se conservan cuentas y datos anteriores; los tests limpian solo UUIDs/prefijos propios y las pruebas SQL hacen rollback. Sin dependencias nuevas ni cambios de entornos.
+
+| Validación | Resultado |
+|---|---|
+| `supabase db lint --local` | Sin errores ni advertencias |
+| `supabase test db` | 76/76: 48 previas +28 nuevas |
+| `node scripts/test-identity-api.mjs` | 26 comprobaciones correctas |
+| `node scripts/test-clients-pets-api.mjs` | 42 comprobaciones correctas |
+| `node scripts/test-services-prices-api.mjs` | 50 comprobaciones correctas |
+| `node scripts/test-employees-availability-api.mjs` | 72 comprobaciones correctas, incluida concurrencia y paginación >1000 |
+| `npm test -- --watch=false --browsers=ChromeHeadless` | 43/43: 28 previas +15 nuevas |
+| TypeScript app/spec sin emisión | Correctos |
+| `npm run build` | Correcto; inicial 3,35 MB |
+| Build en configuración development | Correcto |
+| `git diff --check` | Sin errores |
+
+Los comandos requieren CLI/Docker/Chrome locales. Sin E2E manual completo ni verificación remota. La consulta cubre disponibilidad laboral y bloqueos registrados, no ocupación automática de agenda. Detalle en [validación de Fase 3](features/fase-3-empleados-disponibilidad/validation.md).

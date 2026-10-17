@@ -134,3 +134,17 @@ ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; la
 services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/pelaje → tamaño → pelaje → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
 
 ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.
+
+## Actualización Fase 3 — 2026-10-17
+
+Migración incremental `20261017212614_employees_availability.sql`: employees, employee_schedules, business_hours, time_blocks y skill_level alineados con Pandas11.sql. Perfil único/obligatorio, días lunes–sábado, rangos válidos y timestamps/autor de servidor. Sin borrado de empleados por API; se desactivan. Solo se siembra horario comercial 07–18, sin turnos personales.
+
+Flujo: `/empleados` + permiso employees.read → EmpleadosComponent → EmpleadosService / WorkCalendarComponent → WorkCalendarService → RPC Supabase. Menú y acciones filtran permisos; OWNER/ADMIN gestionan, STAFF lee y CLIENT/anon/inactivos no acceden. search_employees pagina en servidor y expone nombre de empleado mediante join controlado, sin profiles.read global para STAFF. La selección de perfil activo solo se ofrece al personal autorizado; la asociación no se puede cambiar ni concede roles Auth.
+
+Las cuatro tablas tienen RLS de lectura y se revocan escrituras REST; save_employee, save_work_period/remove_work_period, save_time_block/remove_time_block son SECURITY DEFINER con search_path vacío y permisos explícitos. Las mutaciones de turnos y horarios comerciales toman el mismo advisory lock transaccional antes de leer conflictos. La serialización global es conservadora y evita solapamientos concurrentes o movimientos entre días que eludan el control. Operaciones privilegiadas fuera de la API deben respetar ese contrato.
+
+employee_availability calcula en un snapshot de lectura: día recurrente en America/Lima, empleado/perfil activos, habilidad, intersección de turnos y horario comercial, extensión explícita del turno que cubre el cierre, unión de bloqueos y resta mediante multirangos PostgreSQL. Devuelve ventanas, interval_covered y can_start_service separados; el segundo exige inicio comercial hasta17. Intervalos semiabiertos; cierres intermedios conservados. work_calendar agrega la configuración seleccionada en JSON para evitar truncado de filas por REST.
+
+Entradas locales de bloqueos se convierten en servidor con AT TIME ZONE America/Lima; no se interpretan según navegador. La UI muestra Lima con Intl y descarta respuestas obsoletas. La tabla espera persistencia y conserva formularios tras error; admite inputs nativos time/datetime-local.
+
+Agenda sigue sin integración automática con employees, turnos o bloqueos. La consulta laboral no reserva ni valida ocupación no registrada: devuelve occupancy_verified=false y lo declara en pantalla. El esquema remoto no se ha verificado ni modificado.

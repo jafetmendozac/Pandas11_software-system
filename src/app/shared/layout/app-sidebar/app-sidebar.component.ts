@@ -29,7 +29,7 @@ export class AppSidebarComponent {
 
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
-    return this.navItems.filter(item => item.path === '/clientes' ? this.authorization.has('clients.read') : item.path === '/mascotas' ? this.authorization.has('pets.read') : item.path === '/servicios' ? this.authorization.has('services.read') : item.path === '/tarifas' ? this.authorization.has('service_prices.read') : true);
+    return this.navItems.filter(item => item.path === '/clientes' ? this.authorization.has('clients.read') : item.path === '/mascotas' ? this.authorization.has('pets.read') : item.path === '/servicios' ? this.authorization.has('services.read') : item.path === '/empleados' ? this.authorization.has('employees.read') : item.path === '/tarifas' ? this.authorization.has('service_prices.read') : true);
   }
   // Main nav items
   navItems: NavItem[] = [
