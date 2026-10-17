@@ -93,3 +93,7 @@ No hay fechas ni compromisos de entrega aprobados. Riesgos principales: document
 ## Avance de Fase 0 — 2026-10-17
 
 Plan aprobado e identidad implementada localmente con migración, RLS, permisos, guards, administración de asignaciones y pruebas. Solo OWNER administra seguridad inicialmente; registro CLIENT y correo confirmado; entorno desechable identity-dev independiente. Esto resuelve esas decisiones para identidad local, sin aprobar automáticamente otras fases ni adopción remota. El resultado no acredita políticas de las tablas del negocio. Ver `features/fase-0-fundamentos-seguridad/validation.md`.
+
+## Avance Fase 1 — 2026-10-17
+
+Plan aprobado e implementado localmente: clientes, mascotas, vacunas, notas internas, RLS de dominio, búsqueda/paginación y archivo de lectura. Cliente autenticado consulta datos propios desde /mis-datos; OWNER/ADMIN editan y STAFF consulta. Detalle de alergias interno y nota editable 1:1. Sin reset ni adopción remota. Storage, historia clínica/revisiones y otras fases siguen pendientes. Resultados en features/fase-1-clientes-mascotas/validation.md.

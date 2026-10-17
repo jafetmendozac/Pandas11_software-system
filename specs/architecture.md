@@ -122,3 +122,9 @@ Esta sección actualiza las observaciones históricas de identidad anteriores. `
 Helpers SECURITY DEFINER con search_path vacío evitan recursión RLS. El registro crea perfil y CLIENT sin confiar roles a metadata. Perfil/rol inactivo deja de otorgar permisos. La rotación owner se reserva a administración privilegiada; por API se impide retirar o desactivar cualquier owner.
 
 Desarrollo aislado `Pandas11-identity-dev`, configuración Angular `local`, puertos 553xx y confirmación por correo local. Ver `supabase/README.md`. No cambia el esquema remoto ni garantiza autorización de las otras tablas del negocio.
+
+## Actualización Fase 1 — 2026-10-17
+
+Nueva migración incremental instala clients, pets, pet_vaccinations, client_internal y pet_internal con dependencias y RLS. OWNER/ADMIN administran, STAFF consulta y CLIENT accede solo a su vínculo profile_id y mascotas; notas internas requieren permiso independiente. La propiedad de mascota no cambia por UPDATE. Retiro lógico oculta por relación sin eliminar antecedentes; archivo de personal es de lectura.
+
+ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; las RPC son invoker y respetan RLS. save_client y retiros son operaciones controladas con permisos explícitos. RecordsService mantiene vacunas y notas en consultas separadas. RecordDetailsComponent muestra ficha/antecedentes según permisos y marca cambios tras cargas asíncronas. La tabla compartida añade guardado asíncrono optativo y paginación remota conservando contratos legacy. /mis-datos ofrece consulta propia sin panel interno. Allergies boolean y tamaño TOY alineados con Pandas11.sql; fotos/adjuntos fuera del alcance.

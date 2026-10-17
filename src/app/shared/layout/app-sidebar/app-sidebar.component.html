@@ -78,7 +78,7 @@
             }
           </h2>
           <ul class="flex flex-col gap-1">
-            @for (nav of (authorization.has('panel.access') ? navItems : []); track $index;let i = $index) {
+            @for (nav of visibleNavItems; track $index;let i = $index) {
             <li>
               @if (nav.subItems) {
                 <button

@@ -36,10 +36,27 @@ El script API rechaza URLs distintas a la instancia 55321, utiliza secretos excl
 
 ## Modelo y límites
 
-La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. No instala las otras tablas del negocio: sus pantallas no están validadas ni operativas en esta instancia parcial. `panel.access` habilita el panel; no acredita autorización de datos de citas, clientes o pagos. Esas tablas necesitan RLS por dominio en fases posteriores.
+La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Después de Fase 1 también instala clientes, mascotas, vacunas y notas internas. Las demás tablas del negocio siguen pendientes. `panel.access` habilita el panel; no acredita autorización de datos de citas, clientes o pagos. Esas tablas necesitan RLS por dominio en fases posteriores.
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
 
 ## Si Roles muestra falta de permiso y desaparece el menú
 
 Actualizar el código y recargar la página. La revalidación de permisos no debe vaciar el estado durante la consulta: ese comportamiento desmontaba Roles. Las pruebas ahora pueden ejecutarse con tu cuenta local existente; no requieren reset. Si persiste la denegación con la versión corregida, comprobar la asignación OWNER en esta misma instancia y sesión, sin recrear la base ni conceder permisos para ocultar un error de interfaz.
+
+
+## Fase 1 — Clientes y mascotas
+
+La migración incremental `20261017201505_clients_pets.sql` añade las cinco tablas del modelo y sus enums, RLS, búsqueda paginada y RPC de escritura/baja lógica. No requiere reset ni elimina cuentas.
+
+OWNER/ADMIN registran y editan; STAFF consulta; CLIENT accede a `/mis-datos` desde su perfil y ve solo la ficha vinculada y sus mascotas. El vínculo a perfil se realiza por personal autorizado, no automáticamente por email. Tras aplicar la migración, recargar la aplicación para obtener los nuevos permisos.
+
+En Clientes → Consultar ficha y mascotas aparecen notas internas del cliente y sus mascotas; seleccionar Ver antecedentes para vacunas y notas de mascota. En Mascotas → Ver antecedentes se consulta la ficha directamente. Consultar archivo conserva antecedentes en modo lectura. Retirar un cliente oculta también sus mascotas al cliente sin borrarlas.
+
+Alergias es un indicador sí/no; detalle reservado en nota interna. Vacunas: registrar y corregir fechas; no se bloquean citas automáticamente por vencimiento. Las notas almacenan la última edición y autor, no un historial clínico. Fotos, documentos adjuntos, traslado y pagos no se implementan aquí.
+
+Prueba API adicional (solo fixtures locales):
+
+```sh
+node scripts/test-clients-pets-api.mjs
+```

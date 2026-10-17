@@ -1,3 +1,5 @@
+-- Clientes/mascotas: políticas y RPC versionados en
+-- supabase/migrations/20261017201505_clients_pets.sql.
 -- Identidad: políticas, funciones y catálogo versionados en
 -- supabase/migrations/20261017152256_identity_foundation.sql.
 -- Este archivo describe el modelo completo; no ejecutarlo como migración automática.
@@ -227,9 +229,9 @@ CREATE TABLE "business_settings" (
 );
 
 CREATE TABLE "clients" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "profile_id" uuid UNIQUE,
-  "first_name" text,
+  "first_name" text NOT NULL CHECK (length(btrim(first_name)) > 0),
   "last_name" text,
   "phone" text,
   "whatsapp" text,
@@ -238,55 +240,57 @@ CREATE TABLE "clients" (
   "tax_doc_type" tax_doc_type,
   "tax_doc_number" text,
   "business_name" text,
-  "whatsapp_opt_in" boolean DEFAULT false,
+  "whatsapp_opt_in" boolean NOT NULL DEFAULT false,
   "deleted_at" timestamptz,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "pets" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
-  "name" text,
+  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
   "breed" text,
   "pet_sex" pet_sex,
   "pet_size" pet_size,
   "pet_coat_type" pet_coat_type,
   "photo_url" text,
-  "weight_kg" numeric,
-  "allergies" boolean DEFAULT false,
-  "bites" boolean DEFAULT false,
+  "weight_kg" numeric CHECK (weight_kg > 0),
+  "allergies" boolean NOT NULL DEFAULT false,
+  "bites" boolean NOT NULL DEFAULT false,
   "client_notes" text,
   "birth_date" date,
   "death_date" date,
-  "active" boolean DEFAULT true,
+  "active" boolean NOT NULL DEFAULT true,
   "deleted_at" timestamptz,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT chk_pet_life CHECK (death_date IS NULL OR birth_date IS NULL OR death_date >= birth_date)
 );
 
 CREATE TABLE "pet_vaccinations" (
-  "id" uuid PRIMARY KEY,
-  "pet_id" uuid,
-  "vaccine" text,
-  "applied_on" date,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "pet_id" uuid NOT NULL,
+  "vaccine" text NOT NULL CHECK (length(btrim(vaccine)) > 0),
+  "applied_on" date NOT NULL,
   "valid_until" date,
   "document_url" text,
-  "created_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT chk_vaccination_dates CHECK (valid_until IS NULL OR valid_until >= applied_on)
 );
 
 CREATE TABLE "client_internal" (
   "client_id" uuid PRIMARY KEY,
   "notes" text,
   "updated_by" uuid,
-  "updated_at" timestamptz
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "pet_internal" (
   "pet_id" uuid PRIMARY KEY,
   "notes" text,
   "updated_by" uuid,
-  "updated_at" timestamptz
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "appointment_internal" (

@@ -29,6 +29,7 @@ import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
+  { path: 'mis-datos', loadComponent: () => import('./pages/clientes/my-records.component').then(m => m.MyRecordsComponent), canActivate: [profileGuard], title: 'Mis datos y mascotas' },
   { path: 'mi-perfil', component: ProfileComponent, canActivate: [profileGuard], title: 'Mi perfil' },
   {
     path:'',
@@ -50,11 +51,13 @@ export const routes: Routes = [
       },
       {
         path:'clientes',
+        data: { permission: 'clients.read' },
         component:ClientesTableComponent,
         title:'Angular Clientes Table | TailAdmin - Angular Admin Dashboard Template'
       },
       {
         path:'mascotas',
+        data: { permission: 'pets.read' },
         component:MascotasTableComponent,
         title:'Mascotas | Spa & Boutique Pandas 11'
       },

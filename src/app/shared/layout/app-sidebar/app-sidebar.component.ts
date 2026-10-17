@@ -27,6 +27,10 @@ type NavItem = {
 })
 export class AppSidebarComponent {
 
+  get visibleNavItems(): NavItem[] {
+    if (!this.authorization.has('panel.access')) return [];
+    return this.navItems.filter(item => item.path === '/clientes' ? this.authorization.has('clients.read') : item.path === '/mascotas' ? this.authorization.has('pets.read') : true);
+  }
   // Main nav items
   navItems: NavItem[] = [
     {

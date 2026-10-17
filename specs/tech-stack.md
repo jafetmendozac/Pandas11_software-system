@@ -84,3 +84,7 @@ Fuentes: [package.json](../package.json), [angular.json](../angular.json), [tsco
 ## Actualización Fase 0 — 2026-10-17
 
 Supabase CLI utilizada para crear migración, iniciar/reconstruir instancia local, lint y pgTAP. Docker Server observado: 29.8.2. Se añadieron pruebas Jasmine/Karma de autorización y script API Node con supabase-js ya instalado, sin dependencias nuevas. `npm run start:local` genera un entorno ignorado con clave pública de la instancia 55321; los entornos previos no se sobrescriben.
+
+## Actualización Fase 1 — 2026-10-17
+
+Sin dependencias nuevas. RPC SQL invoker para búsqueda/paginación bajo RLS y RPC controladas de escritura. Nuevo script Node `scripts/test-clients-pets-api.mjs`, tests pgTAP de dominio y tests Angular de tabla/detalle. El desarrollo continúa con `npm run start:local`; no se sobrescribieron entornos previos.

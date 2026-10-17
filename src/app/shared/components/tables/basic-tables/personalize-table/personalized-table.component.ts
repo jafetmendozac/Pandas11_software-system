@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Optional, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../ui/button/button.component';
 import { TableDropdownComponent } from '../../../common/table-dropdown/table-dropdown.component';
@@ -16,6 +16,7 @@ export interface TableColumn {
   placeholder?: string;
   helpText?: string;
   type?: 'text' | 'number' | 'date';
+  createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }
 
@@ -36,6 +37,12 @@ type PaginationItem = number | 'ellipsis';
   styles: ``
 })
 export class PersonalizedTable {
+  constructor(@Optional() private readonly cdr?: ChangeDetectorRef) {}
+  @Input() serverTotal: number | null = null;
+  @Input() saveAction?: (row: TableRow, mode: 'create' | 'update' | 'delete') => Promise<void>;
+  @Output() queryChanged = new EventEmitter<{ search: string; page: number; size: number }>();
+  pending = false;
+  formError = '';
   @Input() title = 'Datos';
   @Input() addLabel = 'Añadir registro';
   @Input() createTitle = 'Añadir registro';
@@ -63,10 +70,11 @@ export class PersonalizedTable {
   formData: TableRow = {};
 
   get totalPages(): number {
-    return Math.ceil(this.filteredTableData.length / this.itemsPerPage);
+    return Math.ceil((this.serverTotal ?? this.filteredTableData.length) / this.itemsPerPage);
   }
 
   get filteredTableData(): TableRow[] {
+    if (this.serverTotal !== null) return this.tableData;
     const term = this.searchTerm.trim().toLocaleLowerCase();
     if (!term || !this.searchKey) return this.tableData;
 
@@ -89,25 +97,27 @@ export class PersonalizedTable {
   }
 
   get currentItems(): TableRow[] {
+    if (this.serverTotal !== null) return this.tableData;
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredTableData.slice(start, start + this.itemsPerPage);
   }
 
   get firstItemIndex(): number {
-    return this.filteredTableData.length === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
+    return (this.serverTotal ?? this.filteredTableData.length) === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
   }
 
   get lastItemIndex(): number {
-    return Math.min(this.currentPage * this.itemsPerPage, this.filteredTableData.length);
+    return Math.min(this.currentPage * this.itemsPerPage, this.serverTotal ?? this.filteredTableData.length);
   }
 
   onSearch(term: string): void {
     this.searchTerm = term;
     this.currentPage = 1;
+    this.emitQuery();
   }
 
   get editableColumns(): TableColumn[] {
-    return this.columns.filter((column) => column.editable !== false);
+    return this.columns.filter((column) => column.editable !== false && !(column.createOnly && this.editingIndex !== null));
   }
 
   get hasStatusColumn(): boolean {
@@ -129,33 +139,57 @@ export class PersonalizedTable {
   }
 
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+    if (page >= 1 && page <= this.totalPages) { this.currentPage = page; this.emitQuery(); }
   }
 
   onItemsPerPageChange(value: string | number | null): void {
     if (value !== null) {
       this.itemsPerPage = Number(value);
       this.currentPage = 1;
+      this.emitQuery();
     }
   }
 
+  private emitQuery(): void {
+    if (this.serverTotal !== null) this.queryChanged.emit({ search: this.searchTerm, page: this.currentPage, size: this.itemsPerPage });
+  }
+
   openCreateForm(): void {
+    if (this.pending || !this.allowCreate) return;
+    this.formError = '';
     this.editingIndex = null;
     this.formData = this.createEmptyRow();
     this.isFormOpen = true;
   }
 
   openEditForm(row: TableRow): void {
+    if (this.pending || !this.allowEdit) return;
+    this.formError = '';
     this.editingIndex = this.tableData.indexOf(row);
     this.formData = { ...row };
     this.isFormOpen = true;
   }
 
   closeForm(): void {
-    this.isFormOpen = false;
+    if (!this.pending) this.isFormOpen = false;
   }
 
-  saveRow(): void {
+  async saveRow(): Promise<void> {
+    if (this.pending) return;
+    if (this.editingIndex === null ? !this.allowCreate : !this.allowEdit) return;
+    this.formError = '';
+    for (const column of this.editableColumns) {
+      const value = this.formData[column.key];
+      if (column.required !== false && !String(value ?? '').trim()) { this.formError = `Completa ${column.label}.`; return; }
+      if (column.type === 'number' && String(value ?? '').trim() && !Number.isFinite(Number(value))) { this.formError = `Revisa ${column.label}.`; return; }
+    }
+    if (this.saveAction) {
+      this.pending = true;
+      try { await this.saveAction({ ...this.formData }, this.editingIndex === null ? 'create' : 'update'); this.isFormOpen = false; }
+      catch (error) { this.formError = error instanceof Error ? error.message : 'No se pudo guardar.'; }
+      finally { this.pending = false; this.cdr?.markForCheck(); }
+      return;
+    }
     const row = { ...this.formData };
     if (this.editingIndex === null) {
       this.tableData = [row, ...this.tableData];
@@ -168,10 +202,18 @@ export class PersonalizedTable {
     this.closeForm();
   }
 
-  handleDelete(row: TableRow): void {
+  async handleDelete(row: TableRow): Promise<void> {
+    if (this.pending || !this.allowDelete) return;
     const firstColumn = this.columns[0]?.key;
     const label = firstColumn ? this.getCellValue(row, firstColumn) : 'this row';
     if (!window.confirm(`¿Eliminar ${label}?`)) return;
+    if (this.saveAction) {
+      this.pending = true;
+      try { await this.saveAction(row, 'delete'); }
+      catch (error) { this.formError = error instanceof Error ? error.message : 'No se pudo retirar.'; }
+      finally { this.pending = false; this.cdr?.markForCheck(); }
+      return;
+    }
     this.tableData = this.tableData.filter((item) => item !== row);
     this.currentPage = Math.min(this.currentPage, this.totalPages || 1);
     this.rowDeleted.emit(row);

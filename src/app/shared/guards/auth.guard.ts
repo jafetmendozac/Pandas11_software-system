@@ -6,7 +6,7 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   const authorization = inject(AuthorizationService);
   const router = inject(Router);
   const active = await authorization.refresh();
-  return active && authorization.has('panel.access')
+  return active && authorization.has('panel.access') && (!_route.data?.['permission'] || authorization.has(_route.data?.['permission']))
     ? true
     : router.createUrlTree(['/access-denied'], { queryParams: { redirect: state.url } });
 };

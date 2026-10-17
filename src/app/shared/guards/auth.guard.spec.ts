@@ -29,4 +29,10 @@ describe('authGuard', () => {
     authorization.has.and.returnValue(false);
     expect(await TestBed.runInInjectionContext(() => authGuard(route, state))).toBe(denied as never);
   });
+  it('panel.access no sustituye el permiso de clientes de la ruta', async () => {
+    authorization.has.and.callFake((permission: string) => permission === 'panel.access');
+    const protectedRoute = { data: { permission: 'clients.read' } } as unknown as ActivatedRouteSnapshot;
+    expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
+  });
+
 });

@@ -91,3 +91,7 @@ Las decisiones pendientes están centralizadas en [roadmap.md](roadmap.md). La r
 ## Evolución: Fase 0 — 2026-10-17
 
 Identidad migrada y validada en instancia aislada identity-dev. 16 pruebas SQL y 26 comprobaciones API correctas, lint sin errores; tipos, build y pruebas Angular de autorización ejecutados. Las observaciones iniciales de ausencia de migraciones/pruebas ya no describen la identidad actual. El resto del modelo y la base remota no están validados. Resultados y límites en `features/fase-0-fundamentos-seguridad/validation.md`; instrucciones en `../supabase/README.md`. Instancia local activa, sin cuentas sintéticas persistentes tras los tests.
+
+## Evolución: Fase 1 — 2026-10-17
+
+Migración incremental local de clientes/mascotas y antecedentes aplicada preservando cuentas existentes. 30 pruebas SQL acumuladas y 42 comprobaciones API de Fase 1 correctas; UI integra consulta propia, vacunas y separación interna. El script adicional `node scripts/test-clients-pets-api.mjs` utiliza fixtures propios, incluyendo prueba de 1002 filas, y no requiere reset. Resultados Angular/build y límites en features/fase-1-clientes-mascotas/validation.md.
