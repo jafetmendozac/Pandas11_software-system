@@ -138,3 +138,11 @@ Inicio: documentación de Fase4 pendiente en Git (`M specs/business-rules.md`, n
 | `git diff --check`, archivos nuevos y enlaces | Correctos |
 
 Nueva API y pruebas de citas conservan cuentas existentes y limpian sus datos. Concurrencia comprobada entre reservas y cambios de turno/bloqueo, snapshots preservados y paginación de1002 citas completas canceladas. FullCalendar real probado con etapa después18 y texto seguro. Sin pruebas E2E manuales completas ni reconstrucción desde cero. No se instalaron paquetes, modificaron entornos, hicieron commits/pushes o desplegaron cambios remotos. Detalle en [validación](features/fase-4-agenda-reservas-internas/validation.md).
+
+## Seed de pruebas Fases 0–4 — 2026-10-18
+
+Git limpio al inicio de esta tarea. Se incorpora `npm run seed:local`: carga explícita y aditiva de cuentas Auth ficticias y datos relacionados de las cinco fases en la instancia local55321/55322. No cambia el esquema ni las políticas, no ejecuta reset ni migraciones y conserva el horario comercial. El seed automático SQL continúa sin cuentas demo por defecto.
+
+Primera carga correcta, con agenda de ejemplo para2026-10-19. `node scripts/test-local-seed.mjs`:41 comprobaciones correctas. Repetición del seed verificada comparando huellas de las20 tablas públicas antes/después y datos persistentes de cuentas Auth: sin cambios ni duplicados, salvo actividad normal de login. `supabase test db` con los fixtures presentes:112/112 correctas. Sintaxis Node y revisión de espacios correctas.
+
+Sin cambios Angular: no se repitió compilación ni pruebas unitarias. Sin revisión visual completa, conexiones remotas, instalación de dependencias o commits. Cuentas, recorrido manual, decisiones y límites de recuperación en [seed local](seed-local.md).

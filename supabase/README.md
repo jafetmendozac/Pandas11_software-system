@@ -9,6 +9,20 @@ npm run start:local
 
 `start:local` genera un archivo ignorado `environment.local.ts` con URL y clave pública locales. No modifica los entornos existentes ni imprime secretos. El registro exige confirmar correo en el buzón local. Un CLIENT puede usar `/mi-perfil`; no entra al panel.
 
+## Seed optativo para probar Fases 0–4
+
+```sh
+supabase migration up --local
+npm run seed:local
+npm run start:local
+```
+
+Carga únicamente en la instancia local cuentas confirmadas OWNER/ADMIN/STAFF/CLIENT, clientes/mascotas/vacunas/notas, servicios/tarifas ficticios, empleados/turnos/bloqueos y tres citas con relevo, varias mascotas, fin19 y cancelación. No hace reset ni modifica horarios comerciales existentes. Es aditivo y se puede repetir conservando sus datos; los límites de recuperación están documentados.
+
+Cuentas `demo.fases.owner@example.test`, `demo.fases.admin@example.test`, `demo.fases.staff@example.test` y `demo.fases.client@example.test`. Contraseña inicial pública de demostración: `Pandas11-Demo-2026!`. No son credenciales reales ni deben usarse fuera del entorno local.
+
+Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
+
 ## Primer owner
 
 Registrar y confirmar un usuario sintético en Angular local. En SQL Editor de Studio local, como postgres, asignar OWNER al UUID de ese usuario:
@@ -36,7 +50,7 @@ El script API rechaza URLs distintas a la instancia 55321, utiliza secretos excl
 
 ## Modelo y límites
 
-La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–3 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas y las cuatro tablas laborales. Las tablas de citas, pagos y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; no acredita autorización de datos de citas, clientes o pagos. Esas tablas necesitan RLS por dominio en fases posteriores.
+La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–4 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas, las cuatro tablas laborales y las cuatro tablas de citas con RLS por dominio. Pagos y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; cada dominio exige además sus permisos específicos.
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
 
