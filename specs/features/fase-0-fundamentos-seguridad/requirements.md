@@ -64,3 +64,10 @@ El usuario aprobó explícitamente el plan y sus condiciones. Solo OWNER adminis
 - F0-R01: entrar o recargar Roles no desmonta su componente ni vacía el menú mientras se revalida la misma sesión. Una denegación real o cierre/cambio de cuenta sí elimina los permisos.
 - F0-R02: consumidores simultáneos comparten la consulta de autorización y no invalidan entre sí sus resultados.
 - F0-R03: pruebas SQL/API funcionan con cuentas preexistentes sin contarlas como fixtures, borrar sus datos ni reconstruir la base.
+
+## Ajuste de presentación solicitado — 2026-10-18
+
+- «Usuarios y roles» tiene su propia pestaña junto a «Administrar roles» y «Asignar permisos»; cada selección muestra únicamente su contenido.
+- La opción seleccionada se distingue por fondo de marca y texto blanco en temas claro y oscuro; mantiene `aria-pressed` y foco visible.
+- La pestaña de usuarios y su contenido conservan `user_roles.manage`; la navegación sigue bloqueada durante una operación pendiente.
+- No se añaden operaciones ni permisos. Se conservan F0-06/F0-07 y las reglas de negocio existentes.

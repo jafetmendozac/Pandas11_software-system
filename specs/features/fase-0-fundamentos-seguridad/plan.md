@@ -42,3 +42,9 @@ El usuario aprobó explícitamente el plan y sus condiciones. Solo OWNER adminis
 El usuario reportó pérdida de permisos al entrar a Roles y fallos en tests. Se corrigió dentro del alcance existente: mantener el último resultado durante una revalidación de la misma sesión, publicar el resultado completo y denegar al fallar; compartir consultas concurrentes y descartar resultados tras cambio/cierre de sesión. Las renovaciones de token revalidan fuera del callback Auth.
 
 Las pruebas cuentan solo UUIDs propios, generan fixtures SQL únicos y limpian roles temporales en finally. No cambia Pandas11.sql, contratos, RLS o asignaciones del usuario; no requiere migración ni reset. Añadir pruebas de regresión de estado y concurrencia y repetir tests sobre la base existente.
+
+## Ajuste de presentación solicitado — 2026-10-18
+
+Dentro de la gestión existente aprobada, el usuario solicita una tercera pestaña para Usuarios y roles y un indicador visible de la opción seleccionada. Se limita a RoleSettingsComponent TS/HTML: ampliar el estado de vista, generar las tres opciones con estilos activos y mostrar un único contenido por selección. Conservar autorización, formularios, selección de rol y callbacks de servicio.
+
+Sin impacto de datos en profiles, roles, permissions, user_roles o role_permissions de Pandas11.sql; sin cambios de modelo, servicios, migraciones o RLS. Validación: compilación de producción, suite Angular existente y revisión de condiciones de visualización/permisos. La revisión visual manual se registra como pendiente.

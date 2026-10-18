@@ -10,8 +10,17 @@
     <button type="button" (click)="load()" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Reintentar carga</button>
   } @else {
     <nav aria-label="Configuración de roles" class="flex flex-wrap gap-3">
-      <button type="button" (click)="tab = 'roles'" [disabled]="busy()" [attr.aria-pressed]="tab === 'roles'" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700" [class.border-brand-500]="tab === 'roles'">Administrar roles</button>
-      <button type="button" (click)="tab = 'permissions'" [disabled]="busy()" [attr.aria-pressed]="tab === 'permissions'" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700" [class.border-brand-500]="tab === 'permissions'">Asignar permisos</button>
+      @for (item of tabs; track item.id) {
+        @if (item.id !== 'users' || authorization.has('user_roles.manage')) {
+          <button type="button" (click)="tab = item.id" [disabled]="busy()" [attr.aria-pressed]="tab === item.id"
+            class="rounded-lg border px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50"
+            [class]="tab === item.id
+              ? 'border-brand-500 bg-brand-500 text-white hover:bg-brand-600 dark:border-brand-500 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600'
+              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'">
+            {{ item.label }}
+          </button>
+        }
+      }
     </nav>
     @if (tab === 'roles') {
     @if (showRoleForm) {
@@ -59,7 +68,7 @@
         } @empty { <p class="text-sm text-gray-500 dark:text-gray-400">Aún no hay roles. Usa Crear rol para comenzar.</p> }
       </div>
     </app-component-card>
-    } @else {
+    } @else if (tab === 'permissions') {
     <app-component-card title="Asignación de permisos" desc="Cada cambio se guarda de inmediato en el rol seleccionado.">
       @if (selectedRole(); as selected) {
         <div class="space-y-4">
@@ -81,11 +90,7 @@
         </div>
       } @else { <p class="text-sm text-gray-500 dark:text-gray-400">Crea un rol en Administrar roles para comenzar a asignar permisos.</p> }
     </app-component-card>
-    }
-  }
-</section>
-
-@if (!loading() && !loadFailed() && authorization.has('user_roles.manage')) {
+    } @else if (tab === 'users' && authorization.has('user_roles.manage')) {
   <app-component-card title="Usuarios y roles" desc="Asigna acceso al personal. OWNER requiere administración privilegiada.">
     <div class="space-y-4">
       <label class="block text-gray-700 dark:text-gray-300">Usuario
@@ -113,4 +118,6 @@
       }
     </div>
   </app-component-card>
-}
+    }
+  }
+</section>

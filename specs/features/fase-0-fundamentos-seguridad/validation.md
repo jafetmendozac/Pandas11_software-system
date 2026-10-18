@@ -53,3 +53,13 @@ El reporte adjunto mostró 4 perfiles donde el test esperaba 3 y un fallo equiva
 La sección Roles invocaba refresh(), que publicaba permisos vacíos antes de responder. El padre usaba esos permisos en @if y desmontaba al hijo, ocultando también el sidebar. Se conserva el resultado durante revalidación de la misma sesión; al denegar/fallar se vacía. Cambio/cierre de cuenta invalida inmediatamente; consultas simultáneas se comparten. Se añadieron cuatro pruebas de regresión de autorización.
 
 Resultados sobre identity-dev existente, SIN reset: 16/16 SQL, 26 comprobaciones API, 11/11 Angular ChromeHeadless. Comprobación TypeScript de tests correcta. Se ejecuta también build y git diff --check. No se conceden permisos nuevos, ni se cambian RLS, migraciones o esquema.
+
+## Presentación de pestañas — 2026-10-18
+
+Solicitud del usuario implementada sobre la gestión existente: Usuarios y roles pasa a una tercera vista exclusiva; la opción activa usa fondo de marca y texto blanco en temas claro/oscuro, con `aria-pressed` y foco visible. Se conserva `user_roles.manage` para pestaña y contenido, y `busy()` deshabilita los cambios de vista mientras hay una operación pendiente. Sin cambios en servicios, autorización o base de datos.
+
+- `npm run build`: correcto, bundle inicial3,39MB; compila la plantilla modificada.
+- `npm test -- --watch=false --browsers=ChromeHeadless`:63/63 correctas en la suite existente. No había pruebas específicas de RoleSettingsComponent; no se atribuye a esta suite una revisión visual de las nuevas pestañas.
+- `git diff --check`: correcto.
+
+Los primeros intentos restringidos de build y tests terminaron con código134 (el build mostró un bloqueo interno de esbuild); ambos comandos pasaron al ejecutarlos fuera del sandbox. Sin instalación de dependencias ni cambios de configuración. Revisión visual manual pendiente; no se ejecutaron pruebas SQL/API porque no se cambió su contrato ni se accedió a Supabase en esta tarea.

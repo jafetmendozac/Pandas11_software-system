@@ -26,7 +26,12 @@ export class RoleSettingsComponent implements OnInit {
   readonly notice = signal('');
   readonly failed = signal(false);
   readonly selectedId = signal('');
-  tab: 'roles' | 'permissions' = 'roles';
+  readonly tabs = [
+    { id: 'roles', label: 'Administrar roles' },
+    { id: 'permissions', label: 'Asignar permisos' },
+    { id: 'users', label: 'Usuarios y roles' },
+  ] as const;
+  tab: 'roles' | 'permissions' | 'users' = 'roles';
   showRoleForm = false;
   editingId = '';
   role: RoleInput = this.emptyRole();
