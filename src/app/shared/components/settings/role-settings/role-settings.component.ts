@@ -1,13 +1,15 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { A11yModule } from '@angular/cdk/a11y';
 import { ComponentCardComponent } from '../../common/component-card/component-card.component';
+import { ModalComponent } from '../../ui/modal/modal.component';
 import { AuthorizationService } from '../../../services/authorization.service';
 import { Permission, Role, RoleInput, RolePermission, RolesService } from '../../../services/roles.service';
 
 @Component({
   selector: 'app-role-settings',
   standalone: true,
-  imports: [FormsModule, ComponentCardComponent],
+  imports: [FormsModule, A11yModule, ComponentCardComponent, ModalComponent],
   templateUrl: './role-settings.component.html',
 })
 export class RoleSettingsComponent implements OnInit {
@@ -68,6 +70,8 @@ export class RoleSettingsComponent implements OnInit {
     return this.permissions().filter(item => `${item.code} ${item.description}`.toLowerCase().includes(query));
   }
   edit(role: Role): void {
+    this.notice.set('');
+    this.failed.set(false);
     this.showRoleForm = true;
     this.tab = 'roles';
     this.editingId = role.id;
@@ -75,7 +79,14 @@ export class RoleSettingsComponent implements OnInit {
   }
   resetRole(): void { this.editingId = ''; this.role = this.emptyRole(); this.showRoleForm = false; }
 
-  createRole(): void { this.resetRole(); this.showRoleForm = true; }
+  closeRoleForm(): void { if (!this.busy()) this.resetRole(); }
+
+  createRole(): void {
+    this.resetRole();
+    this.notice.set('');
+    this.failed.set(false);
+    this.showRoleForm = true;
+  }
 
   linkPermissions(role: Role): void { this.selectedId.set(role.id); this.tab = 'permissions'; }
 
