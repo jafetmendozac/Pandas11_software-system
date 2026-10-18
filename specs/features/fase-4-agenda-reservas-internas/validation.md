@@ -80,3 +80,23 @@ Se gestiona ocupación de reservas programadas y bloqueos registrados, no la eje
 No se hizo un recorrido manual completo con el backend en el navegador, inspección de todos los tamaños/temas ni reconstrucción de una instancia vacía. Hay pruebas de componentes con FullCalendar real, API real local y migración incremental preservando datos; no son un E2E manual completo. No se verificó ni modificó el esquema remoto.
 
 Revisión sugerida: recargar app local, Citas → Calendario, crear cita con dos mascotas y relevo; probar un conflicto y cancelar con motivo. La siguiente fase y el despliegue remoto requieren su propio plan. Sin commits ni pushes en esta entrega.
+
+## Restitución del estilo de plantilla — 2026-10-18
+
+Cambio visual autorizado por el usuario: `/calendario` recupera tarjeta, flechas, título, selector mes/año/semana/día y apariencia de eventos basada en CalenderComponent. Las clases de celdas, franjas horarias y popovers se adaptan en `calendar-appearance.ts`, sin modificar la demostración `/calendar` ni los estilos globales. Cabecera y controles en Angular, textos en español, tema oscuro y espaciado lógico. La vista inicial vuelve a mes, como la plantilla.
+
+Eventos siguen siendo etapas de trabajadores con su cita asociada; conservan nombre/servicio/etapa/trabajador/cliente/estado y aviso operativo. Colores de plantilla para confirmada, en atención/revisión, completada y cancelada/no asistió, siempre con estado escrito. Nombres y horas se insertan mediante nodos/textContent. No se publican notas internas ni se trasladan eventos de ejemplo. Selección de un día mensual/anual propone07:00 Lima para no enviar una fecha sin hora; la reserva continúa sujeta a validación del servidor.
+
+| Verificación ejecutada | Resultado |
+|---|---|
+| TypeScript app y spec sin emisión | Correctos |
+| `npm run build` | Correcto; inicial3,41MB |
+| `npm test -- --watch=false --browsers=ChromeHeadless` | 64/64 correctas |
+| FullCalendar real en prueba de componente | Mes → año → día → semana; título/selector sincronizados, navegación anterior/siguiente, apertura de cita al pulsar etapa y sin recargas repetidas |
+| Selección mensual sin hora | Formulario recibe fecha local completa a07:00; no altera la zona America/Lima |
+| Regresión de seguridad y tiempos | STAFF sin alta/guardado; texto HTML como nombre no crea elementos; etapa de18–19 renderizada con clase de tarjeta y ficha asociada |
+| `git diff --check` y revisión del archivo nuevo | Correctos |
+
+El primer recorrido de vistas detectó que el test comprobaba el select antes de la microtarea de ngModel; se corrigió la espera y se repitió la suite completa con éxito. Build/tests se ejecutaron fuera del sandbox por sus restricciones locales ya comprobadas.
+
+Sin cambios de SQL, modelo, servicios, RLS, dependencias o base de datos. No se repitieron pruebas SQL/API: sus contratos no cambian y esta tarea no se conecta a Supabase. Pendiente revisión visual manual completa de tamaños/temas y recorrido con backend; la comprobación con FullCalendar real acredita interacción y renderizado, no una comparación de píxeles con la plantilla.

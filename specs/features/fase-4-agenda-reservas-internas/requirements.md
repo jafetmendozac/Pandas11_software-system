@@ -111,3 +111,12 @@ Permisos independientes de dominio: appointments.read/manage/status/cancel y app
 Esquema remoto, posibles citas heredadas y su transformación; tiempos comerciales concretos por tamaño; incidencias de retrasos, huecos entre etapas, cancelación durante atención, transporte enlazado, portal online y pagos. No inventar ni importar esos datos.
 
 Las decisiones iniciales y el plan fueron aprobados. Se implementan estados/cancelación, continuidad de etapas, primer inicio por mascota, snapshots, notas internas, rechazo de cambios laborales conflictivos y alcance manual del recojo. Esperas entre etapas y cancelación durante atención quedan fuera del contrato aprobado. Ver [plan.md](plan.md) y [validation.md](validation.md).
+
+## Restitución del estilo de plantilla — 2026-10-18
+
+El usuario solicita conservar el estilo del calendario TailAdmin y autoriza los cambios mediante «Entonces haz los cambios pertinentes por favor».
+
+- Recuperar en `/calendario` tarjeta, navegación con flechas, título, selector de vistas mes/año/semana/día y tarjetas de evento del calendario de plantilla; textos en español, tema oscuro y espaciado compatible con RTL.
+- Conservar filtros, eventos por etapa, zona America/Lima, finales después18, permisos y formulario operativo de citas. Las selecciones de día sin hora deben abrir el formulario con fecha/hora local válida.
+- Conservar la representación segura de nombres como texto y los estados identificables por texto además del color. No usar eventos de ejemplo ni publicar notas internas.
+- Mantener `/calendar` intacto y conservar los contratos RPC, validación de solapamientos, empleados disponibles y modelo de datos aprobados (F4-02/03/08/12).

@@ -1,7 +1,7 @@
 <section class="space-y-6" aria-labelledby="access-title">
   <div><h2 id="access-title" class="text-xl font-semibold text-gray-800 dark:text-white/90">Roles y permisos</h2>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crea roles y administra sus permisos existentes.</p></div>
-  @if (notice()) {
+  @if (notice() && !showRoleForm) {
     <p role="status" aria-live="polite" class="rounded-xl border p-4 text-sm" [class]="failed() ? 'border-error-200 bg-error-50 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400' : 'border-success-200 bg-success-50 text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400'">{{ notice() }}</p>
   }
   @if (loading()) {
@@ -23,25 +23,6 @@
       }
     </nav>
     @if (tab === 'roles') {
-    @if (showRoleForm) {
-    <div class="grid gap-6">
-      <app-component-card [title]="editingId ? 'Editar rol' : 'Crear rol'" desc="Los códigos y nombres de los roles deben ser únicos.">
-        <form #roleForm="ngForm" (ngSubmit)="saveRole()">
-          <fieldset [disabled]="busy()" class="space-y-4 disabled:opacity-60">
-            <div><label for="role-code" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Código <span aria-hidden="true">*</span></label>
-              <input id="role-code" name="code" required pattern=".*\S.*" [(ngModel)]="role.code" placeholder="Ej. recepcionista" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
-            <div><label for="role-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre <span aria-hidden="true">*</span></label>
-              <input id="role-name" name="name" required pattern=".*\S.*" [(ngModel)]="role.name" placeholder="Ej. Recepcionista" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
-            <div><label for="role-description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
-              <textarea id="role-description" name="description" rows="2" [(ngModel)]="role.description" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea></div>
-            <label class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" name="active" [(ngModel)]="role.active" class="h-4 w-4 accent-brand-500" />Rol activo</label>
-            <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="roleForm.invalid || busy() || !authorization.has('roles.manage')" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">{{ editingId ? 'Guardar rol' : 'Crear rol' }}</button>
-              <button type="button" (click)="resetRole()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Cancelar</button></div>
-          </fieldset>
-        </form>
-      </app-component-card>
-    </div>
-    }
     <div class="flex justify-end"><button type="button" (click)="createRole()" [disabled]="busy() || !authorization.has('roles.manage')" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Crear rol</button></div>
     <app-component-card title="Roles" desc="Administra los roles y sus accesos. Eliminar desactiva el rol sin quitar sus asignaciones.">
       <div class="space-y-3">
@@ -121,3 +102,37 @@
     }
   }
 </section>
+
+@if (showRoleForm && !loading() && !loadFailed()) {
+  <app-modal [isOpen]="true" [showCloseButton]="false" (close)="closeRoleForm()" className="m-4 max-w-xl p-5 sm:p-6">
+    <div role="dialog" aria-modal="true" aria-labelledby="role-dialog-title" aria-describedby="role-dialog-description"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="custom-scrollbar max-h-[85vh] overflow-y-auto">
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 id="role-dialog-title" class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ editingId ? 'Editar rol' : 'Crear rol' }}</h2>
+          <p id="role-dialog-description" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Los códigos y nombres de los roles deben ser únicos.</p>
+        </div>
+        <button type="button" (click)="closeRoleForm()" [disabled]="busy()" aria-label="Cerrar formulario de rol"
+          class="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+        <form #roleForm="ngForm" (ngSubmit)="saveRole()">
+          @if (failed() && notice()) {
+            <p role="alert" class="mb-4 rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ notice() }}</p>
+          }
+          <fieldset [disabled]="busy()" class="space-y-4 disabled:opacity-60">
+            <div><label for="role-code" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Código <span aria-hidden="true">*</span></label>
+              <input id="role-code" cdkFocusInitial name="code" required pattern=".*\S.*" [(ngModel)]="role.code" placeholder="Ej. recepcionista" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
+            <div><label for="role-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre <span aria-hidden="true">*</span></label>
+              <input id="role-name" name="name" required pattern=".*\S.*" [(ngModel)]="role.name" placeholder="Ej. Recepcionista" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" /></div>
+            <div><label for="role-description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+              <textarea id="role-description" name="description" rows="2" [(ngModel)]="role.description" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea></div>
+            <label class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" name="active" [(ngModel)]="role.active" class="h-4 w-4 accent-brand-500" />Rol activo</label>
+            <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="roleForm.invalid || busy() || !authorization.has('roles.manage')" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">{{ busy() ? 'Guardando…' : editingId ? 'Guardar rol' : 'Crear rol' }}</button>
+              <button type="button" (click)="closeRoleForm()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Cancelar</button></div>
+          </fieldset>
+        </form>
+    </div>
+  </app-modal>
+}

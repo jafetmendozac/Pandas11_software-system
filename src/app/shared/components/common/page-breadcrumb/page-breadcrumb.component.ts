@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { AuthorizationService } from '../../../services/authorization.service';
 
 @Component({
   selector: 'app-page-breadcrumb',
@@ -10,5 +11,6 @@ import { RouterModule } from '@angular/router';
   styles: ``
 })
 export class PageBreadcrumbComponent {
+  readonly authorization = inject(AuthorizationService);
   @Input() pageTitle = '';
 }

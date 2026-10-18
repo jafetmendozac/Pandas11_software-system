@@ -1,0 +1,84 @@
+:host {
+  --p-teal: #08737d;
+  --p-teal-bright: #56bcc9;
+  --p-teal-soft: #e5f6f6;
+  --p-ink: #173f47;
+  --p-muted: #506b70;
+  --p-paper: #ffffff;
+  --p-background: #fbfdfd;
+  --p-line: #d6e8e8;
+  --p-pink: #b92c73;
+  --p-pink-soft: #fcf0f5;
+  --p-purple: #765095;
+  --p-purple-soft: #f3eff8;
+  display: block;
+}
+:host-context(.dark) {
+  --p-teal: #6cdae0;
+  --p-teal-soft: #11383e;
+  --p-ink: #e5f7f8;
+  --p-muted: #afc6ca;
+  --p-paper: #122d34;
+  --p-background: #0b2229;
+  --p-line: #28494f;
+  --p-pink: #f19bc7;
+  --p-pink-soft: #342635;
+  --p-purple: #c6a8e7;
+  --p-purple-soft: #2c2a40;
+}
+.public-site { color: var(--p-ink); background: var(--p-background); }
+.public-site :is(a, button, select):focus-visible { outline: 3px solid var(--p-teal); outline-offset: 4px; }
+.public-site a:hover { color: var(--p-teal); }
+.skip-link { background: var(--p-paper); }
+.top-strip, .hero-ribbon { background: var(--p-teal-soft); color: var(--p-teal); }
+.site-header { background: var(--p-paper); border-block-end: 1px solid var(--p-line); }
+.muted { color: var(--p-muted); }
+.teal-text { color: var(--p-teal); }
+.ink-text { color: var(--p-ink); }
+.account-link { border: 1px solid var(--p-line); }
+.account-link:hover, .mobile-nav a:hover { background: var(--p-teal-soft); }
+.hero { background: radial-gradient(ellipse at 90% 15%, var(--p-teal-soft), transparent 65%); }
+.hero-title { font-size: clamp(3rem, 5.4vw, 5rem); line-height: 1.07; }
+.eyebrow { color: var(--p-teal); font-size: .72rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--p-teal); box-shadow: 0 0 0 5px var(--p-teal-soft); }
+.button-primary { background: #087f89; color: #fff; }
+.public-site .button-primary:hover { background: #08636d; color: #fff; }
+.button-secondary { background: var(--p-paper); border: 1px solid var(--p-line); }
+.icon-disc { color: var(--p-teal); background: var(--p-teal-soft); }
+.icon-disc.small { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; }
+.brand-scene { min-height: 440px; isolation: isolate; }
+.scene-orbit { border-color: var(--p-teal-bright); transform: rotate(-15deg); }
+.brand-portrait { box-shadow: 0 22px 70px -35px #087f8960; transform: rotate(-5deg); }
+.scene-label { border-color: var(--p-line); background: var(--p-paper); box-shadow: 0 14px 35px -25px #173f4770; }
+.label-top { inset-block-start: 30px; inset-inline-end: 0; transform: rotate(5deg); }
+.label-bottom { inset-block-end: 18px; inset-inline-start: 0; transform: rotate(-3deg); }
+.pink-heart { color: var(--p-pink); font-size: 1.4rem; }
+.paw-mark { color: var(--p-teal); font-size: 1.5rem; }
+.spark-one { inset-block-start: 20px; inset-inline-start: 25px; color: var(--p-purple); }
+.spark-two { inset-block-end: 45px; inset-inline-end: 6px; color: var(--p-pink); font-size: 1.7rem; }
+.scene-dot { background: var(--p-teal-bright); }
+.dot-one { inset-block-start: 50%; inset-inline-end: 0; }
+.dot-two { inset-block-end: 20%; inset-inline-start: 15px; width: 8px; height: 8px; }
+.section-shell { scroll-margin-block-start: 100px; }
+.section-title { font-size: clamp(2rem, 3.5vw, 3rem); line-height: 1.15; font-weight: 600; letter-spacing: -.035em; }
+.service-card { border: 1px solid var(--p-line); background: var(--p-paper); }
+.service-card.pink { background: var(--p-pink-soft); border-color: transparent; }
+.service-card.purple { background: var(--p-purple-soft); border-color: transparent; }
+.service-card.pink .icon-disc { background: var(--p-paper); color: var(--p-pink); }
+.service-card.purple .icon-disc { background: var(--p-paper); color: var(--p-purple); }
+.boutique-panel, .visit-section { background: var(--p-teal-soft); }
+.product-row, .contact-card { background: var(--p-paper); border: 1px solid var(--p-line); }
+.product-number { background: var(--p-teal-soft); color: var(--p-teal); }
+.pickup-panel { background: var(--p-purple-soft); }
+.pickup-panel .icon-disc { color: var(--p-purple); background: var(--p-paper); }
+.pickup-note { background: var(--p-paper); color: var(--p-purple); }
+.contact-divider { border-block-start: 1px solid var(--p-line); }
+@media (width < 640px) {
+  .brand-scene { min-height: 340px; max-width: 380px; }
+  .scene-label { font-size: .75rem; padding: 10px 12px; }
+  .label-top { inset-block-start: 8px; }
+  .label-bottom { inset-block-end: 4px; }
+  .spark-one { font-size: 1.8rem; }
+}
+
+.public-site a.whatsapp-float { background: var(--color-success-600); color: #fff; }

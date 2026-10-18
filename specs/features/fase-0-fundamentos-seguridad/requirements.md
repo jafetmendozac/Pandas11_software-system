@@ -71,3 +71,10 @@ El usuario aprobó explícitamente el plan y sus condiciones. Solo OWNER adminis
 - La opción seleccionada se distingue por fondo de marca y texto blanco en temas claro y oscuro; mantiene `aria-pressed` y foco visible.
 - La pestaña de usuarios y su contenido conservan `user_roles.manage`; la navegación sigue bloqueada durante una operación pendiente.
 - No se añaden operaciones ni permisos. Se conservan F0-06/F0-07 y las reglas de negocio existentes.
+
+## Formulario de rol en ventana emergente — 2026-10-18
+
+- Crear y editar un rol abre el formulario existente en un modal centrado, sin desplazar la lista hacia abajo.
+- Conservar campos, validaciones y restricciones sobre roles de sistema. Cancelar, X, Escape o fondo cierran sin guardar; durante el guardado no se permite cerrar ni enviar dos veces.
+- Si falla el guardado, mantener el modal y los valores, con error visible dentro del formulario. Al guardar correctamente, cerrar y actualizar la lista como antes.
+- Incluir título accesible, foco inicial en código, navegación de teclado dentro del diálogo y devolución del foco al cerrar; soporte claro/oscuro y desplazamiento en pantallas pequeñas.

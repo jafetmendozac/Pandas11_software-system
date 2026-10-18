@@ -48,3 +48,9 @@ Las pruebas cuentan solo UUIDs propios, generan fixtures SQL únicos y limpian r
 Dentro de la gestión existente aprobada, el usuario solicita una tercera pestaña para Usuarios y roles y un indicador visible de la opción seleccionada. Se limita a RoleSettingsComponent TS/HTML: ampliar el estado de vista, generar las tres opciones con estilos activos y mostrar un único contenido por selección. Conservar autorización, formularios, selección de rol y callbacks de servicio.
 
 Sin impacto de datos en profiles, roles, permissions, user_roles o role_permissions de Pandas11.sql; sin cambios de modelo, servicios, migraciones o RLS. Validación: compilación de producción, suite Angular existente y revisión de condiciones de visualización/permisos. La revisión visual manual se registra como pendiente.
+
+## Formulario de rol en ventana emergente — 2026-10-18
+
+Ajuste de presentación solicitado sobre el formulario existente. Reutilizar ModalComponent sin modificarlo para otros consumidores; importar A11yModule de Angular CDK ya instalado para capturar/devolver foco y mantener Tab dentro del diálogo. Mover el formulario al modal, con cabecera y cierre propio etiquetado, conservando sus validaciones y guardado. Encaminar los cierres a closeRoleForm, que respeta busy; resetRole conserva su uso interno tras un guardado exitoso. Mostrar fallos dentro del modal y limpiar avisos antiguos al abrir.
+
+Alcance: únicamente RoleSettingsComponent y estos documentos. Sin cambios de contratos, reglas de negocio, Pandas11.sql, servicios, permisos, migraciones o datos; no instalar paquetes. Verificar compilación, suite Angular existente y diff. La interacción visual y de teclado requiere revisión manual y no se acredita solo con la suite existente.

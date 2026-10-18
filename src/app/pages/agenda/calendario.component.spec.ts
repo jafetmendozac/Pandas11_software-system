@@ -24,6 +24,7 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   auth.has.and.callFake((p:string)=>p.endsWith('.read'));
   const f=await fixture();await f.componentInstance.openAppointment('a');f.detectChanges();await Promise.resolve();f.detectChanges();
   expect(f.componentInstance.canEdit).toBeFalse();expect(f.nativeElement.textContent).not.toContain('Guardar cita');expect((f.nativeElement.querySelectorAll('textarea')[1] as HTMLTextAreaElement).value).toBe('Privado');
+  expect(f.nativeElement.textContent).not.toContain('Añadir cita +');
   expect((f.nativeElement.querySelectorAll('textarea')[1] as HTMLTextAreaElement).readOnly).toBeTrue();
   await f.componentInstance.save();await f.componentInstance.transition('CANCELLED');await f.componentInstance.saveInternal();expect(api.save).not.toHaveBeenCalled();expect(api.transition).not.toHaveBeenCalled();expect(api.saveInternal).not.toHaveBeenCalled();
  });
@@ -56,15 +57,40 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   c.employees.set([{id:'assistant',skill_level:'ASSISTANT'} as never,{id:'specialist',skill_level:'ALL_SERVICES'} as never]);
   expect(c.candidates(i,1).map(e=>e.id)).toEqual(['specialist']);expect(c.candidates(i,0).length).toBe(2);
  });
- it('renderiza una etapa después18 en FullCalendar real y no repite consultas por refrescar eventos',async()=>{
+ it('navega las vistas de plantilla con FullCalendar real y conserva etapas después18 sin recargas repetidas',async()=>{
   const late={...appointment,starts_at:'2030-07-29T23:00:00Z',ends_at:'2030-07-30T00:00:00Z',items:[{...appointment.items[0],stages:[{...appointment.items[0].stages[0],starts_at:'2030-07-29T23:00:00Z',ends_at:'2030-07-30T00:00:00Z'}]}]};
   api.range.and.resolveTo([late]);const f=await fixture();
   const calendar=f.debugElement.query(By.directive(FullCalendarComponent)).componentInstance as FullCalendarComponent;
-  calendar.getApi().gotoDate('2030-07-29');await f.componentInstance.loadRange();f.detectChanges();
+  const c=f.componentInstance;
+  expect(calendar.getApi().view.type).toBe('dayGridMonth');
+  c.changeView('multiMonthYear');f.detectChanges();
+  expect(calendar.getApi().view.type).toBe('multiMonthYear');
+  c.changeView('timeGridDay');f.detectChanges();
+  expect(calendar.getApi().view.type).toBe('timeGridDay');
+  c.changeView('timeGridWeek');calendar.getApi().gotoDate('2030-07-29');
+  for(let n=0;n<10;n++)await Promise.resolve();f.detectChanges();
+  await Promise.resolve();f.detectChanges();
+  expect(c.calendarTitle()).toBe(calendar.getApi().view.title);
+  expect((f.nativeElement.querySelector('#agenda-view') as HTMLSelectElement).value).toBe('timeGridWeek');
+  const requests=api.range.calls.count();
   await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));f.detectChanges();
   expect(f.nativeElement.querySelector('full-calendar').textContent).toContain('<img src=x onerror=alert(1)>');
   expect(f.nativeElement.querySelector('full-calendar img')).toBeNull();
-  expect(api.range.calls.count()).toBeLessThanOrEqual(3);
+  expect(f.nativeElement.querySelector('full-calendar .event-fc-color')).not.toBeNull();
+  expect(api.range.calls.count()).toBe(requests);
+  (f.nativeElement.querySelector('full-calendar .event-fc-color') as HTMLElement).click();
+  await Promise.resolve();expect(api.get).toHaveBeenCalledWith('a');
+  c.close();const oldStart=calendar.getApi().view.activeStart;
+  c.navigate('next');expect(calendar.getApi().view.activeStart).not.toEqual(oldStart);
+  c.navigate('prev');expect(calendar.getApi().view.activeStart).toEqual(oldStart);
+ });
+
+ it('seleccionar un día sin hora en mes conserva una fecha local válida para el formulario',async()=>{
+  const f=await fixture();const calendar=f.debugElement.query(By.directive(FullCalendarComponent)).componentInstance as FullCalendarComponent;
+  calendar.getApi().select('2030-07-29','2030-07-30');f.detectChanges();
+  expect(f.componentInstance.isOpen()).toBeTrue();
+  f.componentInstance.clientId='c';f.componentInstance.addItem();
+  expect(f.componentInstance.items()[0].start).toBe('2030-07-29T07:00:00');
  });
 
  it('una cotización fallida de un servicio retirado no contamina el nuevo formulario',async()=>{

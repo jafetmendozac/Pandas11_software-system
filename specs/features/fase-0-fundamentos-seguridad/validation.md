@@ -63,3 +63,13 @@ Solicitud del usuario implementada sobre la gestión existente: Usuarios y roles
 - `git diff --check`: correcto.
 
 Los primeros intentos restringidos de build y tests terminaron con código134 (el build mostró un bloqueo interno de esbuild); ambos comandos pasaron al ejecutarlos fuera del sandbox. Sin instalación de dependencias ni cambios de configuración. Revisión visual manual pendiente; no se ejecutaron pruebas SQL/API porque no se cambió su contrato ni se accedió a Supabase en esta tarea.
+
+## Formulario de rol en ventana emergente — 2026-10-18
+
+Formulario de crear/editar trasladado a ModalComponent existente. Se conserva la validación y el servicio de guardado; cierre con Cancelar/X/Escape/fondo, bloqueado por busy durante la petición. Los errores se muestran dentro del modal manteniendo los valores; éxito cierra y actualiza la lista. Angular CDK ya instalado aporta captura inicial de foco en código, contención de Tab y restauración de foco al cerrar. Sin modificaciones al modal compartido ni a sus otros consumidores.
+
+- `npm run build`: correcto; inicial3,40MB, plantilla y módulo de accesibilidad compilados.
+- `npm test -- --watch=false --browsers=ChromeHeadless`:63/63 correctas de la suite existente; no son pruebas específicas de este formulario.
+- `git diff --check`: correcto.
+
+Build y tests se ejecutaron fuera del sandbox por las limitaciones comprobadas anteriormente. Sin dependencias nuevas, cambios de base de datos, conexiones Supabase o modificaciones de permisos. Pendiente revisión visual/manual del modal, interacción de teclado y comportamiento durante una petición real; no se declaran como validados por navegador en esta entrega.

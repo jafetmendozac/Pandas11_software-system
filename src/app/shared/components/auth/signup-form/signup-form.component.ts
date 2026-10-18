@@ -67,7 +67,7 @@ export class SignupFormComponent {
       });
 
       if (data.session?.user.email_confirmed_at) {
-        await this.router.navigateByUrl('/');
+        await this.router.navigateByUrl('/mi-perfil');
       } else {
         await this.supabase.signOut();
         await this.router.navigate(['/confirm-email'], {

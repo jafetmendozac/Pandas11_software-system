@@ -8,6 +8,7 @@ import { InputFieldComponent } from '../../form/input/input-field.component';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../services/supabase.service';
+import { AuthorizationService } from '../../../services/authorization.service';
 
 @Component({
   selector: 'app-signin-form',
@@ -36,6 +37,7 @@ export class SigninFormComponent {
     private readonly supabase: SupabaseService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   togglePasswordVisibility() {
@@ -53,7 +55,13 @@ export class SigninFormComponent {
 
     try {
       await this.supabase.signInWithEmail(this.email, this.password);
-      const redirect = this.route.snapshot.queryParamMap.get('redirect') || '/';
+      if (!await this.authorization.refresh()) {
+        throw new Error('No se pudo habilitar el acceso a tu cuenta. Comprueba su estado o vuelve a intentarlo.');
+      }
+      const requested = this.route.snapshot.queryParamMap.get('redirect');
+      const internalRedirect = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\')
+        ? requested : null;
+      const redirect = internalRedirect || (this.authorization.has('panel.access') ? '/panel' : '/mi-perfil');
       await this.router.navigateByUrl(redirect);
     } catch (error) {
       this.errorMessage = error instanceof Error

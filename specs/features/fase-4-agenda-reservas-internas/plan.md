@@ -125,3 +125,11 @@ Decisiones concretas de implementación:
 - Sin transporte automático, pagos, autorreserva, seguimiento real por etapa o auditoría de versiones anteriores. Las filas actuales conservan la cancelación y los snapshots; no hay borrado físico API.
 
 Resultados y límites en [validation.md](validation.md). El despliegue remoto no forma parte de esta aprobación.
+
+## Restitución del estilo de plantilla — 2026-10-18
+
+Autorizada expresamente por el usuario tras la explicación de la diferencia visual. Extraer una configuración de apariencia local a la carpeta agenda usando las clases/vistas de CalenderComponent como referencia, sin modificar la demostración. Recuperar las vistas mes/año con los plugins ya instalados; cabecera Angular con navegación, título, acción por permiso y selector de vista accesible. Mantener carga por rango con protección contra recargas repetidas y el contrato de eventos por asignación.
+
+Representar eventos con las tarjetas y colores de plantilla mediante nodos DOM/textContent: nunca interpolar nombres en HTML. Acomodar los filtros y textos de ayuda a los componentes y tokens existentes. Conservar íntegro el formulario de reservas y los límites laborales; al seleccionar un día mensual/anual usar inicio07:00 local como sugerencia, que el servidor vuelve a validar. Mantener arrastre/resize deshabilitados.
+
+Sin impacto en las cuatro tablas de Pandas11.sql ni necesidad de cambios SQL, servicios, dependencias o RLS. Verificar TypeScript, build y pruebas Angular existentes; adaptar la prueba con FullCalendar real para recorrer las vistas recuperadas, abrir etapas y verificar seguridad de texto y final después18. Documentar límites visuales sin presentar comprobaciones de componente como E2E real con Supabase.
