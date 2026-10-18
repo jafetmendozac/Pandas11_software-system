@@ -1,24 +1,17 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
-
-@Component({
-  selector: 'app-servicios',
-  imports: [
-    ComponentCardComponent,
-    PageBreadcrumbComponent,
-    PersonalizedTable,
-  ],
-  templateUrl: './servicios.component.html',
-  styles: ``
-})
+import { AuthorizationService } from '../../shared/services/authorization.service';
+import type { PageQuery } from '../../shared/services/clientes.service';
+@Component({selector:'app-servicios',standalone:true,imports:[ComponentCardComponent,PageBreadcrumbComponent,PersonalizedTable],templateUrl:'./servicios.component.html'})
 export class ServiciosComponent implements OnInit {
-  tableData = signal<Service[]>([]);
-  errorMessage = signal('');
-  loading = signal(true);
-
+  readonly authorization=inject(AuthorizationService);
+  private readonly services=inject(ServiciosService);
+  @ViewChild('table') table?:PersonalizedTable;
+  readonly tableData=signal<Service[]>([]);readonly total=signal(0);readonly loading=signal(false);readonly errorMessage=signal('');
+  private query:PageQuery={search:'',page:1,size:5}; private revision=0;
   columns: TableColumn[] = [
     {
       key: 'name',
@@ -27,17 +20,17 @@ export class ServiciosComponent implements OnInit {
       helpText: 'Escribe el nombre que verá el cliente.',
     },
     {
-      key: 'description',
+      key: 'description', required: false,
       label: 'Descripción',
       placeholder: 'Ej. Baño, secado y cepillado',
       helpText: 'Describe brevemente qué incluye el servicio.',
     },
     {
       key: 'base_price',
-      label: 'Precio',
-      type: 'number',
+      label: 'Precio base (S/)',
+      type: 'text',
       placeholder: 'Ej. 75',
-      helpText: 'Ingresa el precio en soles.',
+      helpText: 'Precio en soles, máximo dos decimales (ej. 12.50). Se permite cero.',
     },
     {
       key: 'base_duration_minutes',
@@ -73,40 +66,17 @@ export class ServiciosComponent implements OnInit {
     },
   ];
 
-  constructor(private readonly serviciosService: ServiciosService) {}
-
-  async ngOnInit() {
+  async ngOnInit():Promise<void>{await this.loadServices();}
+  async loadServices(query=this.query):Promise<void>{
+    this.query=query;const revision=++this.revision;this.loading.set(true);this.errorMessage.set('');
+    try{const result=await this.services.search(query);if(revision===this.revision){this.tableData.set(result.rows);this.total.set(result.total);}}
+    catch(error){if(revision===this.revision)this.errorMessage.set(error instanceof Error?error.message:'No se pudieron cargar los servicios.');}
+    finally{if(revision===this.revision)this.loading.set(false);}
+  }
+  readonly saveService=async(row:TableRow,mode:'create'|'update'|'delete'):Promise<void>=>{
+    if(!this.authorization.has('services.manage'))throw new Error('No tienes permiso para administrar servicios.');
+    await(mode==='create'?this.services.create(row):mode==='update'?this.services.update(row):this.services.remove(row));
+    if(mode==='create'){this.query={...this.query,page:1};if(this.table)this.table.currentPage=1;}
     await this.loadServices();
-  }
-
-  private async loadServices(): Promise<void> {
-    this.loading.set(true);
-    this.errorMessage.set('');
-    try {
-      const data = await this.serviciosService.getAll();
-      this.tableData.set(data);
-    } catch (error) {
-      console.error('Error cargando servicios:', error);
-      this.errorMessage.set(
-        error instanceof Error ? error.message : 'No se pudieron cargar los servicios.'
-      );
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async createService(transaction: TableRow) {
-    await this.serviciosService.create(transaction);
-    await this.loadServices();
-  }
-
-  async deleteService(transaction: TableRow) {
-    await this.serviciosService.remove(transaction);
-    await this.loadServices();
-  }
-
-  async updateService(transaction: TableRow) {
-    await this.serviciosService.update(transaction);
-    await this.loadServices();
-  }
+  };
 }

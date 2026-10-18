@@ -1,3 +1,11 @@
+-- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
+-- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
+-- Clientes/mascotas: políticas y RPC versionados en
+-- supabase/migrations/20261017201505_clients_pets.sql.
+-- Identidad: políticas, funciones y catálogo versionados en
+-- supabase/migrations/20261017152256_identity_foundation.sql.
+-- Este archivo describe el modelo completo; no ejecutarlo como migración automática.
+
 -- ---------- ENUMS ----------
 
 CREATE TYPE "pet_sex" AS ENUM (
@@ -178,42 +186,44 @@ CREATE TABLE "user_roles" (
 );
 
 CREATE TABLE "employees" (
-  "id" uuid PRIMARY KEY,
-  "profile_id" uuid UNIQUE,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "profile_id" uuid NOT NULL UNIQUE,
   "phone" text,
-  "skill_level" skill_level,
-  "active" boolean DEFAULT true,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "skill_level" skill_level NOT NULL,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "employee_schedules" (
-  "id" uuid PRIMARY KEY,
-  "employee_id" uuid,
-  "weekday" smallint,
-  "start_time" time,
-  "end_time" time,
-  CONSTRAINT "chk_emp_sched_weekday" CHECK (weekday BETWEEN 0 AND 6),
-  CONSTRAINT "chk_emp_sched_range" CHECK (end_time > start_time)
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "employee_id" uuid NOT NULL,
+  "weekday" smallint NOT NULL,
+  "start_time" time NOT NULL,
+  "end_time" time NOT NULL,
+  CONSTRAINT "chk_emp_sched_weekday" CHECK (weekday BETWEEN 1 AND 6),
+  CONSTRAINT "chk_emp_sched_range" CHECK (end_time > start_time AND end_time < time '24:00')
 );
 
 CREATE TABLE "business_hours" (
-  "id" uuid PRIMARY KEY,
-  "weekday" smallint,
-  "open_time" time,
-  "close_time" time,
-  CONSTRAINT "chk_bh_weekday" CHECK (weekday BETWEEN 0 AND 6),
-  CONSTRAINT "chk_bh_range" CHECK (close_time > open_time)
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "weekday" smallint NOT NULL,
+  "open_time" time NOT NULL,
+  "close_time" time NOT NULL,
+  CONSTRAINT "chk_bh_weekday" CHECK (weekday BETWEEN 1 AND 6),
+  CONSTRAINT "chk_bh_range" CHECK (close_time > open_time AND close_time < time '24:00')
 );
 
 CREATE TABLE "time_blocks" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "employee_id" uuid,
-  "starts_at" timestamptz,
-  "ends_at" timestamptz,
-  "reason" text,
-  "created_by" uuid,
-  CONSTRAINT "chk_time_blocks_range" CHECK (ends_at > starts_at)
+  "starts_at" timestamptz NOT NULL,
+  "ends_at" timestamptz NOT NULL,
+  "reason" text NOT NULL CHECK (length(btrim(reason)) > 0),
+  "created_by" uuid NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "chk_time_blocks_range" CHECK (isfinite(starts_at) AND isfinite(ends_at) AND ends_at > starts_at)
 );
 
 CREATE TABLE "business_settings" (
@@ -223,9 +233,9 @@ CREATE TABLE "business_settings" (
 );
 
 CREATE TABLE "clients" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "profile_id" uuid UNIQUE,
-  "first_name" text,
+  "first_name" text NOT NULL CHECK (length(btrim(first_name)) > 0),
   "last_name" text,
   "phone" text,
   "whatsapp" text,
@@ -234,126 +244,142 @@ CREATE TABLE "clients" (
   "tax_doc_type" tax_doc_type,
   "tax_doc_number" text,
   "business_name" text,
-  "whatsapp_opt_in" boolean DEFAULT false,
+  "whatsapp_opt_in" boolean NOT NULL DEFAULT false,
   "deleted_at" timestamptz,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "pets" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
-  "name" text,
+  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
   "breed" text,
   "pet_sex" pet_sex,
   "pet_size" pet_size,
   "pet_coat_type" pet_coat_type,
-  "weight_kg" numeric,
-  "allergies" text,
-  "bites" boolean DEFAULT false,
+  "photo_url" text,
+  "weight_kg" numeric CHECK (weight_kg > 0),
+  "allergies" boolean NOT NULL DEFAULT false,
+  "bites" boolean NOT NULL DEFAULT false,
   "client_notes" text,
   "birth_date" date,
   "death_date" date,
-  "active" boolean DEFAULT true,
+  "active" boolean NOT NULL DEFAULT true,
   "deleted_at" timestamptz,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT chk_pet_life CHECK (death_date IS NULL OR birth_date IS NULL OR death_date >= birth_date)
 );
 
 CREATE TABLE "pet_vaccinations" (
-  "id" uuid PRIMARY KEY,
-  "pet_id" uuid,
-  "vaccine" text,
-  "applied_on" date,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "pet_id" uuid NOT NULL,
+  "vaccine" text NOT NULL CHECK (length(btrim(vaccine)) > 0),
+  "applied_on" date NOT NULL,
   "valid_until" date,
   "document_url" text,
-  "created_at" timestamptz
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT chk_vaccination_dates CHECK (valid_until IS NULL OR valid_until >= applied_on)
 );
 
 CREATE TABLE "client_internal" (
   "client_id" uuid PRIMARY KEY,
   "notes" text,
   "updated_by" uuid,
-  "updated_at" timestamptz
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "pet_internal" (
   "pet_id" uuid PRIMARY KEY,
   "notes" text,
   "updated_by" uuid,
-  "updated_at" timestamptz
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "appointment_internal" (
   "appointment_id" uuid PRIMARY KEY,
   "notes" text,
-  "updated_by" uuid,
-  "updated_at" timestamptz
+  "updated_by" uuid NOT NULL,
+  "updated_at" timestamptz NOT NULL DEFAULT clock_timestamp()
 );
 
 CREATE TABLE "services" (
-  "id" uuid PRIMARY KEY,
-  "name" text,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
   "description" text,
-  "base_price" numeric,
-  "base_duration_minutes" integer,
-  "requires_specialist" boolean,
-  "visible_to_clients" boolean DEFAULT true,
-  "active" boolean DEFAULT true,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "base_price" numeric NOT NULL CHECK (base_price >= 0 AND base_price < 'Infinity'::numeric AND base_price = round(base_price,2)),
+  "base_duration_minutes" integer NOT NULL CHECK (base_duration_minutes > 0),
+  "requires_specialist" boolean NOT NULL DEFAULT false,
+  "visible_to_clients" boolean NOT NULL DEFAULT true,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "service_prices" (
-  "id" uuid PRIMARY KEY,
-  "service_id" uuid,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "service_id" uuid NOT NULL,
   "pet_size" pet_size,
   "pet_coat_type" pet_coat_type,
-  "price" numeric,
-  "duration_minutes" integer,
-  CONSTRAINT "chk_sp_price" CHECK (price >= 0),
+  "price" numeric NOT NULL,
+  "duration_minutes" integer NOT NULL,
+  CONSTRAINT "chk_sp_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
   CONSTRAINT "chk_sp_duration" CHECK (duration_minutes > 0)
 );
 
 CREATE TABLE "appointments" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
-  "starts_at" timestamptz,
-  "ends_at" timestamptz,
-  "status" appointment_status,
-  "source" appointment_source,
+  "starts_at" timestamptz NOT NULL,
+  "ends_at" timestamptz NOT NULL,
+  "requires_pickup" boolean NOT NULL DEFAULT false,
+  "pickup_address" text,
+  "pickup_fee" numeric NOT NULL DEFAULT 0 CHECK (pickup_fee >= 0 AND pickup_fee < 'Infinity'::numeric AND pickup_fee = round(pickup_fee,2)),
+  "status" appointment_status NOT NULL DEFAULT 'CONFIRMED',
+  "source" appointment_source NOT NULL DEFAULT 'INTERNAL',
   "hold_expires_at" timestamptz,
-  "total_price" numeric,
-  "deposit_required" numeric,
+  "total_price" numeric NOT NULL CHECK (total_price >= 0 AND total_price < 'Infinity'::numeric AND total_price = round(total_price,2)),
+  "deposit_required" numeric NOT NULL DEFAULT 0 CHECK (deposit_required >= 0 AND deposit_required < 'Infinity'::numeric AND deposit_required = round(deposit_required,2)),
   "client_notes" text,
   "cancelled_at" timestamptz,
   "cancelled_by" uuid,
   "cancel_reason" text,
-  "created_by" uuid,
-  "created_at" timestamptz,
-  "updated_at" timestamptz,
-  CONSTRAINT "chk_appt_range" CHECK (ends_at > starts_at)
+  "created_by" uuid NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT clock_timestamp(),
+  "version" integer NOT NULL DEFAULT 1 CHECK (version > 0),
+  CONSTRAINT "chk_appt_range" CHECK (isfinite(starts_at) AND isfinite(ends_at) AND ends_at > starts_at),
+  CONSTRAINT "chk_appt_cancel" CHECK ((status = 'CANCELLED' AND cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL AND coalesce(length(btrim(cancel_reason)),0) > 0) OR (status <> 'CANCELLED' AND cancelled_at IS NULL AND cancelled_by IS NULL AND cancel_reason IS NULL))
 );
 
 CREATE TABLE "appointment_items" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "appointment_id" uuid NOT NULL,
   "pet_id" uuid NOT NULL,
   "client_id" uuid NOT NULL,
-  "service_id" uuid,
-  "price" numeric,
-  "duration_minutes" integer,
-  "weight_kg_at_visit" numeric,
+  "service_id" uuid NOT NULL,
+  "price" numeric NOT NULL,
+  "duration_minutes" integer NOT NULL,
+  "requires_specialist_snapshot" boolean NOT NULL,
+  "weight_kg_at_visit" numeric CHECK (weight_kg_at_visit > 0 AND weight_kg_at_visit < 'Infinity'::numeric),
   "notes" text,
-  "created_at" timestamptz,
-  CONSTRAINT "chk_item_price" CHECK (price >= 0),
-  CONSTRAINT "chk_item_duration" CHECK (duration_minutes > 0)
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "chk_item_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
+  CONSTRAINT "chk_item_duration" CHECK (duration_minutes > 0),
+  UNIQUE (appointment_id,pet_id,service_id)
 );
 
 CREATE TABLE "appointment_item_staff" (
-  "item_id" uuid,
-  "employee_id" uuid,
-  PRIMARY KEY ("item_id", "employee_id")
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "item_id" uuid NOT NULL,
+  "employee_id" uuid NOT NULL,
+  "stage" text NOT NULL CHECK (stage IN ('SERVICE','BATH','CUT')),
+  "starts_at" timestamptz NOT NULL,
+  "ends_at" timestamptz NOT NULL,
+  CHECK (isfinite(starts_at) AND isfinite(ends_at) AND ends_at > starts_at),
+  CONSTRAINT "chk_staff_minutes" CHECK (extract(epoch from (ends_at-starts_at)) >= 60 AND mod(extract(epoch from (ends_at-starts_at)),60)=0),
+  UNIQUE (item_id,stage)
 );
 
 CREATE TABLE "payments" (
@@ -467,7 +493,9 @@ CREATE INDEX ON "appointment_items" ("pet_id");
 
 CREATE INDEX ON "appointment_items" ("service_id");
 
-CREATE INDEX ON "appointment_item_staff" ("employee_id");
+CREATE INDEX ON "appointment_item_staff" ("employee_id", "starts_at", "ends_at");
+
+CREATE INDEX ON "appointment_item_staff" ("item_id");
 
 CREATE INDEX ON "payments" ("appointment_id");
 

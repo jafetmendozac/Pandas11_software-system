@@ -80,3 +80,19 @@ El bloque inicial de instrucciones TailAdmin está comentado en `AGENTS.md`; no 
 Definir política de idiomas, entorno reproducible de desarrollo, estrategia de tipos de base de datos y herramientas adicionales de pruebas. Ninguna instalación o actualización forma parte de esta entrega.
 
 Fuentes: [package.json](../package.json), [angular.json](../angular.json), [tsconfig.json](../tsconfig.json), [configuración Supabase](../supabase/config.toml).
+
+## Actualización Fase 0 — 2026-10-17
+
+Supabase CLI utilizada para crear migración, iniciar/reconstruir instancia local, lint y pgTAP. Docker Server observado: 29.8.2. Se añadieron pruebas Jasmine/Karma de autorización y script API Node con supabase-js ya instalado, sin dependencias nuevas. `npm run start:local` genera un entorno ignorado con clave pública de la instancia 55321; los entornos previos no se sobrescriben.
+
+## Actualización Fase 1 — 2026-10-17
+
+Sin dependencias nuevas. RPC SQL invoker para búsqueda/paginación bajo RLS y RPC controladas de escritura. Nuevo script Node `scripts/test-clients-pets-api.mjs`, tests pgTAP de dominio y tests Angular de tabla/detalle. El desarrollo continúa con `npm run start:local`; no se sobrescribieron entornos previos.
+
+## Actualización Fase 2 — 2026-10-17
+
+Sin dependencias nuevas: PostgreSQL numeric para cálculo exacto y precios en texto decimal hacia Angular. Validadores compartidos en service-pricing.models.ts; simulador standalone con signals y pruebas Jasmine. Búsqueda RPC invoker y RLS de catálogo. Pruebas API adicionales en Node mediante supabase-js existente.
+
+## Actualización Fase 4 — 2026-10-17
+
+Sin dependencias nuevas. Se utiliza temporal-polyfill1.0.4 ya instalado para fechas/horas Lima y sumas de minutos; FullCalendar7.0.2 usa la zona America/Lima. Prueba de calendario real en ChromeHeadless y conversiones del modelo bajo tres TZ en Node. PostgreSQL17: RPC transaccionales/SECURITY DEFINER, mutex compartido, RLS de dominio y control de versión. Nuevo test pgTAP y script API de agenda con datos sintéticos propios. Versiones/paquetes no se actualizaron.

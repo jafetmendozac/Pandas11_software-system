@@ -1,0 +1,5 @@
+-- Catálogo de identidad incluido en la migración. Sin usuarios ni credenciales reales.
+-- Seed optativo de demostración Fases 0–4: npm run seed:local
+-- Usa Auth Admin local para crear cuentas confirmadas y RPC para validar las citas.
+-- No ejecutar automáticamente en reset: preserva una base vacía sin cuentas demo por defecto.
+-- Instrucciones, credenciales ficticias y límites: supabase/README.md.

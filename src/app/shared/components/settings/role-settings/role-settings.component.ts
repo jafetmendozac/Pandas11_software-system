@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ComponentCardComponent } from '../../common/component-card/component-card.component';
+import { AuthorizationService } from '../../../services/authorization.service';
 import { Permission, Role, RoleInput, RolePermission, RolesService } from '../../../services/roles.service';
 
 @Component({
@@ -10,6 +11,11 @@ import { Permission, Role, RoleInput, RolePermission, RolesService } from '../..
   templateUrl: './role-settings.component.html',
 })
 export class RoleSettingsComponent implements OnInit {
+  readonly authorization = inject(AuthorizationService);
+  users: Awaited<ReturnType<RolesService['users']>> = [];
+  userAssignments: { user_id: string; role_id: string }[] = [];
+  selectedUser = '';
+  selectedRoleId = '';
   private readonly service = inject(RolesService);
   readonly roles = signal<Role[]>([]);
   readonly permissions = signal<Permission[]>([]);
@@ -20,7 +26,12 @@ export class RoleSettingsComponent implements OnInit {
   readonly notice = signal('');
   readonly failed = signal(false);
   readonly selectedId = signal('');
-  tab: 'roles' | 'permissions' = 'roles';
+  readonly tabs = [
+    { id: 'roles', label: 'Administrar roles' },
+    { id: 'permissions', label: 'Asignar permisos' },
+    { id: 'users', label: 'Usuarios y roles' },
+  ] as const;
+  tab: 'roles' | 'permissions' | 'users' = 'roles';
   showRoleForm = false;
   editingId = '';
   role: RoleInput = this.emptyRole();
@@ -32,7 +43,10 @@ export class RoleSettingsComponent implements OnInit {
     this.loading.set(true);
     this.notice.set('');
     try {
+      if (!await this.authorization.refresh() || !this.authorization.has('security.read')) throw new Error('Sin permiso para administrar seguridad.');
       const data = await this.service.load();
+      this.users = await this.service.users();
+      this.userAssignments = await this.service.userAssignments();
       this.roles.set(data.roles);
       this.permissions.set(data.permissions);
       this.assignments.set(data.assignments);
@@ -107,6 +121,28 @@ export class RoleSettingsComponent implements OnInit {
     } catch (error) { this.showError(error); }
     finally { this.busy.set(false); }
   }
+  async assignUser(enabled: boolean): Promise<void> {
+    if (this.busy() || !this.selectedUser || !this.selectedRoleId) return;
+    this.busy.set(true);
+    try {
+      await this.service.assignUser(this.selectedUser, this.selectedRoleId, enabled);
+      this.userAssignments = await this.service.userAssignments();
+      this.success('Asignación actualizada.');
+    } catch (error) { this.showError(error); }
+    finally { this.busy.set(false); }
+  }
+
+  async setUserActive(userId: string, active: boolean): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.service.setUserActive(userId, active);
+      this.users = await this.service.users();
+      this.success('Estado del usuario actualizado.');
+    } catch (error) { this.showError(error); }
+    finally { this.busy.set(false); }
+  }
+
   private emptyRole(): RoleInput { return { code: '', name: '', description: '', active: true }; }
   private success(message: string): void { this.failed.set(false); this.notice.set(message); }
   private showError(error: unknown): void {

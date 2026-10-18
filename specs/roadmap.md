@@ -60,6 +60,8 @@ Evaluar pagos, notificaciones, facturación, portal público, vacunas, reportes 
 
 ## Flujo obligatorio por funcionalidad
 
+Consultar [Pandas11.sql](../Pandas11.sql) como modelo local de referencia en cada análisis y plan. Identificar elementos afectados o declarar que no hay impacto de datos; contrastar con Angular y migraciones. Las discrepancias y modificaciones del modelo deben explicarse y aprobarse antes de implementar. El archivo no prueba el estado remoto ni autoriza su ejecución completa sobre una base existente. Los cambios aprobados deben conservar coherencia entre modelo, migraciones, tipos, servicios y especificaciones.
+
 Conforme a `AGENTS.md`: contexto → requisitos → plan técnico → aprobación → implementación incremental → pruebas → revisión y documentación.
 
 Desde 2026-10-16, el análisis incluye [business-rules.md](business-rules.md). Cada funcionalidad debe referenciar los IDs RN aplicables en sus requisitos y registrar su cumplimiento en validación. Las reglas declaradas y las preguntas pendientes no acreditan implementación ni autorizan cambios de base de datos.
@@ -79,11 +81,39 @@ Una contradicción documental se informa antes de resolverla. Una tarea no se de
 | D-01 | Fuente de verdad del esquema y procedencia del SQL local | Pendiente |
 | D-02 | Citas con una o varias mascotas y empleados; estados válidos | Pendiente |
 | D-03 | Registro público, asignación inicial de roles y matriz de permisos | Pendiente |
-| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Pendiente |
-| D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Pendiente |
+| D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Fase 3 aprobada/validada localmente: America/Lima, turnos, bloqueos, último inicio17 y fin extendido explícito. Ocupación automática de agenda pendiente (RN-01) |
+| D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Parcial: duración según tamaño y transporte fijado por administrador según hora/distancia; valores y prioridad pendientes (RN-04 a RN-06) |
 | D-06 | Estrategia de migraciones y entorno aislado de pruebas | Pendiente |
 | D-07 | Funcionalidad piloto y prioridad de etapas | Pendiente |
-| D-08 | Alcance de pagos, facturación, comunicaciones y portal público | Pendiente |
+| D-08 | Alcance de pagos, facturación, comunicaciones y portal público | Parcial: Yape/efectivo, adelanto de autorreserva S/ 20 con confirmación al verificar el owner y cobro final en toda cita creada por personal; resto pendiente (RN-02, RN-08, RN-09) |
 | D-09 | Idiomas de interfaz y herramientas adicionales de pruebas | Pendiente |
 
 No hay fechas ni compromisos de entrega aprobados. Riesgos principales: documentar demos como producto terminado, adoptar un esquema desactualizado, ampliar alcance sin aprobación y crear documentos sin evidencia de validación.
+
+## Avance de Fase 0 — 2026-10-17
+
+Plan aprobado e identidad implementada localmente con migración, RLS, permisos, guards, administración de asignaciones y pruebas. Solo OWNER administra seguridad inicialmente; registro CLIENT y correo confirmado; entorno desechable identity-dev independiente. Esto resuelve esas decisiones para identidad local, sin aprobar automáticamente otras fases ni adopción remota. El resultado no acredita políticas de las tablas del negocio. Ver `features/fase-0-fundamentos-seguridad/validation.md`.
+
+## Avance Fase 1 — 2026-10-17
+
+Plan aprobado e implementado localmente: clientes, mascotas, vacunas, notas internas, RLS de dominio, búsqueda/paginación y archivo de lectura. Cliente autenticado consulta datos propios desde /mis-datos; OWNER/ADMIN editan y STAFF consulta. Detalle de alergias interno y nota editable 1:1. Sin reset ni adopción remota. Storage, historia clínica/revisiones y otras fases siguen pendientes. Resultados en features/fase-1-clientes-mascotas/validation.md.
+
+## Avance Fase 2 — 2026-10-17
+
+Servicios y tarifas implementados localmente con prioridad aprobada, comodines/TOY, precisión decimal, simulador, catálogo propio y RLS. RN-11/RN-12 registran reglas confirmadas. Sin reset ni cambios remotos. Integración con citas, disponibilidad y transporte permanece pendiente. Evidencia en features/fase-2-servicios-precios/validation.md.
+
+## Avance Fase 3 — 2026-10-17
+
+Implementada y validada localmente tras aprobación: empleados vinculados a perfiles activos, habilidades y desactivación, turnos recurrentes partidos, horario del local y bloqueos personales/globales. RLS y RPC por permiso; protección concurrente de solapamientos. Consulta laboral por fecha/intervalo en America/Lima, con unión/resta de bloqueos, último inicio17 y fin extendido solo si el turno lo cubre.
+
+43 pruebas Angular, 76 SQL acumuladas y 190 comprobaciones API de Fases 0–3 correctas; lint y build correctos. Evidencia en [validación](features/fase-3-empleados-disponibilidad/validation.md).
+
+Pendiente para una siguiente fase: acordar el contrato canónico de citas, integrar servicios/precios/empleados, ocupación transaccional de citas y recojos y etapas de relevo. Hasta entonces se usan bloqueos manuales y se muestra la ocupación automática como no verificada. Sin cambios remotos; adopción/despliegue remoto sigue requiriendo un plan específico.
+
+## Avance Fase 4 — 2026-10-17
+
+Plan y ampliaciones aprobados e implementados en identity-dev: agenda interna por items, varias mascotas del mismo cliente, etapas/relevo y trabajadores cualificados. Reservas atómicas con control de versión, snapshots de tarifas/duración/habilidad, cancelación sin borrado y notas internas separadas. OWNER/ADMIN gestionan; STAFF consulta. Conflictos por trabajador/mascota y carreras con configuración laboral protegidos en servidor.
+
+63 pruebas Angular,112 SQL y265 comprobaciones API acumuladas correctas; lint/tipos/build correctos. Modelo local y contratos Angular alineados. Evidencia en [validation.md](features/fase-4-agenda-reservas-internas/validation.md).
+
+Pendiente: pagos/adelantos y autorreserva, transporte enlazado/cotización, seguimiento real por etapa/demoras, esperas y políticas de cancelación durante atención; no se infieren de esta entrega. Recojos/demoras se representan manualmente con bloqueos. Adopción remota requiere inventario/conciliación de datos y aprobación específica; no está realizada.

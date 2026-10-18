@@ -1,0 +1,58 @@
+begin;
+select plan(28);
+select set_config('test.owner',gen_random_uuid()::text,true);
+select set_config('test.client',gen_random_uuid()::text,true);
+select set_config('test.employee',gen_random_uuid()::text,true);
+insert into auth.users(id,email,raw_user_meta_data) values
+ (current_setting('test.owner')::uuid,'test-'||current_setting('test.owner')||'@example.test','{}'),
+ (current_setting('test.client')::uuid,'test-'||current_setting('test.client')||'@example.test','{}');
+insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
+insert into public.employees(id,profile_id,skill_level) values(current_setting('test.employee')::uuid,current_setting('test.client')::uuid,'ALL_SERVICES');
+-- Preparación transaccional de calendario para esta suite laboral. El guard de
+-- citas se desactiva SOLO durante el fixture de horarios y se reactiva antes
+-- de las aserciones; rollback restaura datos y metadata. Así las citas locales
+-- ajenas a este test no impiden preparar su calendario temporal.
+alter table public.business_hours disable trigger check_business_changes;
+delete from public.business_hours;
+insert into public.business_hours(weekday,open_time,close_time) values(2,'07:00','12:00'),(2,'13:00','18:00');
+alter table public.business_hours enable trigger check_business_changes;
+select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
+set local role authenticated;
+select lives_ok($$select public.save_work_period('employee',jsonb_build_object('employee_id',current_setting('test.employee'),'weekday',2,'start_time','07:00','end_time','12:00'))$$,'Crear turno mañana');
+select lives_ok($$select public.save_work_period('employee',jsonb_build_object('employee_id',current_setting('test.employee'),'weekday',2,'start_time','12:00','end_time','19:00'))$$,'Turno consecutivo permitido');
+select throws_ok($$select public.save_work_period('employee',jsonb_build_object('employee_id',current_setting('test.employee'),'weekday',2,'start_time','11:00','end_time','13:00'))$$,'23P01',null,'Turno solapado rechazado');
+select throws_ok($$select public.save_work_period('business','{"weekday":2,"start_time":"11:00","end_time":"14:00"}')$$,'23P01',null,'Tramo comercial solapado rechazado');
+select throws_ok($$select public.save_work_period('employee',jsonb_build_object('employee_id',current_setting('test.employee'),'weekday',0,'start_time','07:00','end_time','12:00'))$$,'22023',null,'Domingo no admite turno');
+select throws_ok($$select public.save_work_period('business','{"weekday":2,"start_time":"18:00","end_time":"07:00"}')$$,'22023',null,'No cruza medianoche');
+select throws_ok($$insert into public.employee_schedules(employee_id,weekday,start_time,end_time) values(current_setting('test.employee')::uuid,3,'07:00','12:00')$$,'42501',null,'Sin escritura directa que eluda protocolo');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','17:00','19:00')->>'can_start_service')::boolean,true,'RN01: feriado y fin19 con turno explícito');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','17:01','18:00')->>'can_start_service')::boolean,false,'RN01: inicio posterior a17 denegado');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','12:00','13:00')->>'interval_covered')::boolean,false,'No rellenar cierre intermedio del local');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','18:00','19:00')->>'interval_covered')::boolean,true,'Cobertura laboral después del cierre');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','18:00','19:00')->>'can_start_service')::boolean,false,'Cobertura no autoriza nuevo inicio al cierre');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-08-02')->>'occupancy_verified')::boolean,false,'No prometer disponibilidad de agenda');
+select is(jsonb_array_length(public.employee_availability(current_setting('test.employee')::uuid,'2026-08-02')->'windows'),0,'Domingo sin ventanas');
+select lives_ok($$select public.save_time_block(jsonb_build_object('employee_id',current_setting('test.employee'),'starts_local','2026-07-27T22:00','ends_local','2026-07-28T09:00','reason','Recojo sintético'))$$,'Bloqueo multidía');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','07:00','08:00')->>'interval_covered')::boolean,false,'RN06: recojo bloquea empleado');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','09:00','10:00')->>'can_start_service')::boolean,true,'Intervalos semiabiertos en fin de bloqueo');
+select throws_ok($$select public.save_time_block('{"starts_local":"2026-07-28T10:00","ends_local":"2026-07-28T11:00","reason":" "}')$$,'23514',null,'Motivo no vacío');
+select throws_ok($$select public.save_time_block('{"starts_local":"2026-07-28T10:00Z","ends_local":"2026-07-28T11:00","reason":"Prueba"}')$$,'22023',null,'No interpretar offset como hora Lima');
+select throws_ok($$select public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','10:00',null)$$,'22023',null,'Intervalo debe tener ambos extremos');
+select throws_ok($$select public.save_employee(jsonb_build_object('profile_id',current_setting('test.owner')),current_setting('test.employee')::uuid)$$,'22023',null,'Perfil del empleado inmutable');
+select public.save_employee('{"skill_level":"ASSISTANT"}',current_setting('test.employee')::uuid);
+select is(jsonb_array_length(public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','10:00','11:00',true)->'windows'),0,'RN07: asistente no corta');
+select public.save_employee('{"active":false}',current_setting('test.employee')::uuid);
+select is(jsonb_array_length(public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28')->'windows'),0,'Empleado inactivo sin ventanas');
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.client'),true);
+set local role authenticated;
+select is((select count(*)::integer from public.employees where id=current_setting('test.employee')::uuid),0,'CLIENT sin lectura empleados');
+select is((select count(*)::integer from public.time_blocks where employee_id=current_setting('test.employee')::uuid),0,'CLIENT sin motivos internos');
+select throws_ok($$select public.work_calendar(current_setting('test.employee')::uuid)$$,'42501',null,'CLIENT sin lectura RPC');
+select throws_ok($$select public.save_employee('{"active":true}',current_setting('test.employee')::uuid)$$,'42501',null,'CLIENT sin edición');
+reset role;
+set local role anon;
+select throws_ok($$select public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28')$$,'42501',null,'Anon sin consulta laboral');
+reset role;
+select * from finish();
+rollback;

@@ -162,6 +162,7 @@ No se debe reconstruir desde cero.
 Antes de cualquier tarea:
 - Lee las especificaciones relevantes en specs/.
 - Consulta specs/business-rules.md e identifica las reglas aplicables y sus aclaraciones pendientes.
+- Consulta Pandas11.sql como modelo local de referencia de la base de datos antes de planificar o implementar cualquier funcionalidad; identifica las tablas, relaciones, tipos y restricciones aplicables.
 - Examina el código relacionado con la tarea.
 - Respeta la arquitectura y las convenciones actuales.
 - Distingue lo implementado de lo pendiente.
@@ -192,6 +193,9 @@ que se haya aprobado su plan.
 - Añade o actualiza pruebas cuando corresponda.
 
 ## 4. Reglas de Supabase
+- Usa Pandas11.sql como referencia del modelo previsto; no inventes tablas, columnas o relaciones que lo contradigan. Si se necesita modificar el modelo, documenta y presenta el cambio para aprobación antes de implementarlo.
+- Contrasta el modelo con el código y las migraciones disponibles. Pandas11.sql no acredita por sí solo el esquema desplegado: informa diferencias y no las resuelvas silenciosamente ni ejecutes el archivo completo sobre una base existente.
+- Tras aprobar e implementar un cambio de esquema, mantén coherentes Pandas11.sql, las migraciones, los tipos/servicios afectados y las especificaciones.
 - Respeta el esquema y las políticas actuales.
 - Comprueba RLS antes de introducir nuevas consultas.
 - Nunca utilices secret keys ni service_role

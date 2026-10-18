@@ -1,16 +1,18 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { SupabaseService } from '../services/supabase.service';
+import { AuthorizationService } from '../services/authorization.service';
 
 export const authGuard: CanActivateFn = async (_route, state) => {
-  const supabase = inject(SupabaseService);
+  const authorization = inject(AuthorizationService);
   const router = inject(Router);
-  const session = await supabase.getSession();
-  const isConfirmed = Boolean(session?.user.email_confirmed_at);
-
-  return session && isConfirmed
+  const active = await authorization.refresh();
+  return active && authorization.has('panel.access') && (!_route.data?.['permission'] || authorization.has(_route.data?.['permission']))
     ? true
-    : router.createUrlTree(['/signin'], {
-        queryParams: { redirect: state.url },
-      });
+    : router.createUrlTree(['/access-denied'], { queryParams: { redirect: state.url } });
+};
+
+export const profileGuard: CanActivateFn = async () => {
+  const authorization = inject(AuthorizationService);
+  const router = inject(Router);
+  return await authorization.refresh() ? true : router.createUrlTree(['/signin']);
 };

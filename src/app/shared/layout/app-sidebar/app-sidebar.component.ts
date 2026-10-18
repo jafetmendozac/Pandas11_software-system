@@ -1,3 +1,4 @@
+import { AuthorizationService } from '../../services/authorization.service';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
@@ -26,6 +27,12 @@ type NavItem = {
 })
 export class AppSidebarComponent {
 
+  get visibleNavItems(): NavItem[] {
+    if (!this.authorization.has('panel.access')) return [];
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read'};
+    const visible = (path?:string):boolean => !path || !permission[path] || this.authorization.has(permission[path]);
+    return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0);
+  }
   // Main nav items
   navItems: NavItem[] = [
     {
@@ -148,6 +155,7 @@ export class AppSidebarComponent {
   private subscription: Subscription = new Subscription();
 
   constructor(
+    public authorization: AuthorizationService,
     public sidebarService: SidebarService,
     private router: Router,
     private cdr: ChangeDetectorRef

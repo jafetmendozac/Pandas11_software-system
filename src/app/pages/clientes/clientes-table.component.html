@@ -1,24 +1,33 @@
-<app-page-breadcrumb pageTitle="Clientes" />
+<app-page-breadcrumb [pageTitle]="selfService ? 'Mis datos y mascotas' : 'Clientes'" />
 <div class="space-y-6">
+  @if (!selfService && authorization.has('clients.read')) { <button type="button" (click)="toggleArchive()" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 dark:border-gray-700 dark:text-white">{{ archived ? 'Ver activos' : 'Consultar archivo' }}</button> }
+  @if (loading) { <p role="status" class="text-gray-600 dark:text-gray-300">Cargando…</p> }
   @if (errorMessage) {
     <p class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
       {{ errorMessage }}
     </p>
   }
+  @if (selfService && !loading && total === 0 && !query.search) { <p class="text-gray-600 dark:text-gray-300">Aún no hay una ficha vinculada a tu cuenta. Solicita al personal que vincule tu registro.</p> }
   <app-component-card title="Listado de clientes">
     <app-personalized-table
-      title="Clientes"
+      [title]="selfService ? 'Mis datos' : 'Clientes'"
       addLabel="Añadir cliente"
       createTitle="Añadir cliente"
       editTitle="Editar cliente"
-      searchKey="phone"
-      searchPlaceholder="Buscar por teléfono..."
-      detailsLabel="Ver mascotas"
+
+      searchPlaceholder="Nombre, teléfono, WhatsApp o documento..."
+      detailsLabel="Consultar ficha y mascotas"
+      #clientsTable
+      [serverTotal]="total" (queryChanged)="loadClients($event)"
+      [saveAction]="saveClient"
+      [allowCreate]="!selfService && !archived && authorization.has('clients.manage')"
+      [allowEdit]="!selfService && !archived && authorization.has('clients.manage')"
+      [allowDelete]="!selfService && !archived && authorization.has('clients.manage')"
       [tableData]="tableData"
       [columns]="columns"
-      (rowCreated)="createClient($event)"
-      (rowUpdated)="updateClient($event)"
-      (rowDeleted)="deleteClient($event)"
+
+
+
       (rowDetails)="openPets($event)"
     />
   </app-component-card>
@@ -49,6 +58,7 @@
       </header>
 
       <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+        <app-record-details [client]="selectedClient" [archived]="archived" />
         @if (petsErrorMessage) {
           <p class="mb-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600" role="alert">
             {{ petsErrorMessage }}
@@ -56,6 +66,11 @@
         }
         <app-personalized-table
           title="Mascotas"
+          [serverTotal]="petsTotal" (queryChanged)="loadPets($event)" [saveAction]="savePet"
+          [allowCreate]="!selfService && !archived && authorization.has('pets.manage')"
+          [allowEdit]="!selfService && !archived && authorization.has('pets.manage')"
+          [allowDelete]="!selfService && !archived && authorization.has('pets.manage')"
+          detailsLabel="Ver antecedentes" (rowDetails)="selectPet($event)"
           addLabel="Añadir mascota"
           createTitle="Añadir mascota"
           editTitle="Editar mascota"
@@ -63,10 +78,11 @@
           searchPlaceholder="Buscar mascota..."
           [tableData]="selectedClientPets"
           [columns]="petColumns"
-          (rowCreated)="createPet($event)"
-          (rowUpdated)="updatePet($event)"
-          (rowDeleted)="deletePet($event)"
+
+
+
         />
+        @if (selectedPet) { <app-record-details [pet]="selectedPet" [archived]="archived" /> }
       </div>
     </aside>
   </div>

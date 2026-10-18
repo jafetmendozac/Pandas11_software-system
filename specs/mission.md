@@ -61,5 +61,5 @@ Pagos, notificaciones, vacunas, horarios, bloqueos y auditoría de negocio apare
 
 - [Rutas Angular](../src/app/app.routes.ts).
 - [Servicios Angular](../src/app/shared/services/supabase.service.ts).
-- [Modelo SQL](../Pandas11.sql) y [modelo DBML](../database.md).
+- [Modelo SQL](../Pandas11.sql) y modelo DBML histórico (`database.md`, ausente en este checkout).
 - Auditoría aprobada en la conversación; resultados reproducibles en [baseline.md](baseline.md).

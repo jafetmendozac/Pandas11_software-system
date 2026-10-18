@@ -1,0 +1,50 @@
+<div class="space-y-6 text-gray-800 dark:text-white/90">
+  @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{ error() }}</p>}
+  @if(loading()){<p role="status">Cargando calendario laboral…</p>}
+  @if(employee; as person){
+    <app-component-card [title]="'Turnos de ' + (person.employee_name || 'empleado')" desc="Hora de Lima. Se admiten turnos partidos y consecutivos, sin cruces de medianoche. El fin después de las 18:00 debe estar cubierto por un turno explícito.">
+      <app-personalized-table #shiftTable [columns]="periodColumns" [tableData]="data().schedules" [saveAction]="saveShift"
+        [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
+        addLabel="Añadir turno" createTitle="Añadir turno" editTitle="Editar turno" />
+    </app-component-card>
+  }@else{
+    <p>Selecciona «Horarios y disponibilidad» en un empleado para mantener sus turnos y bloqueos personales.</p>
+  }
+  <app-component-card title="Horario del local" desc="Lunes a sábado, incluidos feriados. Domingo de descanso. Estos tramos no crean turnos de empleados.">
+    <app-personalized-table #businessTable [columns]="periodColumns" [tableData]="data().business" [saveAction]="saveBusiness"
+      [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
+      addLabel="Añadir tramo comercial" createTitle="Añadir tramo comercial" editTitle="Editar horario del local" />
+  </app-component-card>
+  <app-component-card title="Bloqueos y ausencias" desc="Fechas y horas en America/Lima. Sin empleado seleccionado se muestran los bloqueos globales. Con empleado, se incluyen también los personales. Los recojos se registran manualmente aquí.">
+    <app-personalized-table #blockTable [columns]="blockColumns" [tableData]="data().blocks" [saveAction]="saveBlock"
+      [allowCreate]="authorization.has('time_blocks.manage')" [allowEdit]="authorization.has('time_blocks.manage')" [allowDelete]="authorization.has('time_blocks.manage')"
+      searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />
+  </app-component-card>
+  @if(employee && authorization.has('availability.read')){
+    <app-component-card title="Consultar horario habilitado" desc="Zona: America/Lima. No reserva ni verifica automáticamente ocupación por citas y recojos. Último inicio de servicio: 17:00.">
+      <form (ngSubmit)="calculate()" class="space-y-4">
+        <div class="grid gap-4 sm:grid-cols-3">
+          <label>Fecha (Lima)<input type="date" name="date" [(ngModel)]="date" (ngModelChange)="invalidate()" required class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
+          <label>Inicio opcional<input type="time" name="start" [(ngModel)]="start" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
+          <label>Fin opcional<input type="time" name="end" [(ngModel)]="end" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
+        </div>
+        <label class="flex gap-3"><input type="checkbox" name="specialist" [(ngModel)]="specialist" (ngModelChange)="invalidate()" />El servicio requiere corte</label>
+        <button type="submit" [disabled]="!date || calculating() || loading()" class="rounded-lg bg-brand-500 px-5 py-3 text-white disabled:opacity-50">{{ calculating() ? 'Consultando…' : 'Consultar' }}</button>
+      </form>
+      @if(result(); as available){
+        <div role="status" aria-live="polite" class="mt-5 space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
+          @if(available.can_start_service === true){<p class="font-semibold">{{ notice }}</p>}
+          @else if(available.can_start_service === false){<p class="font-semibold">No se habilita un nuevo servicio en ese intervalo.</p>}
+          @else{<p class="font-semibold">Ventanas laborales para la fecha consultada</p>}
+          <p>Ocupación automática de citas y recojos pendiente de verificar.</p>
+          @if(available.interval_covered !== null){<p>Cobertura laboral del intervalo: {{ available.interval_covered ? 'Sí' : 'No' }}.</p>}
+          @for(reason of available.reasons;track reason){<p>{{ reasonLabel(reason) }}</p>}
+          <ul class="space-y-1">
+            @for(window of available.windows;track window.starts_at){<li>{{ label(window.starts_at) }} — {{ label(window.ends_at) }} (Lima)</li>}
+            @empty{<li>No hay ventanas laborales habilitadas para este empleado.</li>}
+          </ul>
+        </div>
+      }
+    </app-component-card>
+  }
+</div>

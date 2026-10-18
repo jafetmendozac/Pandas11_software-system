@@ -25,13 +25,18 @@ import { MascotasTableComponent } from './pages/mascotas/mascotas-table.componen
 import { ServiciosComponent } from './pages/servicios/servicios.component';
 import { TarifasComponent } from './pages/tarifas/tarifas.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
-import { authGuard } from './shared/guards/auth.guard';
+import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
+  { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
+  { path: 'catalogo', loadComponent: () => import('./pages/servicios/catalog.component').then(m => m.ServiceCatalogComponent), canActivate: [profileGuard], title: 'Servicios y precios' },
+  { path: 'mis-datos', loadComponent: () => import('./pages/clientes/my-records.component').then(m => m.MyRecordsComponent), canActivate: [profileGuard], title: 'Mis datos y mascotas' },
+  { path: 'mi-perfil', component: ProfileComponent, canActivate: [profileGuard], title: 'Mi perfil' },
   {
     path:'',
     component:AppLayoutComponent,
     canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children:[
       {
         path: 'configuracion',
@@ -47,26 +52,31 @@ export const routes: Routes = [
       },
       {
         path:'clientes',
+        data: { permission: 'clients.read' },
         component:ClientesTableComponent,
         title:'Angular Clientes Table | TailAdmin - Angular Admin Dashboard Template'
       },
       {
         path:'mascotas',
+        data: { permission: 'pets.read' },
         component:MascotasTableComponent,
         title:'Mascotas | Spa & Boutique Pandas 11'
       },
       {
         path:'servicios',
+        data: { permission: 'services.read' },
         component:ServiciosComponent,
         title:'Servicios | Spa & Boutique Pandas 11'
       },
       {
         path:'tarifas',
+        data: { permission: 'service_prices.read' },
         component:TarifasComponent,
         title:'Tarifas | Spa & Boutique Pandas 11'
       },
       {
         path:'empleados',
+        data: { permission: 'employees.read' },
         component:EmpleadosComponent,
         title:'Empleados | Spa & Boutique Pandas 11'
       },
@@ -77,8 +87,9 @@ export const routes: Routes = [
       },
       {
         path:'calendario',
+        data: { permission: 'appointments.read' },
         component:CalendarioComponent,
-        title:'Angular Calender | TailAdmin - Angular Admin Dashboard Template'
+        title:'Agenda | Spa & Boutique Pandas 11'
       },
       {
         path:'profile',

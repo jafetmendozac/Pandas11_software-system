@@ -111,4 +111,54 @@ La configuración CLI tiene `schema_paths = []` y apunta a un `supabase/seed.sql
 
 El usuario debe aprobar el modelo canónico de citas, estados, relación empleado–perfil, tarifas comodín, reglas horarias y matriz de permisos. También debe confirmar qué archivos reflejan el despliegue y la estrategia de migraciones. No se resuelve ninguna discrepancia mediante cambios de código en esta entrega.
 
-Fuentes: [rutas](../src/app/app.routes.ts), [guard](../src/app/shared/guards/auth.guard.ts), [servicio de citas](../src/app/shared/services/appointments.service.ts), [SQL](../Pandas11.sql), [funciones](../functions_triggers.sql), [DBML](../database.md), [configuración Supabase](../supabase/config.toml).
+Fuentes: [rutas](../src/app/app.routes.ts), [guard](../src/app/shared/guards/auth.guard.ts), [servicio de citas](../src/app/shared/services/appointments.service.ts), [SQL](../Pandas11.sql), [funciones](../functions_triggers.sql), DBML histórico (`database.md`, ausente en este checkout), [configuración Supabase](../supabase/config.toml).
+
+## Actualización Fase 0 — 2026-10-17
+
+Esta sección actualiza las observaciones históricas de identidad anteriores. `supabase/migrations/20261017152256_identity_foundation.sql` reproduce las cinco tablas de identidad del modelo local y añade catálogo, RLS, grants y funciones seguras. El resto del esquema sigue sin migrar en este entorno parcial.
+
+`AuthorizationService` consulta usuario confirmado, perfil activo y `my_permissions`; guards comprueban `panel.access` en entrada y navegación hija. Cliente dispone de `/mi-perfil`; acceso denegado en `/access-denied`. Configuración distingue apariencia de seguridad. Owner gestiona roles personalizados, usuarios y asignaciones; no puede alterar owners/roles de sistema mediante API. Los perfiles no se insertan libremente desde Angular.
+
+Helpers SECURITY DEFINER con search_path vacío evitan recursión RLS. El registro crea perfil y CLIENT sin confiar roles a metadata. Perfil/rol inactivo deja de otorgar permisos. La rotación owner se reserva a administración privilegiada; por API se impide retirar o desactivar cualquier owner.
+
+Desarrollo aislado `Pandas11-identity-dev`, configuración Angular `local`, puertos 553xx y confirmación por correo local. Ver `supabase/README.md`. No cambia el esquema remoto ni garantiza autorización de las otras tablas del negocio.
+
+## Actualización Fase 1 — 2026-10-17
+
+Nueva migración incremental instala clients, pets, pet_vaccinations, client_internal y pet_internal con dependencias y RLS. OWNER/ADMIN administran, STAFF consulta y CLIENT accede solo a su vínculo profile_id y mascotas; notas internas requieren permiso independiente. La propiedad de mascota no cambia por UPDATE. Retiro lógico oculta por relación sin eliminar antecedentes; archivo de personal es de lectura.
+
+ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; las RPC son invoker y respetan RLS. save_client y retiros son operaciones controladas con permisos explícitos. RecordsService mantiene vacunas y notas en consultas separadas. RecordDetailsComponent muestra ficha/antecedentes según permisos y marca cambios tras cargas asíncronas. La tabla compartida añade guardado asíncrono optativo y paginación remota conservando contratos legacy. /mis-datos ofrece consulta propia sin panel interno. Allergies boolean y tamaño TOY alineados con Pandas11.sql; fotos/adjuntos fuera del alcance.
+
+## Actualización Fase 2 — 2026-10-17
+
+services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/pelaje → tamaño → pelaje → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
+
+ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.
+
+## Actualización Fase 3 — 2026-10-17
+
+Migración incremental `20261017212614_employees_availability.sql`: employees, employee_schedules, business_hours, time_blocks y skill_level alineados con Pandas11.sql. Perfil único/obligatorio, días lunes–sábado, rangos válidos y timestamps/autor de servidor. Sin borrado de empleados por API; se desactivan. Solo se siembra horario comercial 07–18, sin turnos personales.
+
+Flujo: `/empleados` + permiso employees.read → EmpleadosComponent → EmpleadosService / WorkCalendarComponent → WorkCalendarService → RPC Supabase. Menú y acciones filtran permisos; OWNER/ADMIN gestionan, STAFF lee y CLIENT/anon/inactivos no acceden. search_employees pagina en servidor y expone nombre de empleado mediante join controlado, sin profiles.read global para STAFF. La selección de perfil activo solo se ofrece al personal autorizado; la asociación no se puede cambiar ni concede roles Auth.
+
+Las cuatro tablas tienen RLS de lectura y se revocan escrituras REST; save_employee, save_work_period/remove_work_period, save_time_block/remove_time_block son SECURITY DEFINER con search_path vacío y permisos explícitos. Las mutaciones de turnos y horarios comerciales toman el mismo advisory lock transaccional antes de leer conflictos. La serialización global es conservadora y evita solapamientos concurrentes o movimientos entre días que eludan el control. Operaciones privilegiadas fuera de la API deben respetar ese contrato.
+
+employee_availability calcula en un snapshot de lectura: día recurrente en America/Lima, empleado/perfil activos, habilidad, intersección de turnos y horario comercial, extensión explícita del turno que cubre el cierre, unión de bloqueos y resta mediante multirangos PostgreSQL. Devuelve ventanas, interval_covered y can_start_service separados; el segundo exige inicio comercial hasta17. Intervalos semiabiertos; cierres intermedios conservados. work_calendar agrega la configuración seleccionada en JSON para evitar truncado de filas por REST.
+
+Entradas locales de bloqueos se convierten en servidor con AT TIME ZONE America/Lima; no se interpretan según navegador. La UI muestra Lima con Intl y descarta respuestas obsoletas. La tabla espera persistencia y conserva formularios tras error; admite inputs nativos time/datetime-local.
+
+Agenda sigue sin integración automática con employees, turnos o bloqueos. La consulta laboral no reserva ni valida ocupación no registrada: devuelve occupancy_verified=false y lo declara en pantalla. El esquema remoto no se ha verificado ni modificado.
+
+## Actualización Fase 4 — 2026-10-17
+
+El contrato de agenda anterior se sustituyó localmente por appointments → appointment_items → appointment_item_staff, con appointment_internal aparte. La migración `20261017220427_internal_appointments.sql` añade las cuatro tablas/enums, restricciones/FKs y RLS. Cada asignación tiene UUID, etapa SERVICE/BATH/CUT e intervalo; el mismo trabajador puede cubrir dos etapas del mismo item. Precio, minutos y habilidad se conservan como snapshots, con total/extremos de cabecera derivados en servidor.
+
+Flujo: `/calendario` + appointments.read → CalendarioComponent → AppointmentsService → RPC. Modelos y conversiones en appointment.models.ts usan temporal-polyfill existente; FullCalendar7 con zona America/Lima representa eventos por etapa hasta el fin del día. Cotización SQL, opciones paginadas, guardado confirmado, control de respuestas antiguas y texto DOM seguro. /calendar de demo no se modificó.
+
+save_internal_appointment realiza alta/edición completa en transacción; version impide sobrescrituras. change_appointment_status controla reloj, transición y cancelación. Notas internas tienen escritura y permisos separados; no forman parte de get/search ni del título del calendario. OWNER/ADMIN gestionan, STAFF consulta y CLIENT/anon/inactivo no acceden; escrituras REST revocadas.
+
+La reserva toma mutex transaccional930003 antes de leer conflictos y exige Read Committed. Revalida permisos tras esperar para no ejecutar con permisos retirados durante la espera. Valida persona y mascota sin solapamientos, actividad, habilidad, turnos, horario local y bloqueos, incluso dentro de una solicitud multiperro. Las funciones laborales y triggers comparten el protocolo; un cambio que invalida citas CONFIRMED/IN_PROGRESS se revierte. La desactivación de perfil por seguridad permanece permitida y se informa mediante needs_attention.
+
+appointment_availability suma ocupación de citas a las ventanas laborales; employee_availability mantiene su contrato laboral y aviso anterior. La consulta no reserva: se revalida al persistir. Se respetan límites [inicio,fin), primer inicio por perro hasta17 y continuaciones después17 con cobertura explícita. Canceladas/no asistidas liberan; completadas conservan intervalos programados. Retrasos/recojos no registrados y ejecución real por etapa siguen fuera del cálculo automático.
+
+La discrepancia local con appointment_services/fecha-horas separadas queda resuelta para identity-dev. No se ha conciliado ni desplegado una base remota o datos heredados desconocidos. Validación y límites en features/fase-4-agenda-reservas-internas/validation.md.

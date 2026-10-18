@@ -82,29 +82,17 @@ export class ProfilesService {
     const userId = authData.user?.id;
     if (!userId) throw new Error('No hay una sesión activa.');
 
-    const now = new Date().toISOString();
     const { data: updated, error } = await this.supabase.client
       .from('profiles')
       .update({
         first_name: changes.first_name,
         last_name: changes.last_name,
-        updated_at: now,
       })
       .eq('id', userId)
       .select('id');
     if (error) throw error;
 
-    if (updated && updated.length > 0) return;
-
-    const { error: insertError } = await this.supabase.client.from('profiles').insert({
-      id: userId,
-      first_name: changes.first_name,
-      last_name: changes.last_name,
-      active: true,
-      created_at: now,
-      updated_at: now,
-    });
-    if (insertError) throw insertError;
+    if (!updated?.length) throw new Error('No se pudo actualizar el perfil. Comprueba tu acceso.');
   }
 
   private resolveProvider(user: User): string {
