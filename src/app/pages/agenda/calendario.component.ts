@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FullCalendarModule } from '@fullcalendar/angular';
+import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, EventInput } from 'fullcalendar';
 import timeGridPlugin from 'fullcalendar/timegrid';
+import dayGridPlugin from 'fullcalendar/daygrid';
+import multiMonthPlugin from 'fullcalendar/multimonth';
 import interactionPlugin from 'fullcalendar/interaction';
 import themePlugin from 'fullcalendar/themes/classic';
 import esLocale from 'fullcalendar/locales/es';
@@ -19,9 +21,14 @@ import { TarifasService } from '../../shared/services/tarifas.service';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
 import { workError, limaDateTime } from '../../shared/services/work-calendar.service';
 import { Appointment, AppointmentStatus, DraftItem, ReservationAvailability, STATUS_LABELS, STAGE_LABELS, StageInput, addLocalMinutes, appointmentInput, draftItem, stageInputs } from '../../shared/services/appointment.models';
+import { calendarAppearance } from './calendar-appearance';
 
 @Component({selector:'app-calendario',standalone:true,imports:[FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
+ @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
+ readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
+ readonly calendarTitle=signal('');
+ readonly currentView=signal('dayGridMonth');
  readonly authorization=inject(AuthorizationService);
  private readonly appointments=inject(AppointmentsService);
  private readonly clientService=inject(ClientesService);private readonly petService=inject(MascotasService);
@@ -36,19 +43,41 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
  get canEdit():boolean{return !this.detailFailed()&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
  async ngOnInit():Promise<void>{
-  this.options.set({plugins:[themePlugin,timeGridPlugin,interactionPlugin],initialView:'timeGridWeek',locale:esLocale,timeZone:'America/Lima',allDaySlot:false,
-   headerToolbar:{start:'prev,next today',center:'title',end:'timeGridWeek,timeGridDay'},slotMinTime:'07:00:00',slotMaxTime:'24:00:00',height:'auto',
+  this.options.set({...calendarAppearance,plugins:[themePlugin,dayGridPlugin,multiMonthPlugin,timeGridPlugin,interactionPlugin],initialView:'dayGridMonth',locale:esLocale,timeZone:'America/Lima',direction:document.documentElement.dir==='rtl'?'rtl':'ltr',allDaySlot:false,
+   headerToolbar:false,slotMinTime:'07:00:00',slotMaxTime:'24:00:00',height:'auto',
    selectable:this.authorization.has('appointments.manage'),editable:false,events:[],
-   select:info=>this.openNew(info.startStr.slice(0,19)),
-   datesSet:info=>{if(this.rangeFrom===info.startStr&&this.rangeUntil===info.endStr)return;this.rangeFrom=info.startStr;this.rangeUntil=info.endStr;void this.loadRange();},
+   select:info=>this.openNew(info.startStr.includes('T')?info.startStr.slice(0,19):`${info.startStr}T07:00:00`),
+   datesSet:info=>{this.calendarTitle.set(info.view.title);this.currentView.set(info.view.type);if(this.rangeFrom===info.startStr&&this.rangeUntil===info.endStr)return;this.rangeFrom=info.startStr;this.rangeUntil=info.endStr;void this.loadRange();},
    eventClick:info=>{const id=info.event.extendedProps['appointmentId'];if(typeof id==='string')void this.openAppointment(id);},
-   eventContent:info=>{const node=document.createElement('span');node.textContent=info.event.title;return {domNodes:[node]};}
+   eventContent:info=>{
+    // Tarjetas TailAdmin con nombres no confiables siempre como texto, nunca HTML.
+    const status=info.event.extendedProps?.['status'];
+    const attention=info.event.extendedProps?.['needsAttention'];
+    const tone=attention||status==='IN_PROGRESS'?'warning':status==='COMPLETED'?'success':status==='CANCELLED'||status==='NO_SHOW'?'danger':'primary';
+    const palette={
+     primary:{card:'border-brand-100 bg-brand-50 dark:border-brand-500/20 dark:bg-brand-500/15',dot:'bg-brand-500',text:'text-brand-700 dark:text-brand-400'},
+     success:{card:'border-success-100 bg-success-50 dark:border-success-500/20 dark:bg-success-500/15',dot:'bg-success-500',text:'text-success-700 dark:text-success-400'},
+     warning:{card:'border-orange-100 bg-orange-50 dark:border-orange-500/20 dark:bg-orange-500/15',dot:'bg-orange-500',text:'text-orange-700 dark:text-orange-400'},
+     danger:{card:'border-error-100 bg-error-50 dark:border-error-500/20 dark:bg-error-500/15',dot:'bg-error-500',text:'text-error-700 dark:text-error-400'},
+    }[tone];
+    const timed=info.view?.type.startsWith('timeGrid');
+    const card=document.createElement('div');card.className=`event-fc-color flex w-full overflow-hidden rounded-lg border p-1.5 ${timed?'h-full flex-col':'items-center gap-2'} ${palette.card}`;
+    card.title=info.event.title;
+    const dot=document.createElement('span');dot.className=`h-2 w-2 shrink-0 rounded-full ${palette.dot}`;dot.setAttribute('aria-hidden','true');
+    const title=document.createElement('span');title.className=`fc-event-title min-w-0 truncate text-xs font-medium ${palette.text}`;title.textContent=info.event.title;
+    const line=document.createElement('div');line.className='flex min-w-0 items-center gap-1.5';line.append(dot,title);
+    card.append(line);
+    if(info.timeText){const time=document.createElement('span');time.className=`fc-event-time shrink-0 text-xs ${palette.text}`;time.textContent=info.timeText;card.append(time);}
+    return {domNodes:[card]};
+   }
   });
   try{
    const [clients,pets,employees,services]=await Promise.all([this.clientService.getAll(),this.petService.getAll(),this.employeeService.getAll(),this.serviceCatalogue.getAll()]);
    this.clients.set(clients);this.pets.set(pets.filter(p=>p.active&&!p.deleted_at&&!p.death_date));this.employees.set(employees.filter(e=>e.active&&e.profile_active));this.services.set(services.filter(s=>s.active));
   }catch(error){this.error.set(workError(error));}finally{this.optionsLoading.set(false);}
  }
+ navigate(direction:'prev'|'next'|'today'):void{this.calendar?.getApi()[direction]();}
+ changeView(view:string):void{if(this.viewOptions.some(option=>option.key===view))this.calendar?.getApi().changeView(view);}
  ngOnDestroy():void{this.revision++;this.formRevision++;this.detailRevision++;}
  async loadRange():Promise<void>{
   if(!this.rangeFrom||!this.rangeUntil)return;const revision=++this.revision;this.loading.set(true);this.error.set('');
@@ -59,7 +88,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   const events:EventInput[]=[];
   for(const a of this.rows())for(const i of a.items)for(const s of i.stages){
    if(this.employeeFilter&&s.employee_id!==this.employeeFilter)continue;
-   events.push({id:s.id,start:s.starts_at,end:s.ends_at,title:`${i.pet_name} · ${i.service_name} · ${this.stages[s.stage]} · ${s.employee_name} · ${a.client_name} (${this.statuses[a.status]})${a.needs_attention?' — Revisar disponibilidad':''}`,extendedProps:{appointmentId:a.id},classNames:a.status==='CANCELLED'||a.status==='NO_SHOW'?['opacity-50']:[]});
+   events.push({id:s.id,start:s.starts_at,end:s.ends_at,title:`${i.pet_name} · ${i.service_name} · ${this.stages[s.stage]} · ${s.employee_name} · ${a.client_name} (${this.statuses[a.status]})${a.needs_attention?' — Revisar disponibilidad':''}`,extendedProps:{appointmentId:a.id,status:a.status,needsAttention:a.needs_attention},classNames:a.status==='CANCELLED'||a.status==='NO_SHOW'?['opacity-50']:[]});
   }
   this.options.update(o=>({...o,events}));
  }
