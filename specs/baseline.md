@@ -146,3 +146,18 @@ Git limpio al inicio de esta tarea. Se incorpora `npm run seed:local`: carga exp
 Primera carga correcta, con agenda de ejemplo para2026-10-19. `node scripts/test-local-seed.mjs`:41 comprobaciones correctas. Repetición del seed verificada comparando huellas de las20 tablas públicas antes/después y datos persistentes de cuentas Auth: sin cambios ni duplicados, salvo actividad normal de login. `supabase test db` con los fixtures presentes:112/112 correctas. Sintaxis Node y revisión de espacios correctas.
 
 Sin cambios Angular: no se repitió compilación ni pruebas unitarias. Sin revisión visual completa, conexiones remotas, instalación de dependencias o commits. Cuentas, recorrido manual, decisiones y límites de recuperación en [seed local](seed-local.md).
+
+## Inicio público — 2026-10-18
+
+Al iniciar la implementación solo estaba sin seguimiento la propuesta documental `specs/features/inicio-publico/`; no había cambios de código pendientes. El usuario aprueba el plan y solicita turquesa predominante mediante referencias de marca. Se añade portada lazy en `/`, dashboard protegido en `/panel`, enlaces internos ajustados y destino de login por autorización; sin migraciones, cambios de base o dependencias.
+
+| Validación | Resultado |
+|---|---|
+| TypeScript app/spec sin emisión | Correctos |
+| Build producción | Correcto; inicial3,41MB, portada lazy aproximadamente24kB; sin modificar presupuestos |
+| Angular ChromeHeadless | 77/77 correctas |
+| Chrome sobre build local | Escritorio1440px y móvil390px; oscuro/RTL, menú y anclas, sin desbordes; cero llamadas Supabase y cero excepciones |
+| Revisión de identidad | Logo existente, turquesa y acentos rosa/morado; no se altera tema del panel |
+| Revisión Git/espacios | Correcta |
+
+La primera compilación señaló presupuesto de estilos; se redujo CSS usando utilidades existentes. Dos pruebas nuevas de registro requerían proveedor de rutas y se corrigieron; ejecución final completa correcta. No se modificaron cuentas ni se envió WhatsApp. Pruebas de cuenta usan mocks; sin E2E real contra Auth. No se repiten SQL/API porque sus contratos no cambian. Detalle y capturas de revisión temporal en [validation.md](features/inicio-publico/validation.md).

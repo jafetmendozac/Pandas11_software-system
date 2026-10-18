@@ -162,3 +162,13 @@ La reserva toma mutex transaccional930003 antes de leer conflictos y exige Read 
 appointment_availability suma ocupación de citas a las ventanas laborales; employee_availability mantiene su contrato laboral y aviso anterior. La consulta no reserva: se revalida al persistir. Se respetan límites [inicio,fin), primer inicio por perro hasta17 y continuaciones después17 con cobertura explícita. Canceladas/no asistidas liberan; completadas conservan intervalos programados. Retrasos/recojos no registrados y ejecución real por etapa siguen fuera del cálculo automático.
 
 La discrepancia local con appointment_services/fecha-horas separadas queda resuelta para identity-dev. No se ha conciliado ni desplegado una base remota o datos heredados desconocidos. Validación y límites en features/fase-4-agenda-reservas-internas/validation.md.
+
+## Inicio público — 2026-10-18
+
+La ruta raíz `/` carga InicioComponent de forma diferida, antes del layout privado y con pathMatch full. No requiere cuenta, no construye servicios de datos ni consulta Supabase. Usa RouterLink, estado local para menú móvil y ThemeService para la preferencia visual existente. Logo local e identidad turquesa con variables CSS limitadas al componente.
+
+El dashboard previo pasa a `/panel` dentro de AppLayoutComponent con los mismos guards. Rutas de clientes, mascotas, empleados, catálogo, configuración y agenda conservan sus permisos. Sidebar y logos internos apuntan a panel; breadcrumb lleva a panel al personal y al inicio público a CLIENT usando permisos ya cargados.
+
+Flujo de cuenta: `/` → `/signin` → Supabase Auth → AuthorizationService.refresh → redirect interno explícito o destino por defecto (`/panel` con panel.access; `/mi-perfil` en otro perfil activo). Redirects externos/con barras invertidas se descartan; la ruta destino aplica su guard. Registro confirmado va al perfil; confirmación pendiente conserva confirm-email. No cambia esquema/RLS ni implementación de SupabaseService.
+
+WhatsApp, teléfono y búsqueda de dirección son enlaces externos/de dispositivo; no crean reservas ni pagos. Oferta/horario públicos son contenido comercial aprobado, no una consulta anónima a services/business_hours. Evidencia y límites en [validación de inicio público](features/inicio-publico/validation.md).

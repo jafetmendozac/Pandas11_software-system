@@ -13,6 +13,6 @@ describe('Menú de agenda por permiso',()=>{
  it('STAFF con lectura ve Citas y conserva otros subitems autorizados',()=>{
   allowed.add('appointments.read');const c=TestBed.createComponent(AppSidebarComponent).componentInstance;
   expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/calendario'))).toBeTrue();
-  expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/'))).toBeTrue();
+  expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/panel'))).toBeTrue();
  });
 });

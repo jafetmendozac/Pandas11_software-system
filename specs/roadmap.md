@@ -117,3 +117,11 @@ Plan y ampliaciones aprobados e implementados en identity-dev: agenda interna po
 63 pruebas Angular,112 SQL y265 comprobaciones API acumuladas correctas; lint/tipos/build correctos. Modelo local y contratos Angular alineados. Evidencia en [validation.md](features/fase-4-agenda-reservas-internas/validation.md).
 
 Pendiente: pagos/adelantos y autorreserva, transporte enlazado/cotización, seguimiento real por etapa/demoras, esperas y políticas de cancelación durante atención; no se infieren de esta entrega. Recojos/demoras se representan manualmente con bloqueos. Adopción remota requiere inventario/conciliación de datos y aprobación específica; no está realizada.
+
+## Inicio público — 2026-10-18
+
+Página informativa implementada tras aprobación: identidad turquesa Pandas11, servicios caninos, boutique, orientación, recojo coordinado, dirección en Trujillo, horario y WhatsApp confirmado. Accesible sin cuenta en `/`, con inicio de sesión existente y dashboard protegido en `/panel`. Personal y CLIENT conservan destinos y permisos separados.
+
+77 pruebas Angular y build correctos; revisión de build en Chrome en escritorio/móvil, oscuro y RTL, sin consultas Supabase en la portada. Resultados en [validación](features/inicio-publico/validation.md).
+
+No incluye reservas online, inventario/ecommerce, pagos o despliegue remoto. La presentación comercial no modifica automáticamente catálogo ni horarios administrativos. Esas funciones mantienen sus fases y aprobaciones propias.

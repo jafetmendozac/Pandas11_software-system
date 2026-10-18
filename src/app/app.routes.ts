@@ -28,6 +28,7 @@ import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
+  { path: '', pathMatch: 'full', loadComponent: () => import('./pages/inicio/inicio.component').then(m => m.InicioComponent), title: 'Spa Boutique Pandas 11 | Bienestar y estilo canino en Trujillo' },
   { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
   { path: 'catalogo', loadComponent: () => import('./pages/servicios/catalog.component').then(m => m.ServiceCatalogComponent), canActivate: [profileGuard], title: 'Servicios y precios' },
   { path: 'mis-datos', loadComponent: () => import('./pages/clientes/my-records.component').then(m => m.MyRecordsComponent), canActivate: [profileGuard], title: 'Mis datos y mascotas' },
@@ -44,7 +45,7 @@ export const routes: Routes = [
         title: 'Configuración | Spa & Boutique Pandas 11',
       },
       {
-        path: '',
+        path: 'panel',
         component: EcommerceComponent,
         pathMatch: 'full',
         title:
@@ -163,12 +164,12 @@ export const routes: Routes = [
   {
     path:'signin',
     component:SignInComponent,
-    title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Iniciar sesión | Spa Boutique Pandas 11'
   },
   {
     path:'signup',
     component:SignUpComponent,
-    title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Crear cuenta | Spa Boutique Pandas 11'
   },
   {
     path:'confirm-email',

@@ -63,3 +63,9 @@ Pagos, notificaciones, vacunas, horarios, bloqueos y auditoría de negocio apare
 - [Servicios Angular](../src/app/shared/services/supabase.service.ts).
 - [Modelo SQL](../Pandas11.sql) y modelo DBML histórico (`database.md`, ausente en este checkout).
 - Auditoría aprobada en la conversación; resultados reproducibles en [baseline.md](baseline.md).
+
+## Ampliación confirmada: presentación pública — 2026-10-18
+
+El usuario confirma que Spa Boutique Pandas11 se presenta al público como un centro de bienestar y embellecimiento canino: baño, estilismo, corte higiénico, artículos (champús, fragancias, complementos) y orientación profesional. Ubicación: Calle General Urco Mz.C Lote11, Urbanización Los Laureles, Trujillo, La Libertad. WhatsApp publicable:972704860; identidad predominantemente turquesa.
+
+Se incorpora una portada pública en `/` para visitantes con o sin cuenta, con información del negocio y acceso al inicio de sesión. El panel interno permanece separado en `/panel`. El sitio informa y facilita coordinar por WhatsApp; no implementa autorreserva ni tienda online. Esta ampliación fue aprobada expresamente y se valida en [inicio público](features/inicio-publico/validation.md).
