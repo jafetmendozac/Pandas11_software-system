@@ -109,3 +109,11 @@ Implementada y validada localmente tras aprobación: empleados vinculados a perf
 43 pruebas Angular, 76 SQL acumuladas y 190 comprobaciones API de Fases 0–3 correctas; lint y build correctos. Evidencia en [validación](features/fase-3-empleados-disponibilidad/validation.md).
 
 Pendiente para una siguiente fase: acordar el contrato canónico de citas, integrar servicios/precios/empleados, ocupación transaccional de citas y recojos y etapas de relevo. Hasta entonces se usan bloqueos manuales y se muestra la ocupación automática como no verificada. Sin cambios remotos; adopción/despliegue remoto sigue requiriendo un plan específico.
+
+## Avance Fase 4 — 2026-10-17
+
+Plan y ampliaciones aprobados e implementados en identity-dev: agenda interna por items, varias mascotas del mismo cliente, etapas/relevo y trabajadores cualificados. Reservas atómicas con control de versión, snapshots de tarifas/duración/habilidad, cancelación sin borrado y notas internas separadas. OWNER/ADMIN gestionan; STAFF consulta. Conflictos por trabajador/mascota y carreras con configuración laboral protegidos en servidor.
+
+63 pruebas Angular,112 SQL y265 comprobaciones API acumuladas correctas; lint/tipos/build correctos. Modelo local y contratos Angular alineados. Evidencia en [validation.md](features/fase-4-agenda-reservas-internas/validation.md).
+
+Pendiente: pagos/adelantos y autorreserva, transporte enlazado/cotización, seguimiento real por etapa/demoras, esperas y políticas de cancelación durante atención; no se infieren de esta entrega. Recojos/demoras se representan manualmente con bloqueos. Adopción remota requiere inventario/conciliación de datos y aprobación específica; no está realizada.

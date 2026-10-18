@@ -48,11 +48,11 @@ Las referencias de 1 y 2 horas no son duraciones fijas universales. No se invent
 | PN-01 | Resuelto por aprobación del plan de Fase 3: America/Lima | RN-01 |
 | PN-02 | ¿Cuánto dura baño y baño con corte para cada tamaño? ¿Quién puede ajustar la duración de una cita? | RN-04, RN-05 |
 | PN-03 | ¿Cómo se estima la duración del recojo y qué trabajador puede realizarlo? | RN-06, RN-03 |
-| PN-04 | ¿Cuánto tiempo se reserva para baño y para corte en un servicio compartido? ¿Se permite espera entre etapas? | RN-03, RN-07, RN-10 |
+| PN-04 | Resuelto para Fase 4: recepción define minutos respetando duración total y las etapas son consecutivas; espera entre etapas fuera del contrato aprobado | RN-03, RN-07, RN-10, RN-15 |
 | PN-05 | ¿Cuándo vence el plazo para pagar el adelanto o verificarlo y cuándo se libera la reserva? | RN-08 |
 | PN-06 | Resuelto: las citas registradas por personal se cobran al final, tenga o no cuenta el cliente | RN-09 |
 | PN-07 | ¿Qué reglas aplican a cancelaciones, reprogramaciones, retrasos y devoluciones del adelanto? | RN-01, RN-08 |
-| PN-08 | ¿Una cita puede incluir varios perros del mismo cliente? ¿Se aplica algún límite por cita además de la capacidad simultánea? | RN-03 |
+| PN-08 | Resuelto: varias mascotas del mismo cliente según capacidad real de trabajadores; sin máximo fijo de dos por cita | RN-03, RN-14 |
 
 Las respuestas deben incorporarse aquí sin convertir propuestas del agente en decisiones confirmadas.
 
@@ -93,3 +93,28 @@ Solo se incorporan reglas y referencias al flujo documental. La revisión es de 
 - OWNER/ADMIN gestionan y STAFF consulta. CLIENT/anon no acceden a teléfonos ni motivos laborales. La asociación de perfil es única e inmutable a través de la API.
 
 Evidencia: [validación de Fase 3](features/fase-3-empleados-disponibilidad/validation.md). La consulta no reserva ni garantiza exclusividad; la UI declara «Horario habilitado; ocupación de citas/recojos no verificada». RN-10 (relevo) todavía requiere etapas/ocupación de agenda, no implementadas aquí.
+
+## Decisiones confirmadas para Fase 4 — 2026-10-17
+
+Fuente: respuestas del usuario a las tres preguntas de esta sesión. Definen requisitos; la implementación y las ampliaciones del modelo siguen pendientes de aprobar el plan.
+
+| ID | Regla | Estado |
+|---|---|---|
+| RN-13 | En la agenda interna, OWNER y ADMIN crean, reprograman, cambian estados y cancelan. STAFF solo consulta | Confirmado por respuesta explícita; no concede gestión laboral ni de seguridad |
+| RN-14 | Una cita puede incluir varias mascotas del mismo cliente según capacidad real de los trabajadores; no fijar dos como máximo por cita | Confirmado por respuesta explícita |
+| RN-15 | Incluir relevo por etapas de baño a corte en Fase 4; recepción define minutos de cada etapa respetando la duración total configurada del servicio | Confirmado por respuesta explícita; no inventar reparto de tiempos |
+
+No se confirmaron todavía espera entre etapas, transiciones detalladas de estados, cancelación durante atención, excepciones de último inicio, reglas de retrasos ni transporte automático. Las propuestas constan en [requisitos de Fase 4](features/fase-4-agenda-reservas-internas/requirements.md) y necesitan aprobación del plan antes de incorporarse como reglas operativas implementadas.
+
+## Fase 4 aprobada e implementada localmente — 2026-10-17
+
+El usuario aprobó el plan y las ampliaciones mediante «Vamos procede». RN-13/RN-14/RN-15 ya tienen implementación local con permisos, citas con varias mascotas, etapas SERVICE o BATH→CUT y relevo. Recepción define minutos de baño/corte; suma igual al snapshot y sin huecos. ALL_SERVICES puede ambas, ASSISTANT solo baño.
+
+- RN-01: primera atención de cada mascota dentro de horario comercial hasta17; continuaciones pueden iniciar más tarde. Cada etapa exige turno explícito y cobertura completa, incluidos finales después18. Sin cruces de medianoche.
+- RN-09: origen INTERNAL, confirmación directa y adelanto obligatorio0, con o sin cuenta del cliente. Cobro al finalizar es regla de negocio; el módulo de pagos no se implementa aquí.
+- Estados: CONFIRMED permite editar, iniciar, cancelar o marcar no asistió. IN_PROGRESS solo completa. Inicio/NO_SHOW requieren haber llegado la hora programada. Terminales no se reabren; cancelación requiere motivo y conserva detalle/autor/fecha. CANCELLED/NO_SHOW liberan; COMPLETED conserva sus intervalos programados.
+- Precios, minutos y habilidad se guardan como snapshots de servicio. Reprogramar conserva items intactos; nuevos items se cotizan en servidor. No se inventan tiempos por tamaño ni se duplican precios por etapa/trabajador.
+- Reservas, turnos y bloqueos comparten validación transaccional. Se impide solapar trabajador o mascota; cambios laborales incompatibles exigen resolver antes las citas. Una desactivación de cuenta por seguridad sigue permitida y alerta de reservas afectadas.
+- RN-06: traslados y demoras fuera del intervalo programado requieren bloqueos manuales y resolver conflictos; no se asignan ni cotizan automáticamente. El estado global IN_PROGRESS no se interpreta como ocupación real indefinida de todos los trabajadores de una cita.
+
+Evidencia: [validación Fase 4](features/fase-4-agenda-reservas-internas/validation.md). No se implementan autorreserva online, pagos, espera entre etapas, cancelación durante atención ni seguimiento real de ejecución por etapa.

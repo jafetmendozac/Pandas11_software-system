@@ -111,7 +111,7 @@ La configuración CLI tiene `schema_paths = []` y apunta a un `supabase/seed.sql
 
 El usuario debe aprobar el modelo canónico de citas, estados, relación empleado–perfil, tarifas comodín, reglas horarias y matriz de permisos. También debe confirmar qué archivos reflejan el despliegue y la estrategia de migraciones. No se resuelve ninguna discrepancia mediante cambios de código en esta entrega.
 
-Fuentes: [rutas](../src/app/app.routes.ts), [guard](../src/app/shared/guards/auth.guard.ts), [servicio de citas](../src/app/shared/services/appointments.service.ts), [SQL](../Pandas11.sql), [funciones](../functions_triggers.sql), [DBML](../database.md), [configuración Supabase](../supabase/config.toml).
+Fuentes: [rutas](../src/app/app.routes.ts), [guard](../src/app/shared/guards/auth.guard.ts), [servicio de citas](../src/app/shared/services/appointments.service.ts), [SQL](../Pandas11.sql), [funciones](../functions_triggers.sql), DBML histórico (`database.md`, ausente en este checkout), [configuración Supabase](../supabase/config.toml).
 
 ## Actualización Fase 0 — 2026-10-17
 
@@ -148,3 +148,17 @@ employee_availability calcula en un snapshot de lectura: día recurrente en Amer
 Entradas locales de bloqueos se convierten en servidor con AT TIME ZONE America/Lima; no se interpretan según navegador. La UI muestra Lima con Intl y descarta respuestas obsoletas. La tabla espera persistencia y conserva formularios tras error; admite inputs nativos time/datetime-local.
 
 Agenda sigue sin integración automática con employees, turnos o bloqueos. La consulta laboral no reserva ni valida ocupación no registrada: devuelve occupancy_verified=false y lo declara en pantalla. El esquema remoto no se ha verificado ni modificado.
+
+## Actualización Fase 4 — 2026-10-17
+
+El contrato de agenda anterior se sustituyó localmente por appointments → appointment_items → appointment_item_staff, con appointment_internal aparte. La migración `20261017220427_internal_appointments.sql` añade las cuatro tablas/enums, restricciones/FKs y RLS. Cada asignación tiene UUID, etapa SERVICE/BATH/CUT e intervalo; el mismo trabajador puede cubrir dos etapas del mismo item. Precio, minutos y habilidad se conservan como snapshots, con total/extremos de cabecera derivados en servidor.
+
+Flujo: `/calendario` + appointments.read → CalendarioComponent → AppointmentsService → RPC. Modelos y conversiones en appointment.models.ts usan temporal-polyfill existente; FullCalendar7 con zona America/Lima representa eventos por etapa hasta el fin del día. Cotización SQL, opciones paginadas, guardado confirmado, control de respuestas antiguas y texto DOM seguro. /calendar de demo no se modificó.
+
+save_internal_appointment realiza alta/edición completa en transacción; version impide sobrescrituras. change_appointment_status controla reloj, transición y cancelación. Notas internas tienen escritura y permisos separados; no forman parte de get/search ni del título del calendario. OWNER/ADMIN gestionan, STAFF consulta y CLIENT/anon/inactivo no acceden; escrituras REST revocadas.
+
+La reserva toma mutex transaccional930003 antes de leer conflictos y exige Read Committed. Revalida permisos tras esperar para no ejecutar con permisos retirados durante la espera. Valida persona y mascota sin solapamientos, actividad, habilidad, turnos, horario local y bloqueos, incluso dentro de una solicitud multiperro. Las funciones laborales y triggers comparten el protocolo; un cambio que invalida citas CONFIRMED/IN_PROGRESS se revierte. La desactivación de perfil por seguridad permanece permitida y se informa mediante needs_attention.
+
+appointment_availability suma ocupación de citas a las ventanas laborales; employee_availability mantiene su contrato laboral y aviso anterior. La consulta no reserva: se revalida al persistir. Se respetan límites [inicio,fin), primer inicio por perro hasta17 y continuaciones después17 con cobertura explícita. Canceladas/no asistidas liberan; completadas conservan intervalos programados. Retrasos/recojos no registrados y ejecución real por etapa siguen fuera del cálculo automático.
+
+La discrepancia local con appointment_services/fecha-horas separadas queda resuelta para identity-dev. No se ha conciliado ni desplegado una base remota o datos heredados desconocidos. Validación y límites en features/fase-4-agenda-reservas-internas/validation.md.

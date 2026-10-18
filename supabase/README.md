@@ -92,3 +92,27 @@ node scripts/test-employees-availability-api.mjs
 ```
 
 72 comprobaciones locales, incluidos roles, concurrencia, turnos/bloqueos, Lima, feriados y paginación >1000. Usa cuentas sintéticas, limpia UUIDs/prefijos propios y preserva la configuración comercial previa. El script requiere el calendario local confirmado para los intervalos de sus ensayos. Evidencia completa en [validación Fase 3](../specs/features/fase-3-empleados-disponibilidad/validation.md).
+
+## Fase 4 — Agenda y reservas internas
+
+Migración `20261017220427_internal_appointments.sql`, aplicada incrementalmente solo en identity-dev. Añade las cuatro tablas de citas, etapas temporales y control de versión. Usa Pandas11.sql actualizado; no crea appointment_services ni requiere reset. No desplegar Angular contra una base que aún use el contrato heredado sin un plan de conciliación.
+
+Recargar la app con `npm run start:local` y abrir **Citas → Calendario**. OWNER/ADMIN gestionan; STAFF consulta. CLIENT no accede. El calendario usa America/Lima y muestra eventos por etapa, incluso después18. Seleccionar un evento abre la ficha completa de la cita.
+
+Para reservar: elegir cliente, añadir uno o varios servicios por mascota, definir inicio de cada servicio y trabajador. La tarifa se resuelve por tamaño/pelaje y se confirma en servidor. En servicios que requieren especialista se puede desglosar baño/corte: indicar los minutos positivos de ambas etapas, cuya suma debe coincidir con el total, y asignar trabajadores. Puede ser la misma persona cualificada. No se permiten huecos ni solapamientos para una mascota. La primera atención de cada perro inicia hasta17; continuaciones posteriores requieren cobertura laboral completa.
+
+**Comprobar disponibilidad** muestra horarios posibles por trabajador; al guardar se vuelve a validar todo atómicamente. Si dos reservas compiten, una se rechaza. Un bloqueo o cambio laboral que invalide una cita vigente también se rechaza; resolver las citas afectadas primero. La baja de una cuenta por seguridad no se bloquea: las citas con trabajador/perfil sin cobertura muestran aviso para reasignar.
+
+Reprogramar una cita CONFIRMED conserva sus tarifas/duraciones aceptadas e IDs de items intactos. Para sustituir mascota/servicio, retirar el item y añadir uno nuevo. Ediciones con versión desactualizada se rechazan: recargar ficha y revisar antes de volver a guardar. Ante respuesta incierta de red, consultar estado antes de reenviar.
+
+Estados: confirmar al crear, iniciar atención una vez llegado el inicio, completar desde atención, o cancelar/no asistió desde confirmada. Cancelar exige motivo y conserva detalle. No asistió solo después del inicio. Terminales no se reabren. Canceladas/no asistidas no ocupan; completadas conservan los intervalos programados. No hay borrado físico desde API.
+
+Las observaciones internas se guardan aparte y no aparecen en títulos/eventos. OWNER/ADMIN editan y STAFF lee. Al guardar por primera vez una cita se habilita esa sección. Las notas de ficha/servicio no deben usarse para información reservada.
+
+No se exige adelanto a citas internas, aunque el cliente tenga cuenta. No se registra un pago ni se gestiona transporte automáticamente: recojos/demoras se representan mediante bloqueos manuales; se considera la ocupación programada y registrada, no seguimiento real por etapa.
+
+```sh
+node scripts/test-appointments-api.mjs
+```
+
+La prueba usa cuentas/UUIDs propios y elimina solo sus datos. Incluye estados, snapshots, atomicidad, concurrencia entre reservas/turnos/bloqueos y1002 citas canceladas para paginación. También ejecuta la suite SQL con una cita vigente fuera de sus fixtures y comprueba su conservación; no requiere borrar cuentas existentes. Resultados en [validation.md](../specs/features/fase-4-agenda-reservas-internas/validation.md).

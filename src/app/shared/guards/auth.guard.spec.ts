@@ -34,6 +34,11 @@ describe('authGuard', () => {
     const protectedRoute = { data: { permission: 'employees.read' } } as unknown as ActivatedRouteSnapshot;
     expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
   });
+  it('exige appointments.read para entrar en agenda', async () => {
+    authorization.has.and.callFake((permission: string) => permission === 'panel.access');
+    const protectedRoute = { data: { permission: 'appointments.read' } } as unknown as ActivatedRouteSnapshot;
+    expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
+  });
   it('panel.access no sustituye el permiso de clientes de la ruta', async () => {
     authorization.has.and.callFake((permission: string) => permission === 'panel.access');
     const protectedRoute = { data: { permission: 'clients.read' } } as unknown as ActivatedRouteSnapshot;

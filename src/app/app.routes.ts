@@ -87,8 +87,9 @@ export const routes: Routes = [
       },
       {
         path:'calendario',
+        data: { permission: 'appointments.read' },
         component:CalendarioComponent,
-        title:'Angular Calender | TailAdmin - Angular Admin Dashboard Template'
+        title:'Agenda | Spa & Boutique Pandas 11'
       },
       {
         path:'profile',

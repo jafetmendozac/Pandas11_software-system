@@ -92,3 +92,7 @@ Sin dependencias nuevas. RPC SQL invoker para búsqueda/paginación bajo RLS y R
 ## Actualización Fase 2 — 2026-10-17
 
 Sin dependencias nuevas: PostgreSQL numeric para cálculo exacto y precios en texto decimal hacia Angular. Validadores compartidos en service-pricing.models.ts; simulador standalone con signals y pruebas Jasmine. Búsqueda RPC invoker y RLS de catálogo. Pruebas API adicionales en Node mediante supabase-js existente.
+
+## Actualización Fase 4 — 2026-10-17
+
+Sin dependencias nuevas. Se utiliza temporal-polyfill1.0.4 ya instalado para fechas/horas Lima y sumas de minutos; FullCalendar7.0.2 usa la zona America/Lima. Prueba de calendario real en ChromeHeadless y conversiones del modelo bajo tres TZ en Node. PostgreSQL17: RPC transaccionales/SECURITY DEFINER, mutex compartido, RLS de dominio y control de versión. Nuevo test pgTAP y script API de agenda con datos sintéticos propios. Versiones/paquetes no se actualizaron.

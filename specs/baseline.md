@@ -121,3 +121,20 @@ Preflight local no encontró las cuatro tablas laborales. Nueva migración `2026
 | `git diff --check` | Sin errores |
 
 Los comandos requieren CLI/Docker/Chrome locales. Sin E2E manual completo ni verificación remota. La consulta cubre disponibilidad laboral y bloqueos registrados, no ocupación automática de agenda. Detalle en [validación de Fase 3](features/fase-3-empleados-disponibilidad/validation.md).
+
+## Evolución Fase 4 — 2026-10-17
+
+Inicio: documentación de Fase4 pendiente en Git (`M specs/business-rules.md`, nuevo directorio de la fase), conservada y continuada tras aprobación. Preflight local sin tablas/enums de citas y con cuatro migraciones previas. Quinta migración `20261017220427_internal_appointments.sql` creada/aplicada con CLI, sin reset ni cambios remotos.
+
+| Validación | Resultado final |
+|---|---|
+| `supabase test db` | 112/112: 36 nuevas +76 anteriores |
+| `supabase db lint --local` | Sin errores ni advertencias |
+| API Fases0/1/2/3/4 | 26 +42 +50 +72 +75 =265 comprobaciones correctas |
+| Angular ChromeHeadless | 63/63: 20 nuevas +43 anteriores |
+| TypeScript app/spec sin emisión | Correctos |
+| Build development/producción | Correctos; producción inicial3,39 MB |
+| Modelos temporales del código real bajo TZ Lima/Los Ángeles/Tokio | Correctos |
+| `git diff --check`, archivos nuevos y enlaces | Correctos |
+
+Nueva API y pruebas de citas conservan cuentas existentes y limpian sus datos. Concurrencia comprobada entre reservas y cambios de turno/bloqueo, snapshots preservados y paginación de1002 citas completas canceladas. FullCalendar real probado con etapa después18 y texto seguro. Sin pruebas E2E manuales completas ni reconstrucción desde cero. No se instalaron paquetes, modificaron entornos, hicieron commits/pushes o desplegaron cambios remotos. Detalle en [validación](features/fase-4-agenda-reservas-internas/validation.md).

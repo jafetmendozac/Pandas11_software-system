@@ -8,9 +8,14 @@ insert into auth.users(id,email,raw_user_meta_data) values
  (current_setting('test.client')::uuid,'test-'||current_setting('test.client')||'@example.test','{}');
 insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
 insert into public.employees(id,profile_id,skill_level) values(current_setting('test.employee')::uuid,current_setting('test.client')::uuid,'ALL_SERVICES');
--- Configuración determinista dentro de transacción con rollback; conserva datos locales.
+-- Preparación transaccional de calendario para esta suite laboral. El guard de
+-- citas se desactiva SOLO durante el fixture de horarios y se reactiva antes
+-- de las aserciones; rollback restaura datos y metadata. Así las citas locales
+-- ajenas a este test no impiden preparar su calendario temporal.
+alter table public.business_hours disable trigger check_business_changes;
 delete from public.business_hours;
 insert into public.business_hours(weekday,open_time,close_time) values(2,'07:00','12:00'),(2,'13:00','18:00');
+alter table public.business_hours enable trigger check_business_changes;
 select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
 set local role authenticated;
 select lives_ok($$select public.save_work_period('employee',jsonb_build_object('employee_id',current_setting('test.employee'),'weekday',2,'start_time','07:00','end_time','12:00'))$$,'Crear turno mañana');

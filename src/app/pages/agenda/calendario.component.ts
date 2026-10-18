@@ -1,822 +1,161 @@
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, DateSelectInfo, EventClickInfo, EventInput } from 'fullcalendar';
-import interactionPlugin from 'fullcalendar/interaction';
-import esLocale from 'fullcalendar/locales/es';
-import themePlugin from 'fullcalendar/themes/classic';
+import { FullCalendarModule } from '@fullcalendar/angular';
+import { CalendarOptions, EventInput } from 'fullcalendar';
 import timeGridPlugin from 'fullcalendar/timegrid';
+import interactionPlugin from 'fullcalendar/interaction';
+import themePlugin from 'fullcalendar/themes/classic';
+import esLocale from 'fullcalendar/locales/es';
+import { Temporal } from 'temporal-polyfill';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
-import {
-  AppointmentInput,
-  AppointmentWithRelations,
-  AppointmentsService,
-  ClientOption,
-  EmployeeOption,
-  PetOption,
-  ServiceOption,
-} from '../../shared/services/appointments.service';
+import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { AppointmentsService } from '../../shared/services/appointments.service';
+import { AuthorizationService } from '../../shared/services/authorization.service';
+import { ClientesService, Client } from '../../shared/services/clientes.service';
+import { MascotasService, Pet } from '../../shared/services/mascotas.service';
+import { EmpleadosService, Employee } from '../../shared/services/empleados.service';
+import { ServiciosService, Service } from '../../shared/services/servicios.service';
+import { TarifasService } from '../../shared/services/tarifas.service';
+import { decimalLabel } from '../../shared/services/service-pricing.models';
+import { workError, limaDateTime } from '../../shared/services/work-calendar.service';
+import { Appointment, AppointmentStatus, DraftItem, ReservationAvailability, STATUS_LABELS, STAGE_LABELS, StageInput, addLocalMinutes, appointmentInput, draftItem, stageInputs } from '../../shared/services/appointment.models';
 
-export interface CalendarEvent extends EventInput {
-  extendedProps: {
-    calendar: string;
-    appointment?: AppointmentWithRelations;
-  };
-}
-
-@Component({
-  selector: 'app-calendario',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    FullCalendarModule,
-    ModalComponent
-  ],
-  templateUrl: './calendario.component.html',
-  styles: ``
-})
-export class CalendarioComponent implements OnInit, AfterViewInit {
-  @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
-
-  events: CalendarEvent[] = [];
-  selectedEvent: CalendarEvent | null = null;
-  eventTitle = '';
-  eventStartDate = '';
-  eventEndDate = '';
-  eventLevel = 'Primary';
-  selectedClientId = '';
-  selectedPetId = '';
-  selectedEmployeeId = '';
-  selectedServiceIds: string[] = [];
-  status = 'scheduled';
-  clients: ClientOption[] = [];
-  pets: PetOption[] = [];
-  filteredPets: PetOption[] = [];
-  employees: EmployeeOption[] = [];
-  services: ServiceOption[] = [];
-  isSaving = false;
-  errorMessage = '';
-  isOpen = false;
-
-  currentView = 'timeGridWeek';
-
-  viewOptions = [
-    { key: 'timeGridWeek', label: 'Semana' },
-    { key: 'timeGridDay', label: 'Día' },
-  ];
-
-  calendarsEvents = [
-    { key: 'Danger', label: 'Peligro', value: 'danger' },
-    { key: 'Success', label: 'Éxito', value: 'success' },
-    { key: 'Primary', label: 'Principal', value: 'primary' },
-    { key: 'Warning', label: 'Advertencia', value: 'warning' }
-  ];
-
-  calendarOptions!: CalendarOptions;
-
-  constructor(
-    private readonly elRef: ElementRef,
-    private readonly appointmentsService: AppointmentsService,
-  ) {}
-
-  ngOnInit() {
-    const isRtl = document.documentElement.dir === 'rtl';
-    const locale = document.documentElement.lang || 'es';
-    void this.loadInitialData();
-
-    this.calendarOptions = {
-      plugins: [
-        themePlugin,
-        timeGridPlugin,
-        interactionPlugin,
-      ],
-      initialView: 'timeGridWeek',
-      locale: esLocale,
-      allDayText: 'Todo el día',
-      direction: isRtl ? 'rtl' : 'ltr',
-
-      // Toolbar Header configuration
-      headerToolbar: {
-        start: 'prev,next addEventButton',
-        center: 'title',
-        end: ''
-      },
-      headerToolbarClass:
-        'sticky top-0! flex-col gap-4 z-20! [padding-inline:24px]! pt-6 sm:flex-row',
-      toolbarTitleClass: 'text-lg! font-medium! text-gray-800 dark:text-white/90',
-      toolbarSectionClass: 'ta-toolbar-section',
-      buttonGroupClass: 'gap-2',
-
-      buttons: {
-        prev: {
-          iconContent: {
-            html: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="size-6 bg-transparent text-gray-700 rtl:rotate-180 dark:text-gray-400"><path d="M15 18l-6-6 6-6" /></svg>`,
-          },
-          className:
-            'flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!',
-        },
-        next: {
-          iconContent: {
-            html: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="size-6 bg-transparent text-gray-700 rtl:rotate-180 dark:text-gray-400"><path d="M9 18l6-6-6-6" /></svg>`,
-          },
-          className:
-            'flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!',
-        },
-        addEventButton: {
-          text: 'Añadir cita +',
-          click: () => this.handleOpenAddModal(),
-          className:
-            'rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! text-white hover:bg-brand-600! focus:shadow-none! w-auto!',
-        },
-      },
-
-      // View configurations
-      views: {
-        multiMonthYear: {
-          aspectRatio: 1.2,
-          contentHeight: 'auto',
-          height: 'auto',
-          multiMonthMaxColumns: 3,
-          tableClass: 'overflow-visible! rounded-lg!',
-          singleMonthMinWidth: 320,
-          showNonCurrentDates: true,
-          singleMonthHeaderInnerClass:
-            'text-sm font-medium! text-gray-800 dark:text-white/90',
-          dayHeaderClass: (data: any) =>
-            data.inPopover
-              ? 'relative! border-b! border-gray-200! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!'
-              : 'border-0! bg-gray-50 py-2! dark:bg-gray-900',
-          dayHeaderInnerClass: (data: any) =>
-            data.inPopover
-              ? 'text-sm! font-semibold! text-gray-800! dark:text-white/90!'
-              : 'py-1 text-xs font-medium text-gray-400 uppercase',
-          dayCellClass: (data: any) => {
-            if (data.inPopover) return 'bg-transparent! p-3!';
-            let cls = 'relative! p-0.5 sm:p-1!';
-            if (data.isToday)
-              cls += ' isolate bg-gray-100! font-semibold text-brand-500';
-            if (data.isOther) cls += ' bg-transparent!';
-            return cls;
-          },
-          dayCellInnerClass: (data: any) =>
-            data.inPopover
-              ? 'flex custom-scrollbar max-h-60 flex-col gap-1.5 overflow-y-auto'
-              : '',
-          dayCellTopInnerClass: 'text-sm!',
-          dayMaxEvents: 0,
-          rowMoreLinkClass:
-            'absolute! -top-1! -start-0.5! z-10! border-0! bg-transparent! p-0!',
-          rowMoreLinkInnerClass: 'overflow-visible!',
-          moreLinkContent() {
-            return {
-              html: `<span><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5.5 text-brand-500"><path d="M19 3v17a1 1 0 01-1.496.868l-4.512-2.578a2 2 0 00-1.984 0l-4.512 2.578A1 1 0 015 20V3z" /></svg></span>`,
-            };
-          },
-        },
-        dayGridMonth: {
-          dayMaxEvents: 2,
-          dayHeaderAlign: (data: any) => (data.inPopover ? 'start' : 'center'),
-          dayHeaderClass: (data: any) =>
-            data.inPopover
-              ? 'relative! border-b! border-gray-200! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!'
-              : 'border-x-0! border-t border-gray-200! bg-gray-50 dark:border-gray-800! dark:bg-gray-900',
-          dayHeaderInnerClass: (data: any) =>
-            data.inPopover
-              ? 'text-sm! font-semibold! text-gray-800! dark:text-white/90!'
-              : 'px-5! py-4! text-sm font-medium text-gray-400 uppercase',
-          dayCellClass: (data: any) => {
-            if (data.inPopover) return 'bg-transparent! p-3!';
-            return `bg-transparent! p-2! ${
-              data.isToday ? 'bg-gray-100! dark:bg-gray-800/40!' : ''
-            }`;
-          },
-          dayCellInnerClass: (data: any) => {
-            if (data.inPopover)
-              return 'flex custom-scrollbar max-h-60 flex-col gap-1.5 overflow-y-auto';
-            return data.isToday ? 'rounded-sm!' : '';
-          },
-          moreLinkClass:
-            'border-0! bg-transparent! p-0! hover:bg-transparent! focus:outline-none',
-          moreLinkContent(args: any) {
-            return {
-              html: `<span class="fc-more-link-badge inline-flex items-center rounded-sm bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">+${args.num} more</span>`,
-            };
-          },
-        },
-        timeGridWeek: {
-          slotDuration: '01:00:00',
-          slotMinTime: '7:00:00',
-          slotMaxTime: '18:00:00',
-          slotHeaderFormat: { hour: 'numeric', hour12: true },
-          slotMinHeight: 56,
-          expandRows: true,
-          allDaySlot: false,
-          dayHeaderContent: (arg: any) => {
-            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
-              arg.date
-            );
-            const day = new Intl.DateTimeFormat(locale, { day: 'numeric' }).format(arg.date);
-            const initial = weekday.charAt(0).toUpperCase();
-            return {
-              html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
-            };
-          },
-          dayHeaderClass: this.timeGridDayHeaderClass,
-          dayHeaderInnerClass: (data: any) =>
-            `fc-day-head px-3! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
-              data.isToday ? 'font-semibold! text-brand-500! dark:text-brand-400!' : ''
-            }`,
-          slotHeaderDividerClass:
-            'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
-          slotHeaderClass:
-            'px-0! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
-          slotLaneClass: 'border-gray-100! dark:border-gray-800/60!',
-          dayLaneClass: this.timeGridDayLaneClass,
-          allDayDividerClass:
-            'border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!',
-          allDayHeaderClass:
-            'border-0! bg-gray-50! text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!',
-        },
-        timeGridDay: {
-          slotDuration: '00:30:00',
-          slotMinTime: '7:00:00',
-          slotMaxTime: '18:00:00',
-          slotHeaderFormat: { hour: 'numeric', hour12: true },
-          slotMinHeight: 48,
-          expandRows: true,
-          allDaySlot: false,
-          dayHeaderContent: (arg: any) => {
-            const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
-              arg.date
-            );
-            const day = new Intl.DateTimeFormat(locale, { day: 'numeric' }).format(arg.date);
-            const initial = weekday.charAt(0).toUpperCase();
-            return {
-              html: `<span class="fc-dow-name">${weekday}</span><span class="fc-dow-initial">${initial}</span><span class="fc-dow-sep"> - </span><span class="fc-dow-day">${day}</span>`,
-            };
-          },
-          dayHeaderClass: this.timeGridDayHeaderClass,
-          dayHeaderInnerClass: (data: any) =>
-            `fc-day-head px-4! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
-              data.isToday ? 'font-semibold! text-brand-500! dark:text-brand-400!' : ''
-            }`,
-          slotHeaderDividerClass:
-            'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
-          slotHeaderClass:
-            'px-0! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!',
-          slotLaneClass: 'border-gray-100! dark:border-gray-800/60!',
-          dayLaneClass: this.timeGridDayLaneClass,
-          allDayDividerClass:
-            'border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!',
-          allDayHeaderClass:
-            'border-0! bg-gray-50! text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!',
-        },
-      },
-
-      // Body configuration
-      borderless: true,
-      expandRows: true,
-      height: '100%',
-      slotMinHeight: 56,
-      slotHeaderDividerClass:
-        'border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!',
-      allDayDividerClass:
-        'border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!',
-      eventClass: 'focus:shadow-none',
-      nowIndicator: false,
-      columnEventClass:
-        'bg-transparent! border-0! p-1! shadow-none! hover:shadow-none! focus:outline-none',
-      columnEventInnerClass: 'p-0! border-0! bg-transparent! h-full',
-      tableHeaderSticky: true,
-      tableClass: 'overflow-hidden',
-      rowEventClass:
-        'bg-transparent! border-0! px-1! py-0.5! shadow-none! hover:shadow-none! focus:outline-none',
-      rowEventInnerClass: 'p-0! border-0! bg-transparent!',
-      popoverFormat: { month: 'short', day: 'numeric', year: 'numeric' },
-      popoverClass:
-        'z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900',
-      popoverCloseClass:
-        'absolute end-3 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
-      popoverCloseContent: {
-        html: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M18 6L6 18M6 6l12 12" /></svg>`,
-      },
-
-      selectable: true,
-      events: this.events,
-      select: (info) => {
-        if (this.touchesSunday(info.start, info.end)) {
-          this.calendarComponent?.getApi().unselect();
-          return;
-        }
-        this.handleDateSelect(info);
-      },
-      eventClick: (info) => this.handleEventClick(info),
-      eventContent: (arg) => this.renderEventContent(arg),
-      datesSet: (arg: any) => {
-        this.currentView = arg.view.type;
-        requestAnimationFrame(() => {
-          const el = this.elRef.nativeElement;
-          const chunk = el.querySelector('.ta-toolbar-section:last-child') as HTMLElement;
-          if (chunk) {
-            this.renderViewSelect(chunk, this.currentView);
-          }
-          this.updateFitHeight();
-        });
-      }
-    };
+@Component({selector:'app-calendario',standalone:true,imports:[FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent],templateUrl:'./calendario.component.html'})
+export class CalendarioComponent implements OnInit,OnDestroy {
+ readonly authorization=inject(AuthorizationService);
+ private readonly appointments=inject(AppointmentsService);
+ private readonly clientService=inject(ClientesService);private readonly petService=inject(MascotasService);
+ private readonly employeeService=inject(EmpleadosService);private readonly serviceCatalogue=inject(ServiciosService);private readonly pricing=inject(TarifasService);
+ readonly clients=signal<Client[]>([]);readonly pets=signal<Pet[]>([]);readonly employees=signal<Employee[]>([]);readonly services=signal<Service[]>([]);
+ readonly rows=signal<Appointment[]>([]);readonly loading=signal(false);readonly optionsLoading=signal(true);readonly error=signal('');
+ readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');
+ readonly current=signal<Appointment|null>(null);readonly items=signal<DraftItem[]>([]);readonly checking=signal(false);
+ readonly checks=signal<Record<string,ReservationAvailability>>({});readonly options=signal<CalendarOptions>({});
+ readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
+ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
+ private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
+ get canEdit():boolean{return !this.detailFailed()&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
+ async ngOnInit():Promise<void>{
+  this.options.set({plugins:[themePlugin,timeGridPlugin,interactionPlugin],initialView:'timeGridWeek',locale:esLocale,timeZone:'America/Lima',allDaySlot:false,
+   headerToolbar:{start:'prev,next today',center:'title',end:'timeGridWeek,timeGridDay'},slotMinTime:'07:00:00',slotMaxTime:'24:00:00',height:'auto',
+   selectable:this.authorization.has('appointments.manage'),editable:false,events:[],
+   select:info=>this.openNew(info.startStr.slice(0,19)),
+   datesSet:info=>{if(this.rangeFrom===info.startStr&&this.rangeUntil===info.endStr)return;this.rangeFrom=info.startStr;this.rangeUntil=info.endStr;void this.loadRange();},
+   eventClick:info=>{const id=info.event.extendedProps['appointmentId'];if(typeof id==='string')void this.openAppointment(id);},
+   eventContent:info=>{const node=document.createElement('span');node.textContent=info.event.title;return {domNodes:[node]};}
+  });
+  try{
+   const [clients,pets,employees,services]=await Promise.all([this.clientService.getAll(),this.petService.getAll(),this.employeeService.getAll(),this.serviceCatalogue.getAll()]);
+   this.clients.set(clients);this.pets.set(pets.filter(p=>p.active&&!p.deleted_at&&!p.death_date));this.employees.set(employees.filter(e=>e.active&&e.profile_active));this.services.set(services.filter(s=>s.active));
+  }catch(error){this.error.set(workError(error));}finally{this.optionsLoading.set(false);}
+ }
+ ngOnDestroy():void{this.revision++;this.formRevision++;this.detailRevision++;}
+ async loadRange():Promise<void>{
+  if(!this.rangeFrom||!this.rangeUntil)return;const revision=++this.revision;this.loading.set(true);this.error.set('');
+  try{const rows=await this.appointments.range(this.rangeFrom,this.rangeUntil,this.employeeFilter||null,this.statusFilter||null,this.search);if(revision===this.revision){this.rows.set(rows);this.refreshEvents();}}
+  catch(error){if(revision===this.revision)this.error.set(workError(error));}finally{if(revision===this.revision)this.loading.set(false);}
+ }
+ private refreshEvents():void{
+  const events:EventInput[]=[];
+  for(const a of this.rows())for(const i of a.items)for(const s of i.stages){
+   if(this.employeeFilter&&s.employee_id!==this.employeeFilter)continue;
+   events.push({id:s.id,start:s.starts_at,end:s.ends_at,title:`${i.pet_name} · ${i.service_name} · ${this.stages[s.stage]} · ${s.employee_name} · ${a.client_name} (${this.statuses[a.status]})${a.needs_attention?' — Revisar disponibilidad':''}`,extendedProps:{appointmentId:a.id},classNames:a.status==='CANCELLED'||a.status==='NO_SHOW'?['opacity-50']:[]});
   }
-
-  ngAfterViewInit() {
-    this.updateFitHeight();
-  }
-
-  @HostListener('window:resize')
-  onWindowResize() {
-    this.updateFitHeight();
-  }
-
-  private updateFitHeight() {
-    requestAnimationFrame(() => {
-      const host: HTMLElement | null =
-        this.elRef.nativeElement.querySelector('.custom-calendar');
-      if (!host) return;
-      const offsetTop = host.getBoundingClientRect().top + window.scrollY;
-      const available = Math.max(420, Math.round(window.innerHeight - offsetTop - 24));
-      host.style.setProperty('--fit-h', `${available}px`);
-    });
-  }
-
-  private readonly timeGridDayHeaderClass = (data: any) =>
-    `border-x-0! border-t! border-b! border-gray-200! bg-gray-50! dark:border-gray-800! dark:bg-gray-900! ${
-      data.isToday ? 'bg-gray-100/70! dark:bg-gray-800/60!' : ''
-    } ${this.isSunday(data.date) ? 'fc-day-blocked-header' : ''}`;
-
-  private readonly timeGridDayLaneClass = (data: any) =>
-    `border-gray-200! dark:border-gray-800! ${
-      data.isToday ? 'bg-brand-50/15! dark:bg-brand-500/[0.03]!' : ''
-    } ${this.isSunday(data.date) ? 'fc-day-blocked' : ''}`;
-
-  private isSunday(date: Date | string | number): boolean {
-    return new Date(date).getDay() === 0;
-  }
-
-  private touchesSunday(start: Date, end: Date): boolean {
-    const lastSelected = new Date(end.getTime() - 1);
-    return start.getDay() === 0 || lastSelected.getDay() === 0;
-  }
-
-  renderViewSelect(containerEl: HTMLElement, activeViewKey: string) {
-    if (!containerEl) return;
-    const activeOption =
-      this.viewOptions.find((v) => v.key === activeViewKey) ||
-      this.viewOptions[0];
-
-    containerEl.innerHTML = `
-      <div class="relative calendar-view-dropdown">
-        <button
-          type="button"
-          class="calendar-view-btn flex h-9 w-full min-w-20 items-center justify-center gap-1.5 rounded-lg border border-gray-300 ps-3 pe-2 text-sm font-medium text-gray-700 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          aria-expanded="false"
-          aria-haspopup="listbox"
-        >
-          <span class="calendar-view-label">${activeOption.label}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-view-chevron h-4.5 w-4.5 transition-transform duration-200">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
-        <div class="calendar-view-menu absolute end-0 z-50 mt-1.5 hidden w-38 space-y-0.5 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-          ${this.viewOptions.map(
-            (view) => `
-            <button
-              type="button"
-              data-view-key="${view.key}"
-              class="calendar-view-option w-full rounded-lg px-2.5 py-1.5 text-start text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 ${
-                activeViewKey === view.key
-                  ? "bg-gray-100 font-medium dark:bg-white/5"
-                  : "font-normal"
-              }"
-            >
-              ${view.label}
-            </button>
-          `
-          ).join("")}
-        </div>
-      </div>
-    `;
-
-    const dropdownContainer = containerEl.querySelector(".calendar-view-dropdown");
-    if (!dropdownContainer) return;
-    const btn = dropdownContainer.querySelector(".calendar-view-btn") as HTMLElement;
-    const menu = dropdownContainer.querySelector(".calendar-view-menu") as HTMLElement;
-    const chevron = dropdownContainer.querySelector(".calendar-view-chevron") as HTMLElement;
-
-    if (btn && menu && chevron) {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isHidden = menu.classList.contains("hidden");
-        document
-          .querySelectorAll(".calendar-view-menu")
-          .forEach((m) => m.classList.add("hidden"));
-        document
-          .querySelectorAll(".calendar-view-chevron")
-          .forEach((c) => c.classList.remove("rotate-180"));
-
-        if (isHidden) {
-          menu.classList.remove("hidden");
-          chevron.classList.add("rotate-180");
-          btn.setAttribute("aria-expanded", "true");
-        } else {
-          menu.classList.add("hidden");
-          chevron.classList.remove("rotate-180");
-          btn.setAttribute("aria-expanded", "false");
-        }
-      });
-
-      dropdownContainer
-        .querySelectorAll(".calendar-view-option")
-        .forEach((optionBtn) => {
-          optionBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const viewKey = (optionBtn as HTMLElement).dataset['viewKey'];
-            if (viewKey) {
-              this.currentView = viewKey;
-              const calApi = this.calendarComponent?.getApi();
-              if (calApi && typeof calApi.changeView === "function") {
-                calApi.changeView(viewKey);
-              }
-            }
-            menu.classList.add("hidden");
-            chevron.classList.remove("rotate-180");
-            btn.setAttribute("aria-expanded", "false");
-          });
-        });
-    }
-  }
-
-  @HostListener('window:click', ['$event'])
-  onWindowClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.calendar-view-dropdown')) {
-      document
-        .querySelectorAll('.calendar-view-menu')
-        .forEach((m) => m.classList.add('hidden'));
-      document
-        .querySelectorAll('.calendar-view-chevron')
-        .forEach((c) => c.classList.remove('rotate-180'));
-    }
-  }
-
-  handleOpenAddModal() {
-    this.resetModalFields();
-    this.eventStartDate = this.toDateTimeInputValue(new Date());
-    this.recalculateEndDate();
-    this.eventLevel = 'Primary';
-    if (this.isSunday(this.eventStartDate)) {
-      this.errorMessage = 'Los domingos no se pueden agendar citas. Elige otra fecha.';
-    }
-    this.openModal();
-  }
-
-  handleDateSelect(selectInfo: DateSelectInfo) {
-    this.resetModalFields();
-    this.eventStartDate = this.toDateTimeInputValue(selectInfo.start);
-    this.recalculateEndDate();
-    this.eventLevel = 'Primary';
-    this.openModal();
-  }
-
-  onClientChange(clientId: string) {
-    this.selectedClientId = clientId;
-    this.filteredPets = this.pets.filter((pet) => pet.client_id === clientId);
-    if (!this.filteredPets.some((pet) => pet.id === this.selectedPetId)) {
-      this.selectedPetId = '';
-    }
-  }
-
-  onServiceSelectionChange(rawValue: string[] | string | null) {
-    if (!rawValue) {
-      this.selectedServiceIds = [];
-      this.recalculateEndDate();
-      return;
-    }
-    this.selectedServiceIds = Array.isArray(rawValue) ? rawValue : [rawValue];
-    this.recalculateEndDate();
-  }
-
-  onStartDateChange() {
-    this.errorMessage = '';
-    this.recalculateEndDate();
-  }
-
-  handleEventClick(clickInfo: EventClickInfo) {
-    const event = clickInfo.event as any;
-    if (event.url) {
-      window.open(event.url);
-      clickInfo.jsEvent.preventDefault();
-      return;
-    }
-
-    this.selectedEvent = {
-      id: event.id,
-      title: event.title,
-      start: event.startStr,
-      end: event.endStr,
-      extendedProps: { calendar: event.extendedProps?.calendar || 'Primary' }
-    };
-    this.eventTitle = event.title;
-    this.eventStartDate = event.start ? this.toDateTimeInputValue(event.start) : '';
-    this.eventEndDate = event.end ? this.toDateTimeInputValue(event.end) : '';
-    this.eventLevel = event.extendedProps?.calendar || 'Primary';
-    const appointment = event.extendedProps?.appointment as AppointmentWithRelations | undefined;
-    this.selectedClientId = appointment?.client_id ?? '';
-    this.onClientChange(this.selectedClientId);
-    this.selectedPetId = appointment?.pet_id ?? '';
-    this.selectedEmployeeId = appointment?.employee_id ?? '';
-    this.selectedServiceIds =
-      appointment?.appointment_services?.map((service) => service.service_id) ?? [];
-    this.status = appointment?.status ?? 'scheduled';
-    this.eventTitle = appointment?.notes ?? event.title ?? '';
-    this.recalculateEndDate();
-    this.openModal();
-  }
-
-  async handleAddOrUpdateEvent() {
-    this.errorMessage = '';
-    if (
-      !this.eventStartDate ||
-      !this.selectedClientId ||
-      !this.selectedPetId ||
-      !this.selectedEmployeeId ||
-      this.selectedServiceIds.length === 0
-    ) {
-      this.errorMessage = 'Completa cliente, mascota, empleado, fecha de inicio y al menos un servicio.';
-      return;
-    }
-
-    if (this.isSunday(this.eventStartDate) && !this.selectedEvent?.id) {
-      this.errorMessage = 'Los domingos no se pueden agendar citas. Elige otra fecha.';
-      return;
-    }
-
-    const payload = this.buildAppointmentInput();
-    if (!payload) {
-      this.errorMessage = 'No se pudo calcular la hora de finalización.';
-      return;
-    }
-
-    this.isSaving = true;
-    try {
-      if (this.selectedEvent?.id) {
-        await this.appointmentsService.update(String(this.selectedEvent.id), payload);
-      } else {
-        await this.appointmentsService.create(payload);
-      }
-      await this.loadAppointments();
-      this.closeModal();
-      this.resetModalFields();
-    } catch (error) {
-      console.error('No se pudo guardar la cita.', error);
-      this.errorMessage = 'No se pudo guardar la cita en Supabase.';
-    } finally {
-      this.isSaving = false;
-    }
-  }
-
-  resetModalFields() {
-    this.eventTitle = '';
-    this.eventStartDate = '';
-    this.eventEndDate = '';
-    this.eventLevel = 'Primary';
-    this.selectedClientId = '';
-    this.selectedPetId = '';
-    this.selectedEmployeeId = '';
-    this.selectedServiceIds = [];
-    this.status = 'scheduled';
-    this.filteredPets = [];
-    this.errorMessage = '';
-    this.selectedEvent = null;
-  }
-
-  private toDateTimeInputValue(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
-
-  private async loadInitialData() {
-    try {
-      const [clients, pets, employees, services] = await Promise.all([
-        this.appointmentsService.getClients(),
-        this.appointmentsService.getPets(),
-        this.appointmentsService.getEmployees(),
-        this.appointmentsService.getServices(),
-      ]);
-      this.clients = clients;
-      this.pets = pets;
-      this.filteredPets = [];
-      this.employees = employees;
-      this.services = services;
-      await this.loadAppointments();
-    } catch (error) {
-      console.error('No se pudieron cargar los datos de agenda.', error);
-      this.errorMessage = 'No se pudieron cargar los datos de agenda desde Supabase.';
-    }
-  }
-
-  private async loadAppointments() {
-    const appointments = await this.appointmentsService.getAll();
-    this.events = appointments.map((appointment) => this.mapAppointmentToEvent(appointment));
-    this.refreshCalendarEvents();
-  }
-
-  private refreshCalendarEvents() {
-    const api = this.calendarComponent?.getApi();
-    if (!api) return;
-    api.removeAllEvents();
-    this.events.forEach((event) => api.addEvent(event));
-  }
-
-  private mapAppointmentToEvent(appointment: AppointmentWithRelations): CalendarEvent {
-    const startIso = this.combineDateAndTime(appointment.appointment_date, appointment.start_time);
-    const endIso = this.combineDateAndTime(appointment.appointment_date, appointment.end_time);
-    const client = this.getSingleRelation(appointment.client);
-    const pet = this.getSingleRelation(appointment.pet);
-    const clientName = this.getPersonName(client?.first_name, client?.last_name);
-    const petName = pet?.name?.trim() || 'Mascota';
-    const notes = appointment.notes?.trim();
-    const title = notes || `${petName} · ${clientName || 'Cliente'}`;
-    const statusLevel = this.mapStatusToCalendarLevel(appointment.status);
-    return {
-      id: appointment.id,
-      title,
-      start: startIso,
-      end: endIso,
-      allDay: false,
-      extendedProps: {
-        calendar: statusLevel,
-        appointment,
-      },
-    };
-  }
-
-  private buildAppointmentInput(): AppointmentInput | null {
-    const startDate = new Date(this.eventStartDate);
-    if (Number.isNaN(startDate.getTime())) {
-      return null;
-    }
-    const totalDuration = this.getSelectedServicesDurationMinutes();
-    const endDate = new Date(startDate.getTime() + totalDuration * 60 * 1000);
-    this.eventEndDate = this.toDateTimeInputValue(endDate);
-    const selectedServices = this.services.filter((service) => this.selectedServiceIds.includes(service.id));
-
-    return {
-      client_id: this.selectedClientId,
-      pet_id: this.selectedPetId,
-      employee_id: this.selectedEmployeeId,
-      appointment_date: this.eventStartDate.split('T')[0],
-      start_time: `${this.eventStartDate.split('T')[1] || '00:00'}:00`,
-      end_time: `${this.eventEndDate.split('T')[1] || '00:00'}:00`,
-      status: this.status || 'scheduled',
-      notes: this.eventTitle.trim(),
-      services: selectedServices.map((service) => ({
-        service_id: service.id,
-        price: Number(service.price ?? 0),
-        duration_minutes: Number(service.duration_minutes ?? 0),
-      })),
-    };
-  }
-
-  private getSelectedServicesDurationMinutes(): number {
-    return this.services
-      .filter((service) => this.selectedServiceIds.includes(service.id))
-      .reduce((total, service) => total + Number(service.duration_minutes ?? 0), 0);
-  }
-
-  private recalculateEndDate() {
-    if (!this.eventStartDate) {
-      this.eventEndDate = '';
-      return;
-    }
-    const startDate = new Date(this.eventStartDate);
-    if (Number.isNaN(startDate.getTime())) {
-      this.eventEndDate = '';
-      return;
-    }
-    const totalDuration = this.getSelectedServicesDurationMinutes();
-    const endDate = new Date(startDate.getTime() + totalDuration * 60 * 1000);
-    this.eventEndDate = this.toDateTimeInputValue(endDate);
-  }
-
-  private mapStatusToCalendarLevel(status: string | null | undefined): string {
-    const normalized = (status || 'scheduled').toLowerCase();
-    if (normalized === 'cancelled' || normalized === 'canceled' || normalized === 'no_show') {
-      return 'Danger';
-    }
-    if (normalized === 'completed') {
-      return 'Success';
-    }
-    if (normalized === 'rescheduled' || normalized === 'pending') {
-      return 'Warning';
-    }
-    return 'Primary';
-  }
-
-  private combineDateAndTime(date: string, time: string): string {
-    const normalizedTime = time.length === 5 ? `${time}:00` : time;
-    return `${date}T${normalizedTime}`;
-  }
-
-  private getPersonName(firstName?: string | null, lastName?: string | null): string {
-    return `${firstName ?? ''} ${lastName ?? ''}`.trim();
-  }
-
-  private getSingleRelation<T>(value: T | T[] | null | undefined): T | undefined {
-    if (!value) return undefined;
-    return Array.isArray(value) ? value[0] : value;
-  }
-
-  openModal() {
-    this.isOpen = true;
-  }
-
-  closeModal() {
-    this.isOpen = false;
-    this.resetModalFields();
-  }
-
-  renderEventContent(eventInfo: any) {
-    const calendarLevel = (
-      eventInfo.event.extendedProps?.calendar || 'primary'
-    ).toLowerCase();
-
-    const colorMap: Record<string, { bg: string; dot: string; title: string; time: string }> = {
-      success: {
-        bg: 'border border-success-100 bg-success-50 dark:border-success-500/20 dark:bg-success-500/15',
-        dot: 'bg-success-500',
-        title: 'text-success-700 dark:text-success-400',
-        time: 'text-success-600/80 dark:text-success-400/80',
-      },
-      danger: {
-        bg: 'border border-error-100 bg-error-50 dark:border-error-500/20 dark:bg-error-500/15',
-        dot: 'bg-error-500',
-        title: 'text-error-700 dark:text-error-400',
-        time: 'text-error-600/80 dark:text-error-400/80',
-      },
-      primary: {
-        bg: 'border border-brand-100 bg-brand-50 dark:border-brand-500/20 dark:bg-brand-500/15',
-        dot: 'bg-brand-500',
-        title: 'text-brand-700 dark:text-brand-400',
-        time: 'text-brand-600/80 dark:text-brand-400/80',
-      },
-      warning: {
-        bg: 'border border-orange-100 bg-orange-50 dark:border-orange-500/20 dark:bg-orange-500/15',
-        dot: 'bg-orange-500',
-        title: 'text-orange-700 dark:text-orange-400',
-        time: 'text-orange-600/80 dark:text-orange-400/80',
-      },
-    };
-
-    const colors = colorMap[calendarLevel] || colorMap['primary'];
-    const isTimeGridView =
-      !eventInfo.event?.allDay &&
-      eventInfo.view?.type &&
-      eventInfo.view.type.startsWith('timeGrid');
-
-    if (isTimeGridView) {
-      return {
-        html: `
-          <div dir="ltr" class="event-fc-color flex h-full w-full flex-col justify-start overflow-hidden rounded-lg p-1.5 transition-colors ${colors.bg}">
-            <div class="flex items-center gap-1.5">
-              <div class="size-2 shrink-0 rounded-full ${colors.dot}"></div>
-              <div class="truncate text-xs font-semibold leading-tight ${colors.title}">${eventInfo.event.title || ''}</div>
-            </div>
-            ${
-              eventInfo.timeText
-                ? `<div class="mt-0.5 truncate ps-3.5 text-[11px] font-medium leading-tight ${colors.time}">${eventInfo.timeText}</div>`
-                : ''
-            }
-          </div>
-        `,
-      };
-    }
-
-    return {
-      html: `
-        <div dir="ltr" class="event-fc-color flex items-center rounded-lg py-1.5 ps-2.5 pe-3 transition-colors ${colors.bg}">
-          <div class="fc-daygrid-event-dot ms-0 me-2 h-3.5 w-1 shrink-0 rounded-full border-none ${colors.dot}"></div>
-          ${
-            eventInfo.timeText
-              ? `<div class="fc-event-time me-1.5 p-0 text-xs font-normal text-gray-500 dark:text-gray-400">${eventInfo.timeText}</div>`
-              : ''
-          }
-          <div class="fc-event-title truncate p-0 text-xs font-medium text-gray-700 dark:text-white">${eventInfo.event.title || ''}</div>
-        </div>
-      `,
-    };
-  }
+  this.options.update(o=>({...o,events}));
+ }
+ private nextStart():string{
+  let time=Temporal.Now.zonedDateTimeISO('America/Lima').toPlainDateTime().round({smallestUnit:'hour',roundingMode:'ceil'});
+  if(time.hour<7)time=time.with({hour:7});
+  if(time.hour>17)time=time.add({days:1}).with({hour:7});
+  if(time.dayOfWeek===7)time=time.add({days:1});
+  return time.toString({smallestUnit:'second'});
+ }
+ openNew(start?:string):void{
+  if(!this.authorization.has('appointments.manage')||this.pending()||this.optionsLoading())return;
+  this.detailRevision++;this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
+ }
+ async openAppointment(id:string):Promise<void>{
+  if(this.pending())return;const revision=++this.detailRevision;this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
+  try{
+   const a=await this.appointments.get(id);if(revision!==this.detailRevision)return;
+   this.current.set(a);this.clientId=a.client_id;this.notes=a.client_notes??'';this.cancelReason='';this.items.set(a.items.map(draftItem));this.checks.set({});
+   if(this.authorization.has('appointment_internal.read')){const note=await this.appointments.internal(id);if(revision===this.detailRevision){this.internalNotes=note?.notes??'';this.internalLoaded=true;}}
+  }catch(error){if(revision===this.detailRevision){this.detailFailed.set(true);this.formError.set(workError(error));}}finally{if(revision===this.detailRevision)this.detailLoading.set(false);}
+ }
+ close():void{if(this.pending())return;this.detailRevision++;this.formRevision++;this.isOpen.set(false);this.checking.set(false);}
+ touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
+ changeClient():void{this.items.set([]);this.touch();}
+ filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
+ addItem():void{
+  if(!this.canEdit||!this.clientId)return;
+  this.items.update(rows=>[...rows,{key:crypto.randomUUID(),pet_id:'',service_id:'',pet_name:'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start:this.suggestedStart||this.nextStart(),stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0}]);this.touch();
+ }
+ removeItem(key:string):void{if(!this.canEdit)return;this.items.update(rows=>rows.filter(i=>i.key!==key));this.touch();}
+ async quote(item:DraftItem):Promise<void>{
+  if(item.id||!this.canEdit)return;const token=++item.quoteRevision;this.touch();item.duration_minutes=0;item.quoting=true;this.items.update(rows=>[...rows]);
+  const pet=this.pets().find(p=>p.id===item.pet_id),service=this.services().find(s=>s.id===item.service_id);
+  if(!pet||!service){item.quoting=false;this.items.update(rows=>[...rows]);return;}
+  try{
+   const q=await this.pricing.quote(service.id,pet.pet_size,pet.pet_coat_type);
+   if(item.quoteRevision!==token||!this.items().includes(item))return;
+   item.price=q.price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
+   item.stages=[{stage:'SERVICE',employee_id:'',minutes:q.duration_minutes}];
+  }catch(error){if(item.quoteRevision===token&&this.items().includes(item))this.formError.set(workError(error));}
+  finally{if(item.quoteRevision===token&&this.items().includes(item)){item.quoting=false;this.items.update(rows=>[...rows]);}}
+ }
+ split(item:DraftItem,enabled:boolean):void{
+  if(!this.canEdit)return;
+  item.stages=enabled?[{stage:'BATH',employee_id:'',minutes:null},{stage:'CUT',employee_id:'',minutes:null}]:[{stage:'SERVICE',employee_id:'',minutes:item.duration_minutes}];this.touch();
+ }
+ interval(item:DraftItem,index:number):StageInput|null{
+  try{
+   let cursor=item.start;
+   for(let n=0;n<=index;n++){
+    const s=item.stages[n];if(s.minutes===null||!Number.isInteger(s.minutes)||s.minutes<=0)return null;
+    const end=addLocalMinutes(cursor,s.minutes);
+    if(n===index)return {stage:s.stage,employee_id:s.employee_id,starts_local:cursor,ends_local:end};cursor=end;
+   }
+  }catch{return null;}return null;
+ }
+ continuation(item:DraftItem,index:number):boolean{return index>0||this.items().some(i=>i!==item&&i.pet_id===item.pet_id&&i.start<item.start);}
+ candidates(item:DraftItem,index:number):Employee[]{
+  const specialist=item.stages[index].stage==='CUT'||(item.stages[index].stage==='SERVICE'&&item.specialist);
+  return this.employees().filter(e=>!specialist||e.skill_level==='ALL_SERVICES');
+ }
+ assignedName(item:DraftItem,index:number):string{return this.current()?.items.find(i=>i.id===item.id)?.stages.find(s=>s.stage===item.stages[index].stage)?.employee_name??'Trabajador no habilitado';}
+ checkKey(item:DraftItem,index:number,employeeId:string):string{return `${item.key}:${index}:${employeeId}`;}
+ availabilityLabel(item:DraftItem,index:number,id:string):string{
+  const r=this.checks()[this.checkKey(item,index,id)];return !r?'Sin verificar':r.can_start_service?'Horario habilitado':'No habilitado';
+ }
+ unavailable(item:DraftItem,index:number,id:string):boolean{const r=this.checks()[this.checkKey(item,index,id)];return !!r&&!r.can_start_service;}
+ async checkAvailability():Promise<void>{
+  const revision=this.formRevision;this.checking.set(true);this.formError.set('');const result:Record<string,ReservationAvailability>={};
+  try{
+   await Promise.all(this.items().flatMap(item=>item.stages.flatMap((s,index)=>{
+    const interval=this.interval(item,index);if(!interval)throw new Error('Completa fechas y minutos para consultar disponibilidad.');
+    return this.candidates(item,index).map(async employee=>{result[this.checkKey(item,index,employee.id)]=await this.appointments.availability({...interval,employee_id:employee.id},s.stage==='CUT'||(s.stage==='SERVICE'&&item.specialist),this.current()?.id??null,this.continuation(item,index));});
+   })));
+   if(revision===this.formRevision)this.checks.set(result);
+  }catch(error){if(revision===this.formRevision)this.formError.set(workError(error));}finally{if(revision===this.formRevision)this.checking.set(false);}
+ }
+ async save():Promise<void>{
+  if(!this.canEdit||this.pending()||this.detailLoading())return;
+  this.formError.set('');
+  try{
+   const payload=appointmentInput(this.clientId,this.notes,this.items());this.pending.set(true);
+   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();
+  }catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
+ }
+ async transition(target:AppointmentStatus):Promise<void>{
+  const a=this.current();if(!a||this.pending()||!this.authorization.has(target==='CANCELLED'?'appointments.cancel':'appointments.status'))return;
+  this.formError.set('');this.pending.set(true);
+  try{const saved=await this.appointments.transition(a,target,this.cancelReason);this.current.set(saved);this.items.set(saved.items.map(draftItem));this.notes=saved.client_notes??'';this.formRevision++;this.checks.set({});await this.loadRange();}
+  catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
+ }
+ async saveInternal():Promise<void>{
+  const a=this.current();if(!a||this.pending()||!this.internalLoaded||!this.authorization.has('appointment_internal.manage'))return;
+  this.formError.set('');this.pending.set(true);
+  try{this.current.set(await this.appointments.saveInternal(a,this.internalNotes));await this.loadRange();}
+  catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
+ }
 }
