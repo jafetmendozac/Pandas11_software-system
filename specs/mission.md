@@ -69,3 +69,7 @@ Pagos, notificaciones, vacunas, horarios, bloqueos y auditoría de negocio apare
 El usuario confirma que Spa Boutique Pandas11 se presenta al público como un centro de bienestar y embellecimiento canino: baño, estilismo, corte higiénico, artículos (champús, fragancias, complementos) y orientación profesional. Ubicación: Calle General Urco Mz.C Lote11, Urbanización Los Laureles, Trujillo, La Libertad. WhatsApp publicable:972704860; identidad predominantemente turquesa.
 
 Se incorpora una portada pública en `/` para visitantes con o sin cuenta, con información del negocio y acceso al inicio de sesión. El panel interno permanece separado en `/panel`. El sitio informa y facilita coordinar por WhatsApp; no implementa autorreserva ni tienda online. Esta ampliación fue aprobada expresamente y se valida en [inicio público](features/inicio-publico/validation.md).
+
+## Ampliación operativa confirmada: cobros internos — 2026-10-18
+
+Fase 5 aprobada e implementada localmente: OWNER/ADMIN registran cobros al finalizar una cita interna y OWNER verifica su recepción. El módulo diferencia importes registrados de dinero confirmado y muestra saldo exacto, con comprobantes por operación/referencia y los cinco métodos solicitados. No añade pasarela bancaria, facturación, devoluciones o autorreserva con adelanto. El adelanto ONLINE S/20 mantiene su requisito para una fase futura. Evidencia en [validación Fase 5](features/fase-5-pagos-adelantos/validation.md).

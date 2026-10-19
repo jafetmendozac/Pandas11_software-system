@@ -51,6 +51,7 @@
     @if(!detailLoading()){
       @if(current();as a){
         <p class="font-medium">{{ a.client_name }} · {{ statuses[a.status] }} · Total S/ {{ money(a.total_price) }}</p>
+        @if(authorization.has('payments.read')){<a routerLink="/pagos" [queryParams]="{cita:a.id}" class="inline-flex rounded-lg border border-brand-200 px-4 py-2 text-sm text-brand-600 dark:border-brand-500/30 dark:text-brand-400">Consultar pagos y saldo</a>}
         <p>{{ label(a.starts_at) }} — {{ label(a.ends_at) }} (Lima). Sin adelanto obligatorio; cobro al finalizar.</p>
         @if(a.needs_attention && (a.status==='CONFIRMED' || a.status==='IN_PROGRESS')){<p role="alert" class="text-warning-600 dark:text-warning-400">Revisar disponibilidad: hay trabajadores, perfiles o intervalos sin cobertura. Reasigna o resuelve la incidencia antes de atender.</p>}
         @if(a.cancel_reason){<p>Motivo de cancelación: {{ a.cancel_reason }}</p>}

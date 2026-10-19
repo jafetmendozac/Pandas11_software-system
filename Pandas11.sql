@@ -1,3 +1,4 @@
+-- Pagos: políticas y RPC en supabase/migrations/20261018225928_payments_advances.sql.
 -- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
 -- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
 -- Clientes/mascotas: políticas y RPC versionados en
@@ -383,19 +384,29 @@ CREATE TABLE "appointment_item_staff" (
 );
 
 CREATE TABLE "payments" (
-  "id" uuid PRIMARY KEY,
-  "appointment_id" uuid,
-  "type" payment_type,
-  "method" payment_method,
-  "status" payment_status,
-  "amount" numeric,
-  "operation_code" text,
-  "proof_url" text,
-  "external_ref" text,
-  "verified_by" uuid,
-  "paid_at" timestamptz,
-  "created_at" timestamptz,
-  CONSTRAINT "chk_payment_amount" CHECK (amount > 0)
+ id uuid primary key default gen_random_uuid(),
+ appointment_id uuid not null references public.appointments(id),
+ type public.payment_type not null,
+ method public.payment_method not null,
+ status public.payment_status not null default 'PENDING',
+ amount numeric not null,
+ operation_code text check (operation_code is null or (length(operation_code)<=120 and length(btrim(operation_code))>0)),
+ proof_url text check (proof_url is null),
+ external_ref text check (external_ref is null or (length(external_ref)<=120 and length(btrim(external_ref))>0)),
+ verified_by uuid references public.profiles(id),
+ paid_at timestamptz,
+ created_at timestamptz not null default clock_timestamp(),
+ created_by uuid not null references public.profiles(id),
+ updated_at timestamptz not null default clock_timestamp(),
+ version integer not null default 1 check(version>0),
+ rejection_reason text check(rejection_reason is null or (length(btrim(rejection_reason))>0 and length(rejection_reason)<=500)),
+ request_id uuid not null unique,
+ constraint chk_payment_amount check(amount>0 and amount<'Infinity'::numeric and amount=round(amount,2)),
+ constraint chk_payment_verification check (
+  (status='PAID' and verified_by is not null and paid_at is not null and isfinite(paid_at) and rejection_reason is null)
+  or (status='PENDING' and verified_by is null and paid_at is null and rejection_reason is null)
+  or (status='FAILED' and verified_by is null and paid_at is null and rejection_reason is not null)
+  or status='REFUNDED')
 );
 
 CREATE TABLE "billing_documents" (
@@ -503,6 +514,8 @@ CREATE INDEX ON "payments" ("status", "created_at");
 
 CREATE INDEX ON "payments" ("operation_code");
 
+CREATE INDEX ON "payments" ("created_at" DESC, "id" DESC);
+
 CREATE INDEX ON "billing_documents" ("appointment_id");
 
 CREATE UNIQUE INDEX ON "billing_documents" ("series", "number");
@@ -572,10 +585,6 @@ ALTER TABLE "appointment_items" ADD FOREIGN KEY ("pet_id", "client_id") REFERENC
 ALTER TABLE "appointment_item_staff" ADD FOREIGN KEY ("item_id") REFERENCES "appointment_items" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "appointment_item_staff" ADD FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "payments" ADD FOREIGN KEY ("appointment_id") REFERENCES "appointments" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "payments" ADD FOREIGN KEY ("verified_by") REFERENCES "profiles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "billing_documents" ADD FOREIGN KEY ("appointment_id") REFERENCES "appointments" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 

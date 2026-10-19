@@ -29,12 +29,13 @@ export class AppSidebarComponent {
 
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read'};
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read'};
     const visible = (path?:string):boolean => !path || !permission[path] || this.authorization.has(permission[path]);
     return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0);
   }
   // Main nav items
   navItems: NavItem[] = [
+    { name: 'Pagos y saldos', path: '/pagos', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>' },
     {
       name: 'Settings',
       path: '/configuracion',

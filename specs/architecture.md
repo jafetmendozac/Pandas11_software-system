@@ -172,3 +172,13 @@ El dashboard previo pasa a `/panel` dentro de AppLayoutComponent con los mismos 
 Flujo de cuenta: `/` → `/signin` → Supabase Auth → AuthorizationService.refresh → redirect interno explícito o destino por defecto (`/panel` con panel.access; `/mi-perfil` en otro perfil activo). Redirects externos/con barras invertidas se descartan; la ruta destino aplica su guard. Registro confirmado va al perfil; confirmación pendiente conserva confirm-email. No cambia esquema/RLS ni implementación de SupabaseService.
 
 WhatsApp, teléfono y búsqueda de dirección son enlaces externos/de dispositivo; no crean reservas ni pagos. Oferta/horario públicos son contenido comercial aprobado, no una consulta anónima a services/business_hours. Evidencia y límites en [validación de inicio público](features/inicio-publico/validation.md).
+
+## Actualización Fase 5 — Pagos y adelantos (2026-10-18)
+
+Plan aprobado; página lazy `/pagos` protegida por payments.read y acceso desde agenda por el mismo permiso. PaymentsService y modelos de dominio separan listado, selección paginada de citas completadas, ficha individual, resumen y escrituras RPC. Se reutilizan layout, tarjetas, modal y CDK para foco, sin dependencias nuevas ni alteración del calendario de plantilla.
+
+Dos migraciones incrementales locales añaden payments y consultas: registro PENDING por OWNER/ADMIN, verificación/rechazo exclusivo OWNER; STAFF/CLIENT/anon no reciben acceso. RLS protege lecturas y no se conceden escrituras directas authenticated. Las RPC revalidan permisos tras el mutex930003, usado también por agenda; request_id impide reintentos duplicados y version impide decisiones obsoletas. Verificación requiere rol OWNER activo además del permiso, incluso ante delegación por rol personalizado.
+
+PostgreSQL numeric calcula confirmado, pendiente de verificar y saldo; importes en texto decimal hacia Angular. PENDING/FAILED no descuentan deuda. Trigger de agenda impide bajar total bajo lo recibido sin cambiar su RPC. Comprobantes solo operación/referencia, sin Storage. Cobros internos solo BALANCE después de COMPLETED, sin pasarelas, devoluciones ni adelantos internos. Adelanto de autorreserva S/20 conserva RN-08 para una fase futura.
+
+Evidencia y límites: [validación Fase 5](features/fase-5-pagos-adelantos/validation.md). No acredita adopción remota.
