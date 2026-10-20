@@ -137,3 +137,7 @@ Decisiones confirmadas: OWNER/ADMIN registran, solo OWNER verifica; comprobantes
 Plan aprobado mediante «Si apruebo» e implementado en Supabase local: payments, registro PENDING por OWNER/ADMIN y verificación/rechazo exclusivo OWNER, cinco medios manuales, referencias sin archivos, saldos exactos y prevención concurrente de sobrecobros. Página /pagos con modales/estilo de plantilla, filtros/paginación y enlace por permiso desde agenda.
 
 Cobro interno al finalizar (INTERNAL/COMPLETED), sin DEPOSIT interno. Adelanto de autorreserva S/20 se conserva como requisito futuro: no se presenta como flujo ONLINE disponible. Devoluciones/correcciones y pasarelas siguen fuera de alcance. Evidencia y límites actualizados en [validación](features/fase-5-pagos-adelantos/validation.md); sin adopción remota.
+
+## Seguimiento del cronograma S1–S14 — 2026-10-20
+
+La [matriz de seguimiento](matriz-seguimiento.md) relaciona las29 actividades proporcionadas por el usuario con semana prevista, estado local, evidencias y pendientes. Distingue las actividades del cronograma de las fases técnicas SDD y conserva los diagnósticos históricos de este documento. Su elaboración es documental: no aprueba ni inicia reservas online, ventas, inventario u otras funcionalidades.

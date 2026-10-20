@@ -136,3 +136,14 @@ El plan técnico concretó lectura OWNER/ADMIN, rechazo solo OWNER y cobro BALAN
 Aprobada mediante «Si apruebo». RN-02: cinco métodos de registro manual. RN-16: OWNER/ADMIN registran y consultan; solo OWNER verifica/rechaza, incluido efectivo. RN-17: operación/referencia opcionales hasta120 caracteres; sin archivos. RN-18/RN-09: solo cobros finales BALANCE en cita INTERNAL/COMPLETED; sin adelantos voluntarios internos. RN-08 no implementa todavía el flujo de autorreserva.
 
 PENDING no confirma recepción ni reduce saldo; PAID requiere verificación manual OWNER; FAILED conserva motivo. Pagos confirmados no se editan, borran o revierten por esta API. Saldo calculado con decimal exacto; sin sobrecobro confirmado, con revalidación concurrente. No se registran devoluciones, vencimientos o confirmaciones bancarias automáticas. Resultados en [validación Fase 5](features/fase-5-pagos-adelantos/validation.md).
+
+## Decisiones confirmadas para Fase 6 — 2026-10-20
+
+Respuestas del usuario durante el análisis de reservas online. Definen requisitos; el plan y la implementación siguen pendientes de aprobación.
+
+- PN-05 / RN-08: reservar el horario15 minutos para informar el adelanto. Si se informa dentro del plazo, dar1 hora adicional para verificación y después liberar. El plan propone contar la hora desde el reporte, conservando evidencias pendientes para resolución humana sin recuperar horarios vencidos.
+- RN-07/RN-10/RN-15: baño y corte online completos con un trabajador habilitado, sin relevo automático. Recepción conserva sus etapas manuales; no se inventan tiempos de baño/corte.
+- Autorreserva con cuenta confirmada y fichas/mascotas vinculadas por recepción; sin alta propia de fichas/mascotas en esta fase.
+- Adelanto fijoS/20 y verificación exclusiva OWNER se mantienen. No se acuerdan devoluciones automáticas ni se resuelve PN-07 para reprogramación/cancelación posterior al pago.
+
+Los documentos de requisitos y plan de Fase6 no están presentes en el árbol de trabajo actual. Si se retoma esa funcionalidad, habrá que recuperarlos o redactarlos de nuevo antes de solicitar aprobación de implementación.
