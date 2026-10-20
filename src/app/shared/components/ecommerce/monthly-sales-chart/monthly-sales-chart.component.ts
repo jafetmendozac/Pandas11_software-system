@@ -62,7 +62,7 @@ export class MonthlySalesChartComponent {
     x: { show: false },
     y: { formatter: (val: number) => `${val}` },
   };
-  public colors: string[] = ['#465fff'];
+  public colors: string[] = ['var(--color-brand-500)'];
 
   isOpen = false;
 
