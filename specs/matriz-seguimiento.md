@@ -69,10 +69,10 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 6.1 | Ejecución de pruebas integrales y corrección de errores | S13 | Parcial | Suites por dominio, API concurrentes, regresiones y compilaciones locales [E05–E09, E13]. | Pruebas de aceptación del flujo completo, incluidos módulos comerciales pendientes; registrar incidencias y cierre. Acordar y validar despliegue, actualmente no acreditado. |
-| 6.2 | Redacción de manual de usuario y manual técnico | S13 | Parcial | Arquitectura, stack, requisitos/planes/validaciones y guía Supabase local disponibles [E03, E10, E13]. | Consolidar dos manuales formales con versión, instalación/operación, perfiles, recorridos, capturas y solución de incidencias; documentación técnica dispersa no acredita ambos manuales terminados. |
-| 6.3 | Capacitación al personal de la boutique | S13 | Pendiente | No se encontró evidencia de sesión de capacitación en los documentos revisados. | Preparar guía y ejercicios por rol, realizar sesión y registrar asistencia/evaluación o acta. |
-| 6.4 | Presentación final, entrega de documentación y cierre | S14 | Pendiente | Existen entregables parciales; no hay acta de cierre identificada. | Reunir entregables, resolver/aceptar pendientes, presentar el sistema y registrar entrega y conformidad. |
+| 6.1 | Ejecución de pruebas integrales y corrección de errores | S13 | Parcial | Suites por dominio, API concurrentes, regresiones y compilaciones locales; el anexo distingue estos resultados de una aceptación integral [E05–E09, E13, E19]. | Fijar versión entregable, probar sus flujos completos, registrar incidencias y cierre; acordar y validar despliegue, actualmente no acreditado. |
+| 6.2 | Redacción de manual de usuario y manual técnico | S13 | Parcial | Arquitectura, stack, requisitos/planes/validaciones y guía Supabase local disponibles; contenido mínimo definido en el anexo [E03, E10, E13, E19]. | Consolidar dos manuales formales con versión, instalación/operación, perfiles, recorridos, capturas y solución de incidencias; documentación técnica dispersa no acredita ambos manuales terminados. |
+| 6.3 | Capacitación al personal de la boutique | S13 | Pendiente | No se encontró evidencia de sesión de capacitación; plantilla de registro disponible [E19]. | Preparar guía y ejercicios por rol, realizar sesión y registrar asistencia/evaluación o acta. |
+| 6.4 | Presentación final, entrega de documentación y cierre | S14 | Pendiente | Existen entregables parciales y una plantilla de registro; no hay acta de cierre identificada [E19]. | Reunir entregables, resolver/aceptar pendientes, presentar el sistema y registrar entrega y conformidad. |
 
 ## Catálogo de evidencias
 
@@ -98,6 +98,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E16 | [Anexo de módulos de gestión](actividad-3-modulos-gestion.md): puntos 3.1–3.5, trazabilidad con reglas de negocio, código, migraciones, pruebas históricas y límite de «históricos». Preparado para revisión. |
 | E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md): puntos 4.1–4.6, separación entre cita, cobro, venta, caja e inventario; decisiones y evidencia pendiente. Preparado para revisión. |
 | E18 | [Anexo de analítica y fidelización](actividad-5-analitica-fidelizacion.md): puntos 5.1–5.5, fuentes disponibles, componentes de demostración, dependencias y criterios por definir. Preparado para revisión. |
+| E19 | [Anexo de calidad y transferencia](actividad-6-calidad-transferencia.md): puntos 6.1–6.4, evidencia de pruebas locales, paquete de aceptación, manuales y registro pendiente de capacitación/entrega. Preparado para revisión. |
 
 ## Reservas online y diferencias de alcance
 
