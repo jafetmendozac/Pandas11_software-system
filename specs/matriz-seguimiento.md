@@ -19,20 +19,20 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 1.1 | Reunión inicial y levantamiento de requerimientos | S1 | Parcial | Misión, requisitos por fase y reglas RN-01 a RN-18 documentados [E01]. | Adjuntar acta/evidencia de la reunión, participantes, fecha y aceptación de requisitos; resolver las preguntas que condicionen el alcance pendiente. |
-| 1.2 | Identificar entidades y diseñar ERD conceptual v1 | S1 | Parcial | Entidades y relaciones identificables en Pandas11.sql y arquitectura [E02]. | Incorporar el diagrama conceptual v1 y evidencia de revisión. No se localizó un archivo ERD; el SQL no reemplaza el entregable gráfico. |
-| 1.3 | Crear proyecto en Supabase y repo GitHub | S1 | Parcial | Repositorio Git local e instancia Supabase local descrita y validada [E03]. | Adjuntar evidencia del proyecto Supabase remoto y del repositorio GitHub solicitado (URL, fecha y acceso autorizado). Git local no acredita creación/publicación en GitHub; no se inspeccionaron servicios remotos. |
-| 1.4 | Refinar ERD, definir datos y script SQL | S2 | Parcial | Modelo SQL, relaciones, restricciones y migraciones por dominio; revisión del modelo documentada [E02, E04]. | Actualizar ERD físico y diccionario de datos con el modelo vigente; distinguir tablas operativas de tablas solo previstas. |
-| 1.5 | Ajustar ERD según pruebas de seguridad | S3 | Parcial | Correcciones del modelo y pruebas de identidad/dominios con constraints, RLS y permisos [E04, E05]. | Reflejar cambios en el ERD y relacionar hallazgo → cambio → prueba. La revisión inicial contiene pendientes históricos que deben conciliarse con las migraciones posteriores. |
+| 1.1 | Reunión inicial y levantamiento de requerimientos | S1 | Parcial | Misión, requisitos y reglas [E01]; Alex y Caro identificados por el usuario como asistentes, con fecha desconocida [E14]. | Completar hora/medio, acuerdos y aceptación documentada; el registro parcial no acredita acta formal. |
+| 1.2 | Identificar entidades y diseñar ERD conceptual v1 | S1 | Parcial | ERD conceptual v1 reconstruido desde modelo existente [E14]. | Obtener revisión y aceptación del negocio; no confundir la reconstrucción con un artefacto histórico de S1. |
+| 1.3 | Crear proyecto en Supabase y repo GitHub | S1 | Parcial | Instancia Supabase local [E03]; usuario aportó enlaces de Supabase y GitHub, y este último coincide con `origin` Git local [E14]. | Adjuntar fecha y constancia de acceso/propiedad; no se inspeccionaron servicios remotos. |
+| 1.4 | Refinar ERD, definir datos y script SQL | S2 | Parcial | ERD físico y diccionario de 26 tablas/213 columnas documentados, con21 tablas migradas y cinco previstas [E14]; SQL y migraciones [E02, E04]. | Revisar y aceptar versiones; confirmar esquema remoto solo si se autoriza inspección. |
+| 1.5 | Ajustar ERD según pruebas de seguridad | S3 | Parcial | ERD físico y trazabilidad de controles de identidad/dominio elaborados [E14]; correcciones H-01/H-02 y pruebas locales [E04, E05]. | Conciliar cada hallazgo histórico H-03 a H-23 y obtener aceptación del ERD. |
 
 ## Actividad 2 — Configuración de seguridad y autenticación
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 2.1 | Configurar Auth, tabla profiles e inicio de sesión | S2 | Validado localmente | Auth por correo/contraseña, profiles, registro CLIENT y comprobación de cuenta/perfil; pruebas documentadas [E05]. | Adjuntar capturas del flujo con cuenta sintética y aceptación del alcance; verificación remota solo cuando se autorice el despliegue. |
-| 2.2 | Implementar políticas RLS y definir roles | S3 | Validado localmente | OWNER/ADMIN/STAFF/CLIENT, matriz de permisos, políticas y migraciones de identidad y dominios implementados [E05–E09]. | Reunir matriz y políticas como anexos del informe. Las futuras tablas de ventas/inventario requerirán sus propias políticas. |
-| 2.3 | Probar seguridad y documentar políticas | S3 | Validado localmente | Fase0 registra16 comprobaciones SQL y26 API; fases posteriores incluyen regresiones y pruebas de acceso por dominio [E05–E09]. | Anexar resultados con fecha/entorno/alcance y límites. La validación de nuevas funcionalidades debe agregarse cuando existan. |
-| 2.4 | Finalizar Auth en Angular y estructura de proyecto | S4 | Validado localmente | Servicios de Auth/autorización, guards, rutas, componentes standalone y layouts; build/pruebas documentados [E05, E10]. | Cierre formal del alcance correo/contraseña y permisos. Google, recuperación de contraseña y MFA no forman parte del alcance completado. |
+| 2.1 | Configurar Auth, tabla profiles e inicio de sesión | S2 | Validado localmente | Auth por correo/contraseña, profiles, registro CLIENT y comprobación de cuenta/perfil; pruebas documentadas [E05, E15]. | Adjuntar capturas del flujo con cuenta sintética y aceptación del alcance; verificación remota solo cuando se autorice el despliegue. |
+| 2.2 | Implementar políticas RLS y definir roles | S3 | Validado localmente | OWNER/ADMIN/STAFF/CLIENT, matriz de permisos, políticas y migraciones de identidad y dominios implementados [E05–E09, E15]. | Revisar y aceptar el anexo de roles/RLS. Las futuras tablas de ventas/inventario requerirán sus propias políticas. |
+| 2.3 | Probar seguridad y documentar políticas | S3 | Validado localmente | Fase 0 registra 16 comprobaciones SQL y 26 API; fases posteriores incluyen regresiones y pruebas de acceso por dominio [E05–E09, E15]. | Anexar resultados originales con fecha/entorno/alcance y límites. La validación de nuevas funcionalidades debe agregarse cuando existan. |
+| 2.4 | Finalizar Auth en Angular y estructura de proyecto | S4 | Validado localmente | Servicios de Auth/autorización, guards, rutas, componentes standalone y layouts; build/pruebas documentados [E05, E10, E15]. | Cierre formal del alcance correo/contraseña y permisos. Google, recuperación de contraseña y MFA no forman parte del alcance completado. |
 
 ## Actividad 3 — Desarrollo de módulos de gestión
 
@@ -93,6 +93,8 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E11 | [Dashboard](../src/app/pages/dashboard/ecommerce/ecommerce.component.ts), [serie fija de ventas](../src/app/shared/components/ecommerce/monthly-sales-chart/monthly-sales-chart.component.ts) y [notificaciones de plantilla](../src/app/shared/components/header/notification-dropdown/notification-dropdown.component.ts). Son evidencia del límite actual, no de funcionalidades comerciales finalizadas. |
 | E12 | [Portada pública](features/inicio-publico/validation.md), [configuración en español](features/configuracion-espanol/validation.md) y [tema turquesa](features/tema-turquesa/validation.md). |
 | E13 | [Línea base y evolución](baseline.md), [pruebas SQL](../supabase/tests/database/identity.test.sql) y validaciones de cada dominio. |
+| E14 | [Modelo conceptual/físico y trazabilidad](actividad-1-modelo-datos.md), [diccionario de datos](actividad-1-diccionario-datos.md) y [plantilla de acta](actividad-1-acta-plantilla.md). Documentos preparados para revisión. |
+| E15 | [Anexo de seguridad y Auth](actividad-2-seguridad-auth.md): puntos 2.1–2.4, matriz de roles, tablas con RLS, resultados históricos y evidencias pendientes. Preparado para revisión. |
 
 ## Reservas online y diferencias de alcance
 
