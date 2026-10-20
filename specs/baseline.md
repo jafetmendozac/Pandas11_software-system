@@ -161,3 +161,11 @@ Al iniciar la implementación solo estaba sin seguimiento la propuesta documenta
 | Revisión Git/espacios | Correcta |
 
 La primera compilación señaló presupuesto de estilos; se redujo CSS usando utilidades existentes. Dos pruebas nuevas de registro requerían proveedor de rutas y se corrigieron; ejecución final completa correcta. No se modificaron cuentas ni se envió WhatsApp. Pruebas de cuenta usan mocks; sin E2E real contra Auth. No se repiten SQL/API porque sus contratos no cambian. Detalle y capturas de revisión temporal en [validation.md](features/inicio-publico/validation.md).
+
+## Validación Fase 5 — 2026-10-18
+
+Antes del trabajo: HEAD4b6c8a4; cambios documentales de preparación de Fase5 sin commit. Usuario aprobó implementación mediante «Si apruebo». Nuevas migraciones locales20261018225928/20261018230255, sin reset ni modificación de las cinco anteriores; esquema remoto sin inspeccionar/desplegar.
+
+Ejecutados: lint local sin errores; SQL137/137 (seis archivos); API de Fase5 107 comprobaciones; regresiones API0–4 repetidas:265; tipos app/spec correctos; Angular90/90 en ChromeHeadless. Build final de producción correcto3.42MB, sin advertencias. Recorrido real en Chrome correcto con registro/verificación OWNER, ADMIN sin verificación, STAFF denegado, foco y móvil/oscuro/RTL; sin errores JS ni conexiones remotas. Detalle vigente y límites en [validation.md](features/fase-5-pagos-adelantos/validation.md).
+
+Se añadió scripts/test-payments-api.mjs; comandos npm existentes sin cambios. Sin dependencias, commits, pushes ni cambios de producción. Se generó el entorno local ignorado con el script existente para ensayar solo contra55321, sin mostrar claves ni sobrescribir otros entornos.

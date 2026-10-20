@@ -11,7 +11,7 @@ Fuente: solicitud inicial y respuestas posteriores del usuario. Estas definicion
 | ID | Regla | Estado de definición |
 |---|---|---|
 | RN-01 | Atención de lunes a sábado, incluidos feriados, con horario disponible de 07:00 a 18:00. Domingo es descanso. Se permite que un servicio termine después de las 18:00 | Confirmado: último inicio a las 17:00 y zona America/Lima (plan de Fase 3 aprobado) |
-| RN-02 | Medios de pago: Yape o efectivo | Confirmado |
+| RN-02 | Medios de pago: Yape, Plin, efectivo, tarjeta o transferencia | Ampliado por solicitud explícita de Fase 5 el 2026-10-18; no implica integración bancaria ni implementación actual |
 | RN-03 | Actualmente trabajan dos personas; pueden avanzar con hasta dos perros diferentes simultáneamente, uno por trabajador, sujeto a sus habilidades | Confirmado; no equivale a dos ingresos por hora ni define un máximo de perros por cita |
 | RN-04 | Baño y corte tiene una referencia inicial de 2 horas, pero la duración depende del tamaño del perro | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
 | RN-05 | Solo baño tiene una referencia inicial de 1 hora, pero la duración depende del tamaño; un perro muy pequeño puede requerir menos tiempo | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
@@ -60,7 +60,7 @@ Las respuestas deben incorporarse aquí sin convertir propuestas del agente en d
 
 - La restricción de domingos observada en la agenda coincide con RN-01; no acredita cumplimiento completo de feriados, horario o finalización posterior a las 18:00.
 - La duración en agenda se obtiene de los servicios seleccionados; eso no acredita que sus valores almacenados correspondan a RN-04/RN-05.
-- El enum SQL local contempla más medios de pago que Yape y efectivo. RN-02 define lo solicitado por el negocio; no autoriza reducir el enum ni modificar datos existentes.
+- Inicialmente el enum SQL local contemplaba más medios de pago que RN-02 (Yape/efectivo). La solicitud de Fase 5 del 2026-10-18 amplía RN-02 a los cinco métodos existentes; no autoriza por sí misma una migración o modificación de datos. La portada todavía menciona Yape/efectivo y no se actualiza automáticamente.
 - El modelo de citas Angular difiere del SQL local, como registra [architecture.md](architecture.md). Debe resolverse el contrato antes de implementar capacidad o citas con varios perros.
 - No se ha validado una implementación de límite de capacidad o cálculo/cotización de recojo.
 
@@ -75,6 +75,8 @@ Estas diferencias quedan informadas, sin modificar código o base de datos.
 5. Actualizar este registro cuando el usuario confirme o cambie una regla, conservando trazabilidad. Un cambio documental no autoriza por sí mismo una implementación o migración.
 
 ## Historial de aclaraciones
+
+- 2026-10-18: la solicitud de Fase 5 amplía RN-02 a Yape, Plin, efectivo, tarjeta y transferencia. El usuario confirmó en sus respuestas de Fase 5: OWNER/ADMIN registran y solo OWNER verifica todos los pagos; comprobantes solo por número de operación y referencia; mantener cobro final sin adelantos internos. RN-08/RN-09 se mantienen; adelantos de autorreserva se preparan para una fase futura. Ver [requisitos de Fase 5](features/fase-5-pagos-adelantos/requirements.md). No autoriza implementar reservas online o devoluciones.
 
 - 2026-10-16: el usuario precisó capacidad simultánea por trabajador y habilidades, atención de lunes a sábado incluidos feriados, finalización posterior a las 18:00, duración según tamaño, recojo solo de ida y precio de transporte por hora/distancia. También distinguió adelanto verificado por owner para autorreserva y cobro final para clientes sin cuenta registrados por personal. Estas aclaraciones sustituyen las interpretaciones iniciales ambiguas; no modifican código.
 
@@ -118,3 +120,30 @@ El usuario aprobó el plan y las ampliaciones mediante «Vamos procede». RN-13/
 - RN-06: traslados y demoras fuera del intervalo programado requieren bloqueos manuales y resolver conflictos; no se asignan ni cotizan automáticamente. El estado global IN_PROGRESS no se interpreta como ocupación real indefinida de todos los trabajadores de una cita.
 
 Evidencia: [validación Fase 4](features/fase-4-agenda-reservas-internas/validation.md). No se implementan autorreserva online, pagos, espera entre etapas, cancelación durante atención ni seguimiento real de ejecución por etapa.
+
+## Decisiones confirmadas para Fase 5 — 2026-10-18
+
+| ID | Regla | Estado |
+|---|---|---|
+| RN-16 | OWNER y ADMIN registran pagos; solo OWNER verifica todos los pagos, incluido efectivo | Confirmado por respuesta explícita; implementado localmente en Fase 5 |
+| RN-17 | Comprobantes mediante número de operación y referencia; sin adjuntos de imágenes/PDF | Confirmado por respuesta explícita; obligatoriedad/límites propuestos en el plan |
+| RN-18 | Mantener cobro al finalizar en citas internas y preparar adelantos para futuras autorreservas; sin adelantos voluntarios internos | Confirmado por respuesta explícita; ratifica RN-08/RN-09 |
+
+El plan técnico concretó lectura OWNER/ADMIN, rechazo solo OWNER y cobro BALANCE en estado COMPLETED. El usuario aprobó posteriormente estas concreciones y las ampliaciones mediante «Si apruebo». Las respuestas iniciales y la aprobación posterior se conservan como pasos distintos.
+
+## Fase 5 aprobada e implementada localmente — 2026-10-18
+
+Aprobada mediante «Si apruebo». RN-02: cinco métodos de registro manual. RN-16: OWNER/ADMIN registran y consultan; solo OWNER verifica/rechaza, incluido efectivo. RN-17: operación/referencia opcionales hasta120 caracteres; sin archivos. RN-18/RN-09: solo cobros finales BALANCE en cita INTERNAL/COMPLETED; sin adelantos voluntarios internos. RN-08 no implementa todavía el flujo de autorreserva.
+
+PENDING no confirma recepción ni reduce saldo; PAID requiere verificación manual OWNER; FAILED conserva motivo. Pagos confirmados no se editan, borran o revierten por esta API. Saldo calculado con decimal exacto; sin sobrecobro confirmado, con revalidación concurrente. No se registran devoluciones, vencimientos o confirmaciones bancarias automáticas. Resultados en [validación Fase 5](features/fase-5-pagos-adelantos/validation.md).
+
+## Decisiones confirmadas para Fase 6 — 2026-10-20
+
+Respuestas del usuario durante el análisis de reservas online. Definen requisitos; el plan y la implementación siguen pendientes de aprobación.
+
+- PN-05 / RN-08: reservar el horario15 minutos para informar el adelanto. Si se informa dentro del plazo, dar1 hora adicional para verificación y después liberar. El plan propone contar la hora desde el reporte, conservando evidencias pendientes para resolución humana sin recuperar horarios vencidos.
+- RN-07/RN-10/RN-15: baño y corte online completos con un trabajador habilitado, sin relevo automático. Recepción conserva sus etapas manuales; no se inventan tiempos de baño/corte.
+- Autorreserva con cuenta confirmada y fichas/mascotas vinculadas por recepción; sin alta propia de fichas/mascotas en esta fase.
+- Adelanto fijoS/20 y verificación exclusiva OWNER se mantienen. No se acuerdan devoluciones automáticas ni se resuelve PN-07 para reprogramación/cancelación posterior al pago.
+
+Los documentos de requisitos y plan de Fase6 no están presentes en el árbol de trabajo actual. Si se retoma esa funcionalidad, habrá que recuperarlos o redactarlos de nuevo antes de solicitar aprobación de implementación.

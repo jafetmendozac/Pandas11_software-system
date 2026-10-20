@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, EventInput } from 'fullcalendar';
@@ -23,7 +24,7 @@ import { workError, limaDateTime } from '../../shared/services/work-calendar.ser
 import { Appointment, AppointmentStatus, DraftItem, ReservationAvailability, STATUS_LABELS, STAGE_LABELS, StageInput, addLocalMinutes, appointmentInput, draftItem, stageInputs } from '../../shared/services/appointment.models';
 import { calendarAppearance } from './calendar-appearance';
 
-@Component({selector:'app-calendario',standalone:true,imports:[FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent],templateUrl:'./calendario.component.html'})
+@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;

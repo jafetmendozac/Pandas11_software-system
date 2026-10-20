@@ -45,4 +45,10 @@ describe('authGuard', () => {
     expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
   });
 
+  it('panel.access no permite leer pagos sin payments.read', async () => {
+    authorization.has.and.callFake((permission: string) => permission === 'panel.access');
+    const protectedRoute = { data: { permission: 'payments.read' } } as unknown as ActivatedRouteSnapshot;
+    expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
+  });
+
 });

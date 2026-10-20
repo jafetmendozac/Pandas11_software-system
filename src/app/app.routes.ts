@@ -86,6 +86,7 @@ export const routes: Routes = [
         component:CalenderComponent,
         title:'Angular Calender | TailAdmin - Angular Admin Dashboard Template'
       },
+      { path: 'pagos', loadComponent: () => import('./pages/pagos/pagos.component').then(m => m.PagosComponent), data: { permission: 'payments.read' }, title: 'Pagos y saldos | Spa Boutique Pandas 11' },
       {
         path:'calendario',
         data: { permission: 'appointments.read' },

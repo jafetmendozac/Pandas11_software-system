@@ -1,0 +1,78 @@
+<app-page-breadcrumb pageTitle="Pagos y saldos" />
+<app-component-card title="Cobros de citas" desc="Todos los cobros, incluido efectivo, quedan pendientes hasta que OWNER verifica su recepción.">
+  <div class="space-y-5 text-gray-800 dark:text-gray-200">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400">Cobro al finalizar. Comprobantes por operación y referencia; sin archivos adjuntos.</p>
+      @if(authorization.has('payments.create')){<button type="button" (click)="openCreate()" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600">Registrar cobro</button>}
+    </div>
+    <form (ngSubmit)="load()" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <label class="space-y-1 text-sm">Cliente, operación o referencia<input name="search" [(ngModel)]="query.search" [class]="inputClass" /></label>
+      <label class="space-y-1 text-sm">Cita (identificador)<input name="appointment" [(ngModel)]="query.appointmentId" [class]="inputClass" /></label>
+      <label class="space-y-1 text-sm">Estado<select name="status" [(ngModel)]="query.status" [class]="inputClass"><option value="">Todos</option><option value="PENDING">Por verificar</option><option value="PAID">Confirmado</option><option value="FAILED">Rechazado</option></select></label>
+      <label class="space-y-1 text-sm">Método<select name="methodFilter" [(ngModel)]="query.method" [class]="inputClass"><option value="">Todos</option>@for(m of methods;track m[0]){<option [value]="m[0]">{{m[1]}}</option>}</select></label>
+      <label class="space-y-1 text-sm">Registrado desde (Lima)<input type="date" name="from" [(ngModel)]="query.from" [class]="inputClass" /></label>
+      <label class="space-y-1 text-sm">Hasta (Lima)<input type="date" name="until" [(ngModel)]="query.until" [class]="inputClass" /></label>
+      <button type="submit" [disabled]="loading()" [class]="buttonClass">Aplicar filtros</button>
+    </form>
+    @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
+    @if(summary();as s){
+      <section aria-label="Resumen financiero de cita" class="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+        <h2 class="font-semibold">{{s.client_name}} · {{appointmentLabels[s.status]}}</h2>
+        <div class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <p>Total: S/ {{money(s.total)}}</p><p>Confirmado: S/ {{money(s.confirmed)}}</p><p>Por verificar: S/ {{money(s.pending)}}</p><p>Saldo: S/ {{money(s.outstanding)}}</p>
+        </div>
+        @if(s.requires_resolution){<p role="alert" class="text-warning-600 dark:text-warning-400">Hay dinero recibido en una cita cancelada/no asistida. Requiere resolución por OWNER; no se ha realizado una devolución.</p>}
+      </section>
+    }
+    @if(loading()){<p role="status">Cargando pagos…</p>}
+    @else{
+      <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <table class="w-full text-start text-sm"><thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400"><tr><th class="p-3 text-start">Cliente / cita</th><th class="p-3 text-start">Método</th><th class="p-3 text-start">Importe</th><th class="p-3 text-start">Estado</th><th class="p-3 text-start">Registro (Lima)</th><th class="p-3 text-start">Acciones</th></tr></thead>
+          <tbody>@for(p of rows();track p.id){<tr class="border-t border-gray-100 dark:border-gray-800"><td class="p-3">{{p.client_name}}<span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{p.appointment_id}}</span></td><td class="p-3">{{methodLabels[p.method]}}</td><td class="whitespace-nowrap p-3">S/ {{money(p.amount)}}</td><td class="p-3"><span class="rounded-full bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800" [class.text-success-600]="p.status==='PAID'" [class.dark:text-success-400]="p.status==='PAID'">{{statusLabels[p.status]}}</span></td><td class="p-3">{{date(p.created_at)}}</td><td class="p-3"><button type="button" (click)="openReview(p)" [class]="buttonClass">Consultar</button></td></tr>}
+          @empty{<tr><td colspan="6" class="p-6 text-center text-gray-500 dark:text-gray-400">No hay pagos para estos filtros.</td></tr>}</tbody>
+        </table>
+      </div>
+    }
+    <div class="flex flex-wrap items-center justify-between gap-3 text-sm"><p>{{total()}} registros · Página {{query.page}}</p><div class="flex gap-2"><button type="button" [disabled]="loading() || query.page<=1" (click)="load(query.page-1)" [class]="buttonClass">Anterior</button><button type="button" [disabled]="loading() || query.page*query.size>=total()" (click)="load(query.page+1)" [class]="buttonClass">Siguiente</button></div></div>
+  </div>
+</app-component-card>
+<app-modal [isOpen]="modal()!==null" [showCloseButton]="false" (close)="close()" className="max-w-2xl p-5 sm:p-8">
+  @if(modal()){
+    <section role="dialog" aria-modal="true" aria-labelledby="payment-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="max-h-[80vh] space-y-5 overflow-y-auto text-gray-800 dark:text-gray-200">
+      <div class="flex items-center justify-between gap-3"><h2 id="payment-title" class="text-xl font-semibold">{{modal()==='create' ? 'Registrar cobro pendiente' : 'Detalle del pago'}}</h2><button type="button" #closeButton cdkFocusInitial [disabled]="busy()" (click)="close()" [class]="buttonClass">Cerrar</button></div>
+      @if(formError()){<p role="alert" class="text-error-600 dark:text-error-400">{{formError()}}</p>}
+      @if(detailLoading()){<p role="status">Consultando saldo…</p>}
+      @if(modalSummary();as s){
+        <div class="space-y-1 rounded-xl bg-gray-50 p-4 text-sm dark:bg-gray-900"><p class="font-semibold">{{s.client_name}} · {{appointmentLabels[s.status]}}</p><p class="break-all">Cita: {{s.appointment_id}}</p><p>Total S/ {{money(s.total)}} · Confirmado S/ {{money(s.confirmed)}}</p><p>Saldo S/ {{money(s.outstanding)}} · Por verificar S/ {{money(s.pending)}}</p>@if(s.requires_resolution){<p role="alert" class="text-warning-600 dark:text-warning-400">Dinero recibido pendiente de resolución. Sin devolución automática.</p>}</div>
+      }
+      @if(modal()==='create'){
+        @if(!modalSummary() && !detailLoading()){
+          <form (ngSubmit)="loadCandidates()" class="flex items-end gap-2"><label class="flex-1 text-sm">Buscar cita completada por cliente o identificador<input name="candidateSearch" [(ngModel)]="candidateSearch" [class]="inputClass" /></label><button type="submit" [disabled]="candidateLoading()" [class]="buttonClass">Buscar</button></form>
+          @if(candidateLoading()){<p role="status">Buscando citas…</p>}
+          @else{<ul class="space-y-2">@for(c of candidates();track c.id){<li><button type="button" (click)="choose(c.id)" class="w-full rounded-lg border border-gray-200 p-3 text-start text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">{{c.client_name}} · {{date(c.starts_at)}} · S/ {{money(c.total)}}<span class="block break-all text-xs text-gray-500 dark:text-gray-400">{{c.id}}</span></button></li>}@empty{<li>No hay citas internas completadas. Finaliza la atención desde la agenda antes de cobrar.</li>}</ul>}
+          <div class="flex justify-between gap-2"><button type="button" [disabled]="candidateLoading() || candidatePage<=1" (click)="loadCandidates(candidatePage-1)" [class]="buttonClass">Anterior</button><button type="button" [disabled]="candidateLoading() || candidatePage*10>=candidateTotal()" (click)="loadCandidates(candidatePage+1)" [class]="buttonClass">Siguiente</button></div>
+        }
+        @if(modalSummary();as s){
+          <form (ngSubmit)="register()" class="space-y-4"><fieldset [disabled]="busy() || detailLoading()" class="space-y-4">
+            <label class="block space-y-1 text-sm">Importe (S/)<input name="amount" required inputmode="decimal" [(ngModel)]="amount" [class]="inputClass" placeholder="Ej. 20.50" /></label>
+            <label class="block space-y-1 text-sm">Método<select name="method" [(ngModel)]="method" [class]="inputClass">@for(m of methods;track m[0]){<option [value]="m[0]">{{m[1]}}</option>}</select></label>
+            <label class="block space-y-1 text-sm">Número de operación (opcional)<input name="operation" maxlength="120" [(ngModel)]="operation" [class]="inputClass" /></label>
+            <label class="block space-y-1 text-sm">Referencia (opcional)<input name="reference" maxlength="120" [(ngModel)]="reference" [class]="inputClass" /></label>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Máximo dos decimales. Registrar no confirma que se recibió el dinero. OWNER debe verificarlo.</p>
+            <button type="submit" [disabled]="s.status!=='COMPLETED' || s.source!=='INTERNAL'" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white disabled:opacity-50">{{busy() ? 'Registrando…' : 'Registrar por verificar'}}</button>
+          </fieldset></form>
+        }
+      }
+      @if(modal()==='review'){
+        @if(selected();as p){
+          <dl class="grid gap-3 text-sm sm:grid-cols-2"><div><dt>Importe</dt><dd class="font-semibold">S/ {{money(p.amount)}}</dd></div><div><dt>Método / estado</dt><dd>{{methodLabels[p.method]}} · {{statusLabels[p.status]}}</dd></div><div><dt>Número de operación</dt><dd class="break-all">{{p.operation_code || 'Sin operación'}}</dd></div><div><dt>Referencia</dt><dd class="break-all">{{p.external_ref || 'Sin referencia'}}</dd></div><div><dt>Registrado por</dt><dd class="break-all">{{p.created_by}}</dd></div><div><dt>Verificado por</dt><dd class="break-all">{{p.verified_by || 'Sin verificar'}}</dd></div><div><dt>Registrado (Lima)</dt><dd>{{date(p.created_at)}}</dd></div><div><dt>Verificado (Lima)</dt><dd>{{p.paid_at ? date(p.paid_at) : 'Sin verificar'}}</dd></div></dl>
+          @if(p.rejection_reason){<p>Motivo de rechazo: {{p.rejection_reason}}</p>}
+          <button type="button" [disabled]="busy() || detailLoading()" (click)="reloadReview()" [class]="buttonClass">Recargar ficha</button>
+          @if(p.status==='PENDING' && authorization.has('payments.verify')){
+            <div class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"><p class="text-sm">Confirma solo después de comprobar que el dinero fue recibido. Esta acción no se puede deshacer en este módulo.</p><button type="button" [disabled]="busy() || detailLoading() || !modalSummary() || modalSummary()?.status!=='COMPLETED'" (click)="decide(true)" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white disabled:opacity-50">Confirmar recepción del dinero</button><label class="block text-sm">Motivo si se rechaza<textarea name="reason" [(ngModel)]="reason" maxlength="500" [disabled]="busy()" class="mt-1 min-h-20 w-full rounded-lg border border-gray-300 bg-transparent p-3 dark:border-gray-700 dark:bg-gray-900"></textarea></label><button type="button" [disabled]="busy() || detailLoading()" (click)="decide(false)" [class]="buttonClass">Rechazar pago pendiente</button></div>
+          }
+        }
+      }
+    </section>
+  }
+</app-modal>

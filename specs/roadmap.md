@@ -125,3 +125,19 @@ Página informativa implementada tras aprobación: identidad turquesa Pandas11, 
 77 pruebas Angular y build correctos; revisión de build en Chrome en escritorio/móvil, oscuro y RTL, sin consultas Supabase en la portada. Resultados en [validación](features/inicio-publico/validation.md).
 
 No incluye reservas online, inventario/ecommerce, pagos o despliegue remoto. La presentación comercial no modifica automáticamente catálogo ni horarios administrativos. Esas funciones mantienen sus fases y aprobaciones propias.
+
+## Preparación Fase 5 — 2026-10-18
+
+Solicitado control de pagos/adelantos con Yape, Plin, efectivo, tarjeta y transferencia. [Requisitos](features/fase-5-pagos-adelantos/requirements.md), [plan](features/fase-5-pagos-adelantos/plan.md) y [validación](features/fase-5-pagos-adelantos/validation.md) creados para revisión; no implementado y sin migraciones ejecutadas.
+
+Decisiones confirmadas: OWNER/ADMIN registran, solo OWNER verifica; comprobantes por operación/referencia sin archivos; cobro final en citas internas sin adelantos voluntarios. Plan aprobado posteriormente mediante «Si apruebo». El plan distingue cobros registrados y realmente confirmados; no presupone autorreserva, pasarela bancaria, boletas/facturas ni reglas de devolución. La aprobación cubrió el plan concretado y las ampliaciones de payments; el avance de implementación se registra abajo.
+
+## Avance Fase 5 — 2026-10-18
+
+Plan aprobado mediante «Si apruebo» e implementado en Supabase local: payments, registro PENDING por OWNER/ADMIN y verificación/rechazo exclusivo OWNER, cinco medios manuales, referencias sin archivos, saldos exactos y prevención concurrente de sobrecobros. Página /pagos con modales/estilo de plantilla, filtros/paginación y enlace por permiso desde agenda.
+
+Cobro interno al finalizar (INTERNAL/COMPLETED), sin DEPOSIT interno. Adelanto de autorreserva S/20 se conserva como requisito futuro: no se presenta como flujo ONLINE disponible. Devoluciones/correcciones y pasarelas siguen fuera de alcance. Evidencia y límites actualizados en [validación](features/fase-5-pagos-adelantos/validation.md); sin adopción remota.
+
+## Seguimiento del cronograma S1–S14 — 2026-10-20
+
+La [matriz de seguimiento](matriz-seguimiento.md) relaciona las29 actividades proporcionadas por el usuario con semana prevista, estado local, evidencias y pendientes. Distingue las actividades del cronograma de las fases técnicas SDD y conserva los diagnósticos históricos de este documento. Su elaboración es documental: no aprueba ni inicia reservas online, ventas, inventario u otras funcionalidades.

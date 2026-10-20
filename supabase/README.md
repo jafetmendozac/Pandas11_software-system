@@ -50,7 +50,7 @@ El script API rechaza URLs distintas a la instancia 55321, utiliza secretos excl
 
 ## Modelo y límites
 
-La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–4 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas, las cuatro tablas laborales y las cuatro tablas de citas con RLS por dominio. Pagos y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; cada dominio exige además sus permisos específicos.
+La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–4 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas, las cuatro tablas laborales y las cuatro tablas de citas con RLS por dominio. Fase 5 añade payments; autorreservas, devoluciones y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; cada dominio exige además sus permisos específicos.
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
 
@@ -130,3 +130,19 @@ node scripts/test-appointments-api.mjs
 ```
 
 La prueba usa cuentas/UUIDs propios y elimina solo sus datos. Incluye estados, snapshots, atomicidad, concurrencia entre reservas/turnos/bloqueos y1002 citas canceladas para paginación. También ejecuta la suite SQL con una cita vigente fuera de sus fixtures y comprueba su conservación; no requiere borrar cuentas existentes. Resultados en [validation.md](../specs/features/fase-4-agenda-reservas-internas/validation.md).
+
+## Fase 5 — Pagos y saldos
+
+Migraciones incrementales `20261018225928_payments_advances.sql` y `20261018230255_payments_queries.sql`, aplicadas únicamente en identity-dev con `supabase migration up --local`. No reset ni cambios remotos. Modelo Pandas11.sql actualizado; sin dependencias o Storage nuevos.
+
+Recargar la aplicación para recibir permisos y abrir **Pagos y saldos** o **Consultar pagos y saldo** en la ficha de una cita. Primero completar la atención en agenda: el módulo solo registra cobros de citas internas COMPLETED. OWNER y ADMIN registran cobros parciales mediante Yape, Plin, efectivo, tarjeta o transferencia; número de operación y referencia opcionales, máximo120 caracteres. No se suben comprobantes.
+
+Registrar deja PENDING y no reduce saldo. Solo OWNER puede abrir el detalle y confirmar recepción después de comprobar el dinero por su cuenta, incluido efectivo. Puede rechazar un pendiente con motivo hasta500 caracteres. El importe confirmado descuenta el saldo una sola vez; los registros fallidos permanecen en historial. La consulta muestra autor/verificador, fechas Lima y saldo exacto.
+
+No hay integración bancaria, facturación, devoluciones/correcciones de pagos confirmados, ni autorreserva con adelanto. Adelanto de S/20 queda previsto para una fase futura; citas internas no exigen ni admiten adelantos. El flujo actual tampoco permite cancelar una cita ya completada; las alertas de cobros en citas canceladas se reservan para datos históricos/importados. Ante una respuesta de red incierta, reintentar el mismo formulario conserva la clave idempotente; consultar historial antes de abrir otro cobro.
+
+```sh
+node scripts/test-payments-api.mjs
+```
+
+Pruebas API solo contra55321, con cuentas/UUIDs sintéticos propios y limpieza de sus registros. Ver [validación](../specs/features/fase-5-pagos-adelantos/validation.md) para resultados y límites.
