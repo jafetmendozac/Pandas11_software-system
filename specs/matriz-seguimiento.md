@@ -42,18 +42,18 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 | 3.2 | Módulo Mascotas: CRUD, relaciones y ficha | S5 | Validado localmente | Vínculo cliente–mascota, ficha, vacunas, notas separadas, archivo y bajas lógicas [E06, E16]. | Aceptar la ficha entregada y anexar capturas; historia clínica veterinaria y adjuntos no se acreditan como implementados. |
 | 3.3 | Módulo Servicios: CRUD | S6 | Validado localmente | Servicios/tarifas, desactivación, cotización por tamaño/pelaje, catálogo y permisos [E07, E16]. | Validar el catálogo comercial real con el negocio; la evidencia técnica utiliza datos sintéticos. |
 | 3.4 | Módulo Citas: agendamiento, estados y asignación | S6 | Validado localmente | Agenda interna, varias mascotas, trabajadores habilitados, etapas/relevo, estados, turnos y bloqueos [E08, E16]. | Aceptar recorrido de recepción y adjuntar evidencia. Reservas online no están incluidas en este cierre. |
-| 3.5 | Completar Citas: históricos y validaciones | S7 | Parcial | Citas y detalle conservados, cancelación sin borrado, snapshots, control de versión y pruebas de conflictos/concurrencia [E08, E16]. | Precisar si «históricos» exige una vista dedicada o auditoría de cada cambio; lo existente no acredita una bitácora completa de versiones. Completar recorrido de aceptación acordado. |
+| 3.5 | Completar Citas: históricos y validaciones | S7 | Parcial | Citas y detalle conservados, cancelación sin borrado, snapshots, control de versión y pruebas de conflictos/concurrencia [E08, E16]. | Precisar si «históricos» exige una vista dedicada o auditoría de cada cambio; lo existente no acredita una bitácora completa de versiones. El usuario acordó continuar con las demás actividades y dejar esta aclaración para más adelante. |
 
 ## Actividad 4 — Implementación del módulo comercial
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Pendiente | Existen citas/pagos y tablas previstas de documentos de facturación [E02, E09]; no acreditan venta mixta operativa. | Especificar venta de productos y servicios, detalle, importes, anulaciones y permisos; aprobar modelo y plan. |
-| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Pagos manuales de citas con Yape, Plin, efectivo, tarjeta y transferencia; verificación OWNER y saldos [E09]. | Implementar la venta comercial y sus productos/servicios. Diferenciar registro de venta, cobro y documento de facturación. |
-| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Relación cita → pagos, cobro final y saldo exacto [E09]. | Definir e implementar cita → venta y apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
-| 4.4 | Módulo Inventario: registro y stock automático | S9 | Pendiente | No se identifican tablas operativas de productos/stock en el modelo revisado; componentes de ecommerce son plantilla [E02, E11]. | Definir productos/unidades, entradas, salidas y efecto transaccional de ventas; aprobar implementación. |
-| 4.5 | Movimientos de inventario y su historial | S9 | Pendiente | No se identificó flujo de movimientos de stock ni historial conectado [E02, E11]. | Definir kardex/movimientos, motivos, responsables, ajustes y trazabilidad; vincularlos con ventas e inventario. |
-| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Sin inventario operativo acreditado [E02, E11]. | Acordar mínimos por producto, presentación de alertas y pruebas en los límites de stock. |
+| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Pendiente | Existen citas/pagos y tablas previstas de documentos de facturación [E02, E09, E17]; no acreditan venta mixta operativa. | Especificar venta de productos y servicios, detalle, importes, anulaciones y permisos; aprobar modelo y plan. |
+| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Pagos manuales de citas con Yape, Plin, efectivo, tarjeta y transferencia; verificación OWNER y saldos [E09, E17]. | Implementar la venta comercial y sus productos/servicios. Diferenciar registro de venta, cobro y documento de facturación. |
+| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Relación cita → pagos, cobro final y saldo exacto [E09, E17]. | Definir e implementar cita → venta y apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
+| 4.4 | Módulo Inventario: registro y stock automático | S9 | Pendiente | No se identifican tablas operativas de productos/stock en el modelo revisado; componentes de ecommerce son plantilla [E02, E11, E17]. | Definir productos/unidades, entradas, salidas y efecto transaccional de ventas; aprobar implementación. |
+| 4.5 | Movimientos de inventario y su historial | S9 | Pendiente | No se identificó flujo de movimientos de stock ni historial conectado [E02, E11, E17]. | Definir kardex/movimientos, motivos, responsables, ajustes y trazabilidad; vincularlos con ventas e inventario. |
+| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Sin inventario operativo acreditado [E02, E11, E17]. | Acordar mínimos por producto, presentación de alertas y pruebas en los límites de stock. |
 
 ## Actividad 5 — Construcción de analítica y fidelización
 
@@ -96,6 +96,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E14 | [Modelo conceptual/físico y trazabilidad](actividad-1-modelo-datos.md), [diccionario de datos](actividad-1-diccionario-datos.md) y [plantilla de acta](actividad-1-acta-plantilla.md). Documentos preparados para revisión. |
 | E15 | [Anexo de seguridad y Auth](actividad-2-seguridad-auth.md): puntos 2.1–2.4, matriz de roles, tablas con RLS, resultados históricos y evidencias pendientes. Preparado para revisión. |
 | E16 | [Anexo de módulos de gestión](actividad-3-modulos-gestion.md): puntos 3.1–3.5, trazabilidad con reglas de negocio, código, migraciones, pruebas históricas y límite de «históricos». Preparado para revisión. |
+| E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md): puntos 4.1–4.6, separación entre cita, cobro, venta, caja e inventario; decisiones y evidencia pendiente. Preparado para revisión. |
 
 ## Reservas online y diferencias de alcance
 
