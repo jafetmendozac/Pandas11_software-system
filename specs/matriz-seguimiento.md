@@ -59,11 +59,11 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 5.1 | Iniciar Dashboard: consultas SQL para KPIs | S10 | Pendiente | Hay datos operativos de citas/pagos aprovechables, pero no consultas de KPIs conectadas al dashboard acreditadas [E09, E11]. | Definir cada indicador, fórmula, periodo, zona horaria y permisos; distinguir ventas de dinero recibido. |
-| 5.2 | Dashboard: gráficos de ingresos, servicios y productos | S11 | Pendiente | Dashboard de plantilla; monthly-sales-chart contiene una serie numérica fija [E11]. | Conectar indicadores reales de ingresos/servicios/productos; validar agregaciones y ausencia de doble conteo. |
-| 5.3 | Implementar recordatorios y lista por contactar | S11 | Pendiente | notifications aparece en el SQL previsto; dropdown actual de notificaciones es interfaz de plantilla [E02, E11]. | Acordar destinatarios, consentimiento, canal, frecuencia, lista de seguimiento y registro de contactos. |
-| 5.4 | Reportes exportables y analítica de retención | S12 | Pendiente | Sin exportación operativa de reportes ni retención acreditada en fuentes revisadas [E10, E11]. | Definir formatos, filtros, protección de datos y fórmula/cohortes de retención; probar resultados contra datos sintéticos conocidos. |
-| 5.5 | Ajustes finales de interfaz y usabilidad | S12 | Parcial | Portada pública, configuración en español, mejoras de agenda y tema turquesa implementados [E08, E12]. | Revisar consistencia de todos los módulos finales, accesibilidad, móvil/oscuro/RTL y aceptación con usuarios. Tema turquesa tiene revisión visual manual pendiente. |
+| 5.1 | Iniciar Dashboard: consultas SQL para KPIs | S10 | Pendiente | Hay datos operativos de citas/pagos aprovechables, pero no consultas de KPIs conectadas al dashboard acreditadas [E09, E11, E18]. | Definir cada indicador, fórmula, periodo, zona horaria y permisos; distinguir ventas de dinero recibido. |
+| 5.2 | Dashboard: gráficos de ingresos, servicios y productos | S11 | Pendiente | Dashboard de plantilla; monthly-sales-chart contiene una serie numérica fija [E11, E18]. | Conectar indicadores reales de ingresos/servicios/productos; validar agregaciones y ausencia de doble conteo. Los productos dependen de la Actividad 4. |
+| 5.3 | Implementar recordatorios y lista por contactar | S11 | Pendiente | notifications aparece en el SQL previsto; dropdown actual de notificaciones es interfaz de plantilla [E02, E11, E18]. | Acordar destinatarios, consentimiento, canal, frecuencia, lista de seguimiento y registro de contactos. |
+| 5.4 | Reportes exportables y analítica de retención | S12 | Pendiente | Sin exportación operativa de reportes ni retención acreditada en fuentes revisadas; el botón Export de facturas de plantilla no tiene acción [E10, E11, E18]. | Definir formatos, filtros, protección de datos y fórmula/cohortes de retención; probar resultados contra datos sintéticos conocidos. |
+| 5.5 | Ajustes finales de interfaz y usabilidad | S12 | Parcial | Portada pública, configuración en español, mejoras de agenda y tema turquesa implementados [E08, E12, E18]. | Revisar consistencia de todos los módulos finales, accesibilidad, móvil/oscuro/RTL y aceptación con usuarios. Tema turquesa tiene revisión visual manual pendiente. |
 
 ## Actividad 6 — Despliegue, calidad y transferencia
 
@@ -97,6 +97,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E15 | [Anexo de seguridad y Auth](actividad-2-seguridad-auth.md): puntos 2.1–2.4, matriz de roles, tablas con RLS, resultados históricos y evidencias pendientes. Preparado para revisión. |
 | E16 | [Anexo de módulos de gestión](actividad-3-modulos-gestion.md): puntos 3.1–3.5, trazabilidad con reglas de negocio, código, migraciones, pruebas históricas y límite de «históricos». Preparado para revisión. |
 | E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md): puntos 4.1–4.6, separación entre cita, cobro, venta, caja e inventario; decisiones y evidencia pendiente. Preparado para revisión. |
+| E18 | [Anexo de analítica y fidelización](actividad-5-analitica-fidelizacion.md): puntos 5.1–5.5, fuentes disponibles, componentes de demostración, dependencias y criterios por definir. Preparado para revisión. |
 
 ## Reservas online y diferencias de alcance
 
