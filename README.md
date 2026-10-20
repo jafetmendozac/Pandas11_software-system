@@ -80,7 +80,8 @@ yarn install
 ### Start Development Server
 
 ```bash
-npm start
+npm start:local
+supabase start
 ```
 
 Then open:
