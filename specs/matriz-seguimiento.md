@@ -38,11 +38,11 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 3.1 | Módulo Clientes: CRUD completo y conexión | S4 | Validado localmente | Consulta, alta, edición y retiro lógico, búsqueda/paginación, conexión local y permisos [E06]. | Evidencia de recorrido y aceptación. Documentar que eliminar significa baja lógica con conservación de antecedentes. |
-| 3.2 | Módulo Mascotas: CRUD, relaciones y ficha | S5 | Validado localmente | Vínculo cliente–mascota, ficha, vacunas, notas separadas, archivo y bajas lógicas [E06]. | Aceptar la ficha entregada y anexar capturas; historia clínica veterinaria y adjuntos no se acreditan como implementados. |
-| 3.3 | Módulo Servicios: CRUD | S6 | Validado localmente | Servicios/tarifas, desactivación, cotización por tamaño/pelaje, catálogo y permisos [E07]. | Validar el catálogo comercial real con el negocio; la evidencia técnica utiliza datos sintéticos. |
-| 3.4 | Módulo Citas: agendamiento, estados y asignación | S6 | Validado localmente | Agenda interna, varias mascotas, trabajadores habilitados, etapas/relevo, estados, turnos y bloqueos [E08]. | Aceptar recorrido de recepción y adjuntar evidencia. Reservas online no están incluidas en este cierre. |
-| 3.5 | Completar Citas: históricos y validaciones | S7 | Parcial | Citas y detalle conservados, cancelación sin borrado, snapshots, control de versión y pruebas de conflictos/concurrencia [E08]. | Precisar si «históricos» exige una vista dedicada o auditoría de cada cambio; lo existente no acredita una bitácora completa de versiones. Completar recorrido de aceptación acordado. |
+| 3.1 | Módulo Clientes: CRUD completo y conexión | S4 | Validado localmente | Consulta, alta, edición y retiro lógico, búsqueda/paginación, conexión local y permisos [E06, E16]. | Evidencia de recorrido y aceptación. Documentar que eliminar significa baja lógica con conservación de antecedentes. |
+| 3.2 | Módulo Mascotas: CRUD, relaciones y ficha | S5 | Validado localmente | Vínculo cliente–mascota, ficha, vacunas, notas separadas, archivo y bajas lógicas [E06, E16]. | Aceptar la ficha entregada y anexar capturas; historia clínica veterinaria y adjuntos no se acreditan como implementados. |
+| 3.3 | Módulo Servicios: CRUD | S6 | Validado localmente | Servicios/tarifas, desactivación, cotización por tamaño/pelaje, catálogo y permisos [E07, E16]. | Validar el catálogo comercial real con el negocio; la evidencia técnica utiliza datos sintéticos. |
+| 3.4 | Módulo Citas: agendamiento, estados y asignación | S6 | Validado localmente | Agenda interna, varias mascotas, trabajadores habilitados, etapas/relevo, estados, turnos y bloqueos [E08, E16]. | Aceptar recorrido de recepción y adjuntar evidencia. Reservas online no están incluidas en este cierre. |
+| 3.5 | Completar Citas: históricos y validaciones | S7 | Parcial | Citas y detalle conservados, cancelación sin borrado, snapshots, control de versión y pruebas de conflictos/concurrencia [E08, E16]. | Precisar si «históricos» exige una vista dedicada o auditoría de cada cambio; lo existente no acredita una bitácora completa de versiones. Completar recorrido de aceptación acordado. |
 
 ## Actividad 4 — Implementación del módulo comercial
 
@@ -95,6 +95,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E13 | [Línea base y evolución](baseline.md), [pruebas SQL](../supabase/tests/database/identity.test.sql) y validaciones de cada dominio. |
 | E14 | [Modelo conceptual/físico y trazabilidad](actividad-1-modelo-datos.md), [diccionario de datos](actividad-1-diccionario-datos.md) y [plantilla de acta](actividad-1-acta-plantilla.md). Documentos preparados para revisión. |
 | E15 | [Anexo de seguridad y Auth](actividad-2-seguridad-auth.md): puntos 2.1–2.4, matriz de roles, tablas con RLS, resultados históricos y evidencias pendientes. Preparado para revisión. |
+| E16 | [Anexo de módulos de gestión](actividad-3-modulos-gestion.md): puntos 3.1–3.5, trazabilidad con reglas de negocio, código, migraciones, pruebas históricas y límite de «históricos». Preparado para revisión. |
 
 ## Reservas online y diferencias de alcance
 
