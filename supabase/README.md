@@ -54,6 +54,10 @@ La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funci
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
 
+## Actividad 4.1 — Base local de ventas
+
+`20261021090000_sales_foundation.sql`, `20261021093000_sales_product_queries.sql` y `20261021100000_sales_role_guard.sql` añaden catálogo simple de artículos por unidad, ventas y detalle con RLS/RPC. OWNER/ADMIN registran y consultan; un permiso delegado a otro rol no basta para acceder. Una venta vinculada importa los servicios de una cita interna completada y consulta sus cobros existentes sin crear pagos nuevos. Los artículos solo pueden permanecer en borrador hasta implementar stock; no hay aún pantalla de ventas ni cobros de mostrador. Validación y límites en [Actividad 4.1](../specs/features/actividad-4-ventas-mixtas/validation.md).
+
 ## Si Roles muestra falta de permiso y desaparece el menú
 
 Actualizar el código y recargar la página. La revalidación de permisos no debe vaciar el estado durante la consulta: ese comportamiento desmontaba Roles. Las pruebas ahora pueden ejecutarse con tu cuenta local existente; no requieren reset. Si persiste la denegación con la versión corregida, comprobar la asignación OWNER en esta misma instancia y sesión, sin recrear la base ni conceder permisos para ocultar un error de interfaz.

@@ -1,3 +1,6 @@
+-- Ventas: modelo, politicas y RPC en supabase/migrations/20261021090000_sales_foundation.sql
+-- y catalogo paginado en supabase/migrations/20261021093000_sales_product_queries.sql;
+-- restriccion OWNER/ADMIN en supabase/migrations/20261021100000_sales_role_guard.sql.
 -- Pagos: políticas y RPC en supabase/migrations/20261018225928_payments_advances.sql.
 -- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
 -- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
@@ -72,6 +75,10 @@ CREATE TYPE "payment_status" AS ENUM (
   'FAILED',
   'REFUNDED'
 );
+
+CREATE TYPE "sale_status" AS ENUM ('DRAFT', 'CONFIRMED', 'CANCELLED');
+
+CREATE TYPE "sale_item_kind" AS ENUM ('SERVICE', 'PRODUCT');
 
 CREATE TYPE "notification_channel" AS ENUM (
   'WHATSAPP',
@@ -408,6 +415,63 @@ CREATE TABLE "payments" (
   or (status='FAILED' and verified_by is null and paid_at is null and rejection_reason is not null)
   or status='REFUNDED')
 );
+
+CREATE TABLE "products" (
+ id uuid primary key default gen_random_uuid(),
+ name text not null check (length(btrim(name)) between 1 and 120),
+ sku text unique check (sku is null or length(btrim(sku)) between 1 and 60),
+ unit text not null default 'UNIT' check (unit='UNIT'),
+ price numeric not null check (price>=0 and price<'Infinity'::numeric and price=round(price,2)),
+ active boolean not null default true,
+ created_at timestamptz not null default clock_timestamp(),
+ updated_at timestamptz not null default clock_timestamp()
+);
+
+CREATE TABLE "sales" (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ appointment_id uuid references public.appointments(id),
+ status sale_status not null default 'DRAFT',
+ currency text not null default 'PEN' check (currency='PEN'),
+ total numeric not null default 0 check (total>=0 and total<'Infinity'::numeric and total=round(total,2)),
+ request_id uuid not null unique,
+ request_payload jsonb not null,
+ created_by uuid not null references public.profiles(id),
+ created_at timestamptz not null default clock_timestamp(),
+ updated_at timestamptz not null default clock_timestamp(),
+ version integer not null default 1 check (version>0),
+ cancelled_by uuid references public.profiles(id),
+ cancelled_at timestamptz,
+ cancel_reason text,
+ constraint chk_sale_cancel check (
+  (status='CANCELLED' and cancelled_by is not null and cancelled_at is not null and length(btrim(cancel_reason)) between 1 and 500)
+  or (status<>'CANCELLED' and cancelled_by is null and cancelled_at is null and cancel_reason is null))
+);
+CREATE UNIQUE INDEX sales_one_active_appointment ON "sales"(appointment_id)
+ WHERE appointment_id IS NOT NULL AND status<>'CANCELLED';
+CREATE INDEX sales_created_page ON "sales"(created_at DESC,id DESC);
+CREATE INDEX sales_client ON "sales"(client_id);
+
+CREATE TABLE "sale_items" (
+ id uuid primary key default gen_random_uuid(),
+ sale_id uuid not null references public.sales(id),
+ kind sale_item_kind not null,
+ appointment_item_id uuid references public.appointment_items(id),
+ service_id uuid references public.services(id),
+ product_id uuid references public.products(id),
+ description text not null check (length(btrim(description)) between 1 and 200),
+ unit text not null check (unit='UNIT'),
+ quantity integer not null check (quantity between 1 and 1000000),
+ unit_price numeric not null check (unit_price>=0 and unit_price<'Infinity'::numeric and unit_price=round(unit_price,2)),
+ line_total numeric generated always as (quantity*unit_price) stored,
+ created_at timestamptz not null default clock_timestamp(),
+ constraint chk_sale_item_source check (
+  (kind='SERVICE' and appointment_item_id is not null and service_id is not null and product_id is null and quantity=1)
+  or (kind='PRODUCT' and appointment_item_id is null and service_id is null and product_id is not null))
+);
+CREATE UNIQUE INDEX sale_service_once ON "sale_items"(sale_id,appointment_item_id) WHERE appointment_item_id IS NOT NULL;
+CREATE UNIQUE INDEX sale_product_once ON "sale_items"(sale_id,product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX sale_items_sale ON "sale_items"(sale_id);
 
 CREATE TABLE "billing_documents" (
   "id" uuid PRIMARY KEY,

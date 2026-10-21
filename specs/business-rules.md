@@ -151,3 +151,15 @@ Los documentos de requisitos y plan de Fase6 no están presentes en el árbol de
 ## Aclaración del cronograma 3.5 — 2026-10-21
 
 El usuario confirmó que «históricos» en 3.5 significa consultar citas pasadas y canceladas. No exige auditoría de cada modificación ni una nueva tabla de historial. Se mantienen RN-13 y la conservación del detalle de RN-14/RN-15. Falta demostrar el recorrido y registrar aceptación; la confirmación de alcance no equivale a aceptación de una prueba no realizada. Ver [Actividad 3](actividad-3-modulos-gestion.md).
+
+## Decisiones comerciales para Actividad 4.1 — 2026-10-21
+
+El usuario aceptó la propuesta de [ventas mixtas](features/actividad-4-ventas-mixtas/requirements.md) mediante «Vamos con eso». Esta aceptación se interpreta dentro del alcance documentado:
+
+| ID | Regla aceptada para 4.1 |
+|---|---|
+| RN-19 | Puede haber ventas con cita y de mostrador; a lo sumo una venta activa por cita. Los servicios de una venta con cita usan el precio guardado en sus items, sin generar otra cita ni duplicar cobros. Un servicio de mostrador sin cita queda fuera de 4.1 por falta de mascota y tarifa resuelta. |
+| RN-20 | Los artículos se catalogan por unidad; una venta que incluya artículos permanece en borrador hasta contar con control de stock de 4.4. No se aplica descuento ni impuesto automático en 4.1. |
+| RN-21 | OWNER y ADMIN pueden gestionar ventas. Si una venta tiene cobro confirmado, solo OWNER puede anularla; anular conserva el dinero y exige resolución separada, sin devolución automática. |
+
+Estas reglas no habilitan cobro de ventas de mostrador, inventario ni facturación. RN-02/RN-09/RN-12/RN-16–RN-18 siguen vigentes.

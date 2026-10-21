@@ -50,10 +50,10 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Pendiente | Existen citas/pagos y tablas previstas de documentos de facturación [E02, E09, E17]; no acreditan venta mixta operativa. | Especificar venta de productos y servicios, detalle, importes, anulaciones y permisos; aprobar modelo y plan. |
+| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Parcial local | Catálogo simple, venta y detalle mixto en borrador, vínculo a cita, importes exactos, RLS y API; 171 pruebas SQL y 93 Angular correctas [E17]. | Falta pantalla y confirmación/cobro de ventas con artículos tras definir stock; sin despliegue remoto. |
 | 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Pagos manuales de citas con Yape, Plin, efectivo, tarjeta y transferencia; verificación OWNER y saldos [E09, E17]. | Implementar la venta comercial y sus productos/servicios. Diferenciar registro de venta, cobro y documento de facturación. |
-| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Relación cita → pagos, cobro final y saldo exacto [E09, E17]. | Definir e implementar cita → venta y apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
-| 4.4 | Módulo Inventario: registro y stock automático | S9 | Pendiente | No se identifican tablas operativas de productos/stock en el modelo revisado; componentes de ecommerce son plantilla [E02, E11, E17]. | Definir productos/unidades, entradas, salidas y efecto transaccional de ventas; aprobar implementación. |
+| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Cita completada puede vincularse a una venta sin duplicar pagos; cobro final y saldo de cita existentes [E09, E17]. | Definir e implementar apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
+| 4.4 | Módulo Inventario: registro y stock automático | S9 | Parcial preparatorio | Existe catálogo simple de artículos por unidad para borradores de venta; todavía no existen existencias ni movimientos [E17]. | Definir stock inicial, entradas, salidas y efecto transaccional de ventas; aprobar implementación. |
 | 4.5 | Movimientos de inventario y su historial | S9 | Pendiente | No se identificó flujo de movimientos de stock ni historial conectado [E02, E11, E17]. | Definir kardex/movimientos, motivos, responsables, ajustes y trazabilidad; vincularlos con ventas e inventario. |
 | 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Sin inventario operativo acreditado [E02, E11, E17]. | Acordar mínimos por producto, presentación de alertas y pruebas en los límites de stock. |
 
@@ -98,7 +98,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E14 | [Modelo conceptual/físico y trazabilidad](actividad-1-modelo-datos.md), [diccionario de datos](actividad-1-diccionario-datos.md) y [plantilla de acta](actividad-1-acta-plantilla.md). Documentos preparados para revisión. |
 | E15 | [Anexo de seguridad y Auth](actividad-2-seguridad-auth.md): puntos 2.1–2.4, matriz de roles, tablas con RLS, resultados históricos y evidencias pendientes. Preparado para revisión. |
 | E16 | [Anexo de módulos de gestión](actividad-3-modulos-gestion.md): puntos 3.1–3.5, trazabilidad con reglas de negocio, código, migraciones, pruebas históricas y límite de «históricos». Preparado para revisión. |
-| E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md): puntos 4.1–4.6, separación entre cita, cobro, venta, caja e inventario; decisiones y evidencia pendiente. Preparado para revisión. |
+| E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md) y [validación de 4.1](features/actividad-4-ventas-mixtas/validation.md): separación entre cita, cobro, venta, caja e inventario; modelo y API local de ventas, decisiones y límites pendientes. |
 | E18 | [Anexo de analítica y fidelización](actividad-5-analitica-fidelizacion.md): puntos 5.1–5.5, fuentes disponibles, componentes de demostración, dependencias y criterios por definir. Preparado para revisión. |
 | E19 | [Anexo de calidad y transferencia](actividad-6-calidad-transferencia.md): puntos 6.1–6.4, evidencia de pruebas locales, paquete de aceptación, manuales y registro pendiente de capacitación/entrega. Preparado para revisión. |
 

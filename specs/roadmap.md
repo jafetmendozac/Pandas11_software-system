@@ -141,3 +141,7 @@ Cobro interno al finalizar (INTERNAL/COMPLETED), sin DEPOSIT interno. Adelanto d
 ## Seguimiento del cronograma S1–S14 — 2026-10-20
 
 La [matriz de seguimiento](matriz-seguimiento.md) relaciona las29 actividades proporcionadas por el usuario con semana prevista, estado local, evidencias y pendientes. Distingue las actividades del cronograma de las fases técnicas SDD y conserva los diagnósticos históricos de este documento. Su elaboración es documental: no aprueba ni inicia reservas online, ventas, inventario u otras funcionalidades.
+
+## Avance Actividad 4.1 — 2026-10-21
+
+Tras «Vamos con eso», se implementó localmente el modelo y las RPC de ventas con catálogo simple, detalle mixto en borrador y vínculo a citas internas completadas. Los cobros confirmados de cita se consultan por referencia, sin duplicarse; permisos y rol OWNER/ADMIN se verifican en servidor. Las ventas con artículos siguen en borrador hasta implementar stock. No hay página comercial ni cobro de mostrador, caja, comprobantes o despliegue remoto. Resultados en [validación 4.1](features/actividad-4-ventas-mixtas/validation.md).

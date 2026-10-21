@@ -1,8 +1,8 @@
 # Actividad 4 — Módulo comercial
 
-Fecha de corte: 2026-10-20 (America/Lima). Anexo de seguimiento para los puntos 4.1–4.6 de la [matriz S1–S14](matriz-seguimiento.md). Describe el estado **local** comprobado; una pantalla de plantilla o una tabla del modelo de referencia no demuestra una operación comercial implementada ni desplegada.
+Fecha de corte original: 2026-10-20 (America/Lima). Actualización de 4.1: 2026-10-21. Anexo de seguimiento para los puntos 4.1–4.6 de la [matriz S1–S14](matriz-seguimiento.md). Describe el estado **local** comprobado; una pantalla de plantilla o una tabla del modelo de referencia no demuestra una operación comercial implementada ni desplegada.
 
-## Distinción necesaria para el informe
+## Distinción necesaria para el informe al corte original
 
 | Concepto | Situación comprobada |
 |---|---|
@@ -13,7 +13,7 @@ Fecha de corte: 2026-10-20 (America/Lima). Anexo de seguimiento para los puntos 
 | **Caja** | No se identificó apertura, registro de movimientos de caja, arqueo ni cierre. La suma de pagos confirmados no equivale por sí sola a un cierre de caja. |
 | **Inventario** | No se identificaron tablas ni servicios operativos de productos, existencias, movimientos o mínimos en el modelo y migraciones revisados. Las referencias comerciales de la portada y los componentes de ecommerce son presentación, no control de stock. |
 
-## Estado por punto del cronograma
+## Estado por punto del cronograma al 2026-10-20
 
 | Punto | Estado | Evidencia aprovechable | Trabajo pendiente para cumplir el punto |
 |---|---|---|---|
@@ -41,6 +41,10 @@ Las [reglas RN-02, RN-09, RN-12 y RN-16 a RN-18](business-rules.md) sustentan me
 5. **Alertas:** mínimo por artículo o variante, destinatario, canal y si solo informa o bloquea ventas.
 
 La secuencia técnica razonable es acordar primero **venta y su relación con cobros**, después **movimientos y descuento de stock**, y finalmente **caja y alertas** según sus dependencias. Cada nueva funcionalidad debe pasar por requisitos, plan SDD aprobado, implementación y validación. Este anexo no constituye ese plan ni autoriza cambios de esquema o despliegue.
+
+El trabajo SDD de 4.1 está en [requisitos](features/actividad-4-ventas-mixtas/requirements.md), [plan](features/actividad-4-ventas-mixtas/plan.md) y [validación](features/actividad-4-ventas-mixtas/validation.md). El estado actualizado se registra en la matriz.
+
+**Actualización 2026-10-21:** el usuario aceptó la propuesta mediante «Vamos con eso». Las migraciones locales de 4.1 crean catálogo simple, ventas y detalle; una cita completada aporta sus servicios, las ventas pueden incluir artículos solo como borrador y los cobros de cita se consultan sin duplicarlos. Hay API, RLS, pruebas y contrato Angular, pero aún no pantalla de ventas, cobro de mostrador, stock ni emisión de comprobantes. Ver [validación de 4.1](features/actividad-4-ventas-mixtas/validation.md). Los párrafos de diagnóstico anteriores describen el estado **antes** de esta actualización.
 
 ## Evidencia pendiente para cierre formal
 
