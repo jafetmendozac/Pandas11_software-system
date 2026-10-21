@@ -24,7 +24,7 @@ Los permisos de las tablas y funciones se detallan en el [anexo de seguridad](ac
 
 **3.4.** «Se implementó la agenda interna para registrar, consultar, reprogramar y cambiar estados de citas con varias mascotas y asignación de trabajadores. El servidor valida disponibilidad, habilidades y conflictos al guardar, incluso ante solicitudes concurrentes».
 
-**3.5.** «Se conservaron las citas y su detalle al terminar o cancelar, con búsqueda y controles de versión. Las pruebas locales verificaron estados, permisos, solapamientos y consistencia de reservas». Conviene describir este punto como **parcial** hasta acordar qué histórico exige el evaluador.
+**3.5.** «Se conservaron las citas y su detalle al terminar o cancelar, con búsqueda y controles de versión. Las pruebas locales verificaron estados, permisos, solapamientos y consistencia de reservas». El alcance fue confirmado el 2026-10-21: consulta de citas pasadas y canceladas. Validado automáticamente el 2026-10-21; el cierre formal sigue pendiente de recorrido humano y aceptación.
 
 ## Pruebas registradas y alcance
 
@@ -40,13 +40,30 @@ Los totales de SQL y Angular son acumulativos en cada fase y **no deben sumarse*
 
 El sistema conserva el **estado final y el detalle de cada cita** y permite consultar citas pasadas. `version` protege contra ediciones concurrentes; los snapshots preservan los valores de la reserva frente a cambios posteriores del catálogo. Eso no equivale a una bitácora inmutable de cada edición: no hay evidencia de que se pueda reconstruir quién cambió cada campo, cuál era su valor anterior y cuándo ocurrió cada versión. La tabla `audit_log` figura en [Pandas11.sql](../Pandas11.sql) como modelo previsto, sin migración operativa identificada en este corte.
 
-Para cerrar 3.5, el evaluador debe definir si «históricos» significa **consulta de citas pasadas y canceladas** o **auditoría de todas las modificaciones**. La primera lectura está respaldada por la implementación local; la segunda requeriría requisitos, plan SDD y aprobación antes de desarrollar una funcionalidad nueva. Las reservas online de la Fase 6 SDD tampoco forman parte de esta agenda interna.
+El 2026-10-21 el usuario confirmó que 3.5 significa únicamente **consultar citas pasadas y canceladas**. La auditoría de todas las modificaciones queda fuera de este criterio. La implementación local respalda el alcance confirmado y sus pruebas automáticas se ejecutaron el 2026-10-21; falta recorrido humano y aceptación. Las reservas online de la Fase 6 SDD tampoco forman parte de esta agenda interna.
+
+### Recorrido humano pendiente — 3.5
+
+Usar una instancia local y citas sintéticas existentes, identificando versión, fecha, entorno y evaluador. No modificar citas reales ni alterar el reloj de la base para producir evidencia.
+
+1. Con OWNER/ADMIN o STAFF autorizado (RN-13), abrir `/calendario` y navegar a un periodo pasado que contenga una cita completada y una cancelada.
+2. Consultar la cita completada y comprobar fecha, estado, cliente, mascotas, servicios y trabajadores/etapas (RN-14/RN-15); contrastar precio y duración conservados con el caso sintético.
+3. Filtrar por CANCELLED y abrir la cita cancelada; comprobar que conserva su detalle y muestra el motivo de cancelación. La interfaz actual muestra el motivo; autor y fecha se conservan en el contrato de datos, sin exigir aquí una nueva presentación visual.
+4. Recargar y volver a consultar ambos registros para demostrar persistencia; conservar capturas y registrar resultado por criterio.
+5. Adjuntar la conformidad del usuario/evaluador o sus observaciones. Estado actual: **pruebas automáticas correctas; recorrido humano y aceptación pendientes**. Las pruebas separadas de componente/API no constituyen un recorrido humano completo con backend.
 
 ## Evidencia pendiente para cierre formal
 
 1. Recorrido con datos sintéticos y capturas de alta/edición/baja lógica de cliente y mascota, ficha/vacunas, servicios/tarifas, cita con asignación y rechazo de conflicto.
 2. Revisión por Alex y Caro o el evaluador de la ficha entregada, precios y duraciones reales del catálogo, y flujo de recepción. Las pruebas técnicas usan datos sintéticos y no sustituyen esa aceptación.
-3. Definición verificable de «históricos» para 3.5 y constancia de aceptación o nueva especificación si se exige auditoría de cada modificación.
+3. Demostración y constancia de aceptación de 3.5 como consulta de citas pasadas y canceladas, según el alcance confirmado el 2026-10-21.
 4. Salidas fechadas de ejecución y versión/entorno si el informe solicita anexos de pruebas originales. No se comprobó el proyecto Supabase remoto.
 
 No se cambió código, esquema, datos ni funcionalidad para preparar este anexo.
+
+## Verificación nueva de 3.5 — 2026-10-21
+
+- Angular: 92/92 correctas, incluidas dos regresiones con FullCalendar real que navegan a 2020, abren citas COMPLETED/CANCELLED, muestran detalle/motivo y bloquean edición de la reserva; backend simulado en esta capa.
+- API local: 82 comprobaciones correctas, incluidas siete nuevas para buscar ambas citas pasadas por rango/estado como STAFF, comprobar snapshots/asignaciones, autor/fecha/motivo de cancelación y volver a consultar datos persistidos. Fixtures propios de prueba movidos al pasado por PostgreSQL, sin alterar reloj ni datos ajenos; limpieza al finalizar.
+- El script API también ejecutó satisfactoriamente la suite SQL existente. Build de producción correcto, con advertencia CSS de la portada no modificada (4,12 kB frente a 4 kB).
+- Las cifras anteriores son históricas y no se suman a las actuales. Detalles y límites en [validación de conciliación](features/revision-modelo-base-datos/validation.md). Sin migraciones, cambios remotos ni aceptación humana atribuida.

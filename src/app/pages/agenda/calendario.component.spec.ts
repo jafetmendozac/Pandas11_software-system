@@ -85,6 +85,31 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   c.navigate('prev');expect(calendar.getApi().view.activeStart).toEqual(oldStart);
  });
 
+ for(const status of ['COMPLETED','CANCELLED'] as const){
+  it(`consulta una cita pasada ${status} desde el calendario y conserva su detalle sin editarla`,async()=>{
+   const historical:Appointment={...appointment,status,starts_at:'2020-07-28T13:00:00Z',ends_at:'2020-07-28T14:00:00Z',cancel_reason:status==='CANCELLED'?'Cancelación sintética de aceptación':null,
+    items:[{...appointment.items[0],stages:[{...appointment.items[0].stages[0],starts_at:'2020-07-28T13:00:00Z',ends_at:'2020-07-28T14:00:00Z'}]}]};
+   api.range.and.resolveTo([historical]);api.get.and.resolveTo(historical);
+   const f=await fixture();const c=f.componentInstance;
+   const calendar=f.debugElement.query(By.directive(FullCalendarComponent)).componentInstance as FullCalendarComponent;
+   c.statusFilter=status;calendar.getApi().gotoDate('2020-07-28');
+   for(let n=0;n<10;n++)await Promise.resolve();f.detectChanges();
+   await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));f.detectChanges();
+   expect(api.range.calls.mostRecent().args[3]).toBe(status);
+   expect(f.nativeElement.querySelector('full-calendar').textContent).toContain(c.statuses[status]);
+   const event=f.nativeElement.querySelector('full-calendar .event-fc-color') as HTMLElement;
+   expect(event).not.toBeNull();event.click();
+   for(let n=0;n<10;n++)await Promise.resolve();f.detectChanges();
+   expect(c.current()).toEqual(historical);expect(c.canEdit).toBeFalse();
+   expect(c.items()[0].price).toBe('50.25');expect(c.items()[0].duration_minutes).toBe(60);
+   expect(c.items()[0].stages[0].employee_id).toBe('e');
+   if(status==='CANCELLED')expect(f.nativeElement.textContent).toContain(historical.cancel_reason);
+   await c.save();expect(api.save).not.toHaveBeenCalled();
+   c.close();await c.openAppointment(historical.id);f.detectChanges();
+   expect(c.current()).toEqual(historical);expect(api.get).toHaveBeenCalledTimes(2);
+  });
+ }
+
  it('seleccionar un día sin hora en mes conserva una fecha local válida para el formulario',async()=>{
   const f=await fixture();const calendar=f.debugElement.query(By.directive(FullCalendarComponent)).componentInstance as FullCalendarComponent;
   calendar.getApi().select('2030-07-29','2030-07-30');f.detectChanges();

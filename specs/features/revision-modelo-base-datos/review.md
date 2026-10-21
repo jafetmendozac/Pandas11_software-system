@@ -2,7 +2,11 @@
 
 Fecha: 2026-10-17. Revisión estática del archivo local; no ejecutado en PostgreSQL.
 
-## Dictamen
+## Actualización — 2026-10-21
+
+La tabla H-01 a H-23 y el dictamen siguientes describen el estado del 2026-10-17. Para el estado actual consultar la [conciliación individual](conciliation.md): las fases posteriores ya cubren varios controles y algunas ampliaciones siguen fuera del alcance operativo. H-01/H-02 tienen seguimiento en [validación](validation.md).
+
+## Dictamen histórico
 
 La estructura es una base útil, pero no está lista para convertirse directamente en una migración. Contiene un error de sintaxis, restricciones insuficientes y faltan mecanismos para reglas operativas confirmadas. El modelo remoto sigue desconocido.
 

@@ -1,5 +1,16 @@
 # Plan revisado SDD
 
+## Continuación aprobada — 2026-10-21
+
+Autorización: «Vamos con tu recomendación», tras proponer conciliar modelo SQL, migraciones y documentación. Alcance incremental: MDB-06/MDB-07.
+
+1. Comparar las cuatro relaciones de identidad del SQL de referencia con la migración `20261017152256_identity_foundation.sql`.
+2. Retirar sus cuatro ALTER TABLE duplicados conservando las declaraciones inline, PKs y ON DELETE CASCADE. No cambiar tablas, datos, RLS ni contratos Angular; no requiere migración porque no cambia el esquema definido por las migraciones operativas.
+3. Incorporar la decisión del usuario sobre 3.5 y preparar criterios de demostración, sin atribuir aceptación a un recorrido no realizado.
+4. Verificar estáticamente las relaciones, revisar enlaces documentales y ejecutar `git diff --check`. Registrar los límites; no corresponde build Angular para cambios de modelo de referencia y documentación.
+
+El resto de este documento conserva la propuesta y el alcance históricos.
+
 Estado: correcciones mínimas H-01/H-02 aprobadas e implementadas el 2026-10-17. Las demás etapas siguen pendientes. Esta propuesta no aprueba la Fase 0.
 
 1. Revisar hallazgos H-01 a H-23 de review.md y resolver decisiones de modelo.
@@ -23,3 +34,10 @@ No instalar dependencias, crear migraciones ni modificar Pandas11.sql hasta apro
 ## Alcance implementado
 
 Autorizado por el usuario tras proponer comenzar por correcciones mínimas: coma de pickup_fee y retirada de cuatro FKs redundantes, conservando las inline con ON DELETE CASCADE. Las conservadas son inmediatas no diferibles por defecto; se retiraron las duplicadas diferibles inicialmente inmediatas. No se modificaron otras columnas, RLS, Angular ni migraciones. Las siguientes etapas requieren sus decisiones y planes aprobados.
+
+## Ejecución de la continuación — 2026-10-21
+
+1. Crear conciliation.md con evidencia individual H-03 a H-23 y actualizar referencias de cierre de Actividad 1.
+2. Añadir dos regresiones de comportamiento en la suite existente de CalendarioComponent: consulta de cita pasada completada y cancelada, apertura desde evento real FullCalendar, detalle inmutable y recarga. No cambiar interfaz ni consultas productivas.
+3. Ejecutar suite Angular y build; consultar estado de Supabase local para probar API existente si está disponible. No reanudar servicios pausados por el usuario sin su indicación, ni ejecutar reset/migraciones.
+4. Documentar resultados reales y separar aceptación humana pendiente de validación automática. Sin impacto adicional en Pandas11.sql ni nuevas dependencias.

@@ -23,7 +23,7 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 | 1.2 | Identificar entidades y diseñar ERD conceptual v1 | S1 | Parcial | ERD conceptual v1 reconstruido desde modelo existente [E14]. | Obtener revisión y aceptación del negocio; no confundir la reconstrucción con un artefacto histórico de S1. |
 | 1.3 | Crear proyecto en Supabase y repo GitHub | S1 | Parcial | Instancia Supabase local [E03]; usuario aportó enlaces de Supabase y GitHub, y este último coincide con `origin` Git local [E14]. | Adjuntar fecha y constancia de acceso/propiedad; no se inspeccionaron servicios remotos. |
 | 1.4 | Refinar ERD, definir datos y script SQL | S2 | Parcial | ERD físico y diccionario de 26 tablas/213 columnas documentados, con21 tablas migradas y cinco previstas [E14]; SQL y migraciones [E02, E04]. | Revisar y aceptar versiones; confirmar esquema remoto solo si se autoriza inspección. |
-| 1.5 | Ajustar ERD según pruebas de seguridad | S3 | Parcial | ERD físico y trazabilidad de controles de identidad/dominio elaborados [E14]; correcciones H-01/H-02 y pruebas locales [E04, E05]. | Conciliar cada hallazgo histórico H-03 a H-23 y obtener aceptación del ERD. |
+| 1.5 | Ajustar ERD según pruebas de seguridad | S3 | Parcial | ERD físico y trazabilidad de controles de identidad/dominio elaborados [E14]; correcciones H-01/H-02 y pruebas locales [E04, E05]. | Conciliación H-03 a H-23 documentada el 2026-10-21 en [informe individual](features/revision-modelo-base-datos/conciliation.md). Falta revisión/aceptación del ERD y de los límites registrados. |
 
 ## Actividad 2 — Configuración de seguridad y autenticación
 
@@ -42,7 +42,7 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 | 3.2 | Módulo Mascotas: CRUD, relaciones y ficha | S5 | Validado localmente | Vínculo cliente–mascota, ficha, vacunas, notas separadas, archivo y bajas lógicas [E06, E16]. | Aceptar la ficha entregada y anexar capturas; historia clínica veterinaria y adjuntos no se acreditan como implementados. |
 | 3.3 | Módulo Servicios: CRUD | S6 | Validado localmente | Servicios/tarifas, desactivación, cotización por tamaño/pelaje, catálogo y permisos [E07, E16]. | Validar el catálogo comercial real con el negocio; la evidencia técnica utiliza datos sintéticos. |
 | 3.4 | Módulo Citas: agendamiento, estados y asignación | S6 | Validado localmente | Agenda interna, varias mascotas, trabajadores habilitados, etapas/relevo, estados, turnos y bloqueos [E08, E16]. | Aceptar recorrido de recepción y adjuntar evidencia. Reservas online no están incluidas en este cierre. |
-| 3.5 | Completar Citas: históricos y validaciones | S7 | Parcial | Citas y detalle conservados, cancelación sin borrado, snapshots, control de versión y pruebas de conflictos/concurrencia [E08, E16]. | Precisar si «históricos» exige una vista dedicada o auditoría de cada cambio; lo existente no acredita una bitácora completa de versiones. El usuario acordó continuar con las demás actividades y dejar esta aclaración para más adelante. |
+| 3.5 | Completar Citas: históricos y validaciones | S7 | Validado localmente | Alcance confirmado el 2026-10-21: consulta de citas pasadas y canceladas. Nuevas pruebas: 92/92 Angular y 82 comprobaciones API de agenda correctas, con snapshots, asignaciones y consulta repetida [E08, E16]. | Falta recorrido humano con capturas y aceptación; no se exige auditoría de cada modificación. Ver [validación actual](features/revision-modelo-base-datos/validation.md). |
 
 ## Actividad 4 — Implementación del módulo comercial
 
@@ -110,7 +110,7 @@ Las especificaciones generales contienen diagnósticos iniciales y actualizacion
 
 ## Orden recomendado para el siguiente seguimiento
 
-1. Reunir evidencia externa de 1.1/1.3 y completar ERD/diccionario de1.2/1.4/1.5. Confirmar qué significa históricos en3.5.
+1. Reunir evidencia externa de 1.1/1.3 y completar ERD/diccionario de1.2/1.4/1.5. Demostrar y aceptar la consulta de citas pasadas y canceladas de 3.5, cuyo alcance se confirmó el 2026-10-21.
 2. Revisar y aceptar el alcance local de seguridad/Auth y CRUD existentes, conservando sus límites documentados.
 3. Decidir prioridad de reservas online frente a ventas/caja/inventario. El cronograma actual requiere el módulo comercial antes de completar indicadores de productos.
 4. Preparar requisitos y plan SDD comercial cuando el usuario lo solicite; cualquier implementación requiere aprobación de ese plan.

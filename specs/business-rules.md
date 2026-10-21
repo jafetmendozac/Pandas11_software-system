@@ -147,3 +147,7 @@ Respuestas del usuario durante el análisis de reservas online. Definen requisit
 - Adelanto fijoS/20 y verificación exclusiva OWNER se mantienen. No se acuerdan devoluciones automáticas ni se resuelve PN-07 para reprogramación/cancelación posterior al pago.
 
 Los documentos de requisitos y plan de Fase6 no están presentes en el árbol de trabajo actual. Si se retoma esa funcionalidad, habrá que recuperarlos o redactarlos de nuevo antes de solicitar aprobación de implementación.
+
+## Aclaración del cronograma 3.5 — 2026-10-21
+
+El usuario confirmó que «históricos» en 3.5 significa consultar citas pasadas y canceladas. No exige auditoría de cada modificación ni una nueva tabla de historial. Se mantienen RN-13 y la conservación del detalle de RN-14/RN-15. Falta demostrar el recorrido y registrar aceptación; la confirmación de alcance no equivale a aceptación de una prueba no realizada. Ver [Actividad 3](actividad-3-modulos-gestion.md).

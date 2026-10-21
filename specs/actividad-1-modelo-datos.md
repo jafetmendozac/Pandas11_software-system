@@ -219,11 +219,11 @@ El [informe de revisión inicial](features/revision-modelo-base-datos/review.md)
 | Detalle de cita ligado al mismo cliente, etapas y conflictos concurrentes | `appointments`, `appointment_items`, `appointment_item_staff` | [Validación Fase 4](features/fase-4-agenda-reservas-internas/validation.md). |
 | Cobros con idempotencia y verificación exclusiva del propietario | `payments`, `appointments` | [Validación Fase 5](features/fase-5-pagos-adelantos/validation.md). |
 
-El ERD físico representa relaciones y claves; RLS, roles y reglas de concurrencia se documentan en las migraciones y pruebas. La revisión inicial enumera H-03 a H-23; cada punto requiere comparación individual con el estado actual antes de declararlo resuelto. Este documento no declara resueltos en bloque esos hallazgos ni certifica una base remota.
+El ERD físico representa relaciones y claves; RLS, roles y reglas de concurrencia se documentan en las migraciones y pruebas. La revisión inicial enumera H-03 a H-23; la [conciliación individual del 2026-10-21](features/revision-modelo-base-datos/conciliation.md) identifica los controles cubiertos, parciales y pendientes con evidencia actual. Este documento no declara resueltos en bloque esos hallazgos ni certifica una base remota.
 
 ## Pendientes de cierre académico
 
 1. Añadir fecha, asistentes y conformidad de la reunión inicial; revisar el ERD conceptual reconstruido con el negocio.
 2. Adjuntar constancias del proyecto Supabase y repositorio GitHub cuyos enlaces aportó el usuario, junto con fecha de creación si se dispone de ella. Verificar acceso/propiedad antes de presentarlos como hechos comprobados externamente.
 3. Aceptar la versión física y el [diccionario de datos](actividad-1-diccionario-datos.md) como representación del modelo local; decidir si el informe necesita diagrama gráfico exportado y anexarlo.
-4. Para 1.5, relacionar hallazgos adicionales con pruebas concretas solo después de contrastarlos; conservar los límites de las pruebas locales.
+4. Para 1.5, revisar y aceptar la [conciliación individual](features/revision-modelo-base-datos/conciliation.md); los resultados históricos no sustituyen pruebas nuevas ni acreditan el esquema remoto. Las ampliaciones fuera de alcance mantienen decisiones/planes propios.
