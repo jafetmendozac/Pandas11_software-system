@@ -42,3 +42,6 @@ La tarifa general se utiliza para dimensiones desconocidas; tamaño gana a pelaj
 ## Límites
 
 Sin recorrido manual completo de la aplicación; pruebas de componentes ejecutadas en ChromeHeadless. Valores comerciales no se inventaron ni se sembraron en catálogo: el usuario configura sus precios/duraciones. No modifica agenda, snapshots, pagos, transporte o impuestos; disponibilidad de personal fuera de esta fase. La base remota permanece sin cambios y su esquema no está verificado.
+# Seguimiento visual de tarifas — 2026-10-21
+
+Durante el recorrido de aceptación de actividades 1–3, la tabla Tarifas para STAFF mostraba el UUID del servicio aunque `search_service_prices` ya devolvía `service_name`. `TarifasComponent` ahora incorpora las etiquetas de las filas consultadas a las opciones de visualización, conservando UUID en los valores de formulario y permisos de gestión. Una nueva prueba de componente verifica nombre visible y ausencia de acción de alta para STAFF. Resultado: 93/93 pruebas Angular, compilación local y de producción correctas; Chrome local mostró «DEMO Baño» en lugar del UUID. La producción avisó un exceso de 118 bytes en el CSS de la portada, sin relación con este ajuste. Evidencia en el [paquete de revisión](../../aceptacion-actividades-1-3.md).

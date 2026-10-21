@@ -227,3 +227,5 @@ El ERD físico representa relaciones y claves; RLS, roles y reglas de concurrenc
 2. Adjuntar constancias del proyecto Supabase y repositorio GitHub cuyos enlaces aportó el usuario, junto con fecha de creación si se dispone de ella. Verificar acceso/propiedad antes de presentarlos como hechos comprobados externamente.
 3. Aceptar la versión física y el [diccionario de datos](actividad-1-diccionario-datos.md) como representación del modelo local; decidir si el informe necesita diagrama gráfico exportado y anexarlo.
 4. Para 1.5, revisar y aceptar la [conciliación individual](features/revision-modelo-base-datos/conciliation.md); los resultados históricos no sustituyen pruebas nuevas ni acreditan el esquema remoto. Las ampliaciones fuera de alcance mantienen decisiones/planes propios.
+
+El [paquete de revisión de actividades 1–3](aceptacion-actividades-1-3.md) deja preparados los puntos que requieren respuesta de Alex y Caro. La preparación de esta guía no equivale a aceptación del ERD, del diccionario ni del acta inicial.

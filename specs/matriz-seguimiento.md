@@ -1,5 +1,7 @@
 # Matriz de seguimiento del cronograma S1–S14
 
+Actualización de evidencias del 2026-10-21: [paquete de revisión de actividades 1–3](aceptacion-actividades-1-3.md) con ocho capturas sintéticas y registro de conformidad pendiente. Las pruebas actuales alcanzaron 93/93 Angular tras corregir la presentación de Tarifas para STAFF; el recorrido visual local no sustituye aceptación del negocio. Los estados de la tabla siguientes reflejan su corte documental y deben leerse junto con esta actualización.
+
 Fecha de corte: 2026-10-20 (America/Lima).
 Fuente de planificación: cronograma de 29 actividades proporcionado por el usuario.
 Alcance de esta entrega: documentación del avance; no autoriza implementar funcionalidades, aplicar migraciones o desplegar.

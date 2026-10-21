@@ -73,7 +73,21 @@ export class TarifasComponent implements OnInit {
   }
   async loadTarifas(query=this.query):Promise<void>{
     this.query=query;const revision=++this.revision;this.loading.set(true);this.errorMessage.set('');
-    try{const result=await this.prices.search(query);if(revision===this.revision){this.tableData.set(result.rows);this.total.set(result.total);}}
+    try{const result=await this.prices.search(query);if(revision===this.revision){
+      this.columns=this.columns.map(column=>{
+        if(column.key!=='service_id')return column;
+        const options=[...(column.options??[])];
+        const known=new Set(options.map(option=>option.value));
+        for(const row of result.rows){
+          if(!known.has(row.service_id)){
+            options.push({label:row.service_name,value:row.service_id});
+            known.add(row.service_id);
+          }
+        }
+        return {...column,options};
+      });
+      this.tableData.set(result.rows);this.total.set(result.total);
+    }}
     catch(error){if(revision===this.revision)this.errorMessage.set(error instanceof Error?error.message:'No se pudieron cargar las tarifas.');}
     finally{if(revision===this.revision)this.loading.set(false);}
   }

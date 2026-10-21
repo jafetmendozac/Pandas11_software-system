@@ -1,5 +1,7 @@
 # Evidencias para el informe — actividades 1 a 3
 
+Actualización 2026-10-21: consultar el [paquete de revisión](aceptacion-actividades-1-3.md) para capturas locales de consulta de CLIENT, módulos de gestión y citas históricas. Se mantiene pendiente la conformidad de Alex y Caro, el acta inicial y las constancias externas; no confundir las capturas con aceptación formal.
+
 Fecha de corte: 2026-10-20 (America/Lima). Complementa la [matriz S1–S14](matriz-seguimiento.md). La evidencia técnica corresponde al proyecto local y a resultados de pruebas registrados anteriormente; las actividades presenciales, cuentas externas y aceptación del negocio requieren sus propios documentos. Una X del cronograma indica planificación, no cierre.
 
 ## Documentos que ya se pueden citar

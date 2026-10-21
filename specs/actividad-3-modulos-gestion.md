@@ -67,3 +67,7 @@ No se cambió código, esquema, datos ni funcionalidad para preparar este anexo.
 - API local: 82 comprobaciones correctas, incluidas siete nuevas para buscar ambas citas pasadas por rango/estado como STAFF, comprobar snapshots/asignaciones, autor/fecha/motivo de cancelación y volver a consultar datos persistidos. Fixtures propios de prueba movidos al pasado por PostgreSQL, sin alterar reloj ni datos ajenos; limpieza al finalizar.
 - El script API también ejecutó satisfactoriamente la suite SQL existente. Build de producción correcto, con advertencia CSS de la portada no modificada (4,12 kB frente a 4 kB).
 - Las cifras anteriores son históricas y no se suman a las actuales. Detalles y límites en [validación de conciliación](features/revision-modelo-base-datos/validation.md). Sin migraciones, cambios remotos ni aceptación humana atribuida.
+
+## Capturas locales para revisión — 2026-10-21
+
+El [paquete de revisión](aceptacion-actividades-1-3.md) reúne capturas filtradas a datos DEMO de clientes, mascotas, servicios y tarifas, más las fichas de una cita pasada completada y otra cancelada. La completada fue un fixture local temporal insertado con privilegios de prueba y eliminado al terminar; la cancelada pertenece al seed. El recorrido en Chrome y Supabase local terminó sin excepciones JavaScript ni conexiones remotas. Se corrigió durante el recorrido la visualización del nombre del servicio en Tarifas para STAFF; 93/93 pruebas Angular correctas tras el ajuste. La revisión y conformidad de Alex y Caro siguen pendientes.

@@ -60,3 +60,7 @@ Las [rutas](../src/app/app.routes.ts) separan registro/inicio de sesión, vistas
 4. Verificación del proyecto remoto solo si se decide evaluar despliegue; el enlace facilitado por el usuario no demuestra que estas migraciones o configuraciones estén aplicadas allí.
 
 Este anexo documenta lo implementado y probado localmente; no modifica código, políticas ni datos.
+
+## Recorrido visual local — 2026-10-21
+
+El [paquete de revisión de actividades 1–3](aceptacion-actividades-1-3.md) incluye capturas con cuenta CLIENT sintética: consulta de su ficha vinculada y acceso denegado a `/calendario`. El recorrido usó Chrome Headless y Supabase local; no hubo excepciones JavaScript ni conexiones remotas. No representa aprobación del negocio ni cubre visualmente registro/confirmación de correo, OWNER o ADMIN. La validación completa de estos flujos continúa pendiente del recorrido de Alex y Caro.
