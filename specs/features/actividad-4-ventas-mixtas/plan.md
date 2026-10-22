@@ -1,6 +1,6 @@
 # Plan técnico — Actividad 4.1
 
-Fecha: 2026-10-21. Estado: **alcance aceptado mediante «Vamos con eso»; implementación local en curso**.
+Fecha: 2026-10-21. Estado: **alcance aceptado mediante «Vamos con eso»; implementación local validada; ver validation.md**.
 
 ## Secuencia aprobada
 

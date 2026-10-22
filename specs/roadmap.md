@@ -145,3 +145,7 @@ La [matriz de seguimiento](matriz-seguimiento.md) relaciona las29 actividades pr
 ## Avance Actividad 4.1 — 2026-10-21
 
 Tras «Vamos con eso», se implementó localmente el modelo y las RPC de ventas con catálogo simple, detalle mixto en borrador y vínculo a citas internas completadas. Los cobros confirmados de cita se consultan por referencia, sin duplicarse; permisos y rol OWNER/ADMIN se verifican en servidor. Las ventas con artículos siguen en borrador hasta implementar stock. No hay página comercial ni cobro de mostrador, caja, comprobantes o despliegue remoto. Resultados en [validación 4.1](features/actividad-4-ventas-mixtas/validation.md).
+
+## Entrega visual de 4.2 — 2026-10-22
+
+Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).

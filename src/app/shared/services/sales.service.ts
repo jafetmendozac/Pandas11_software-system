@@ -6,6 +6,10 @@ import { Product, ProductPage, Sale, SaleDraftInput, SalePage } from './sale.mod
 export class SalesService {
   private readonly supabase = inject(SupabaseService);
 
+  // Consulta autorizada de agenda, sin cargar todas las páginas.
+  appointments(search = '', page = 1): Promise<import('./clientes.service').PageResult<import('./appointment.models').Appointment>> {
+    return this.rpc('search_appointments', { p_from: '2000-01-01T00:00:00Z', p_until: '2100-01-01T00:00:00Z', p_page: page, p_size: 10, p_status: 'COMPLETED', p_search: search });
+  }
   private async rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
     const { data, error } = await this.supabase.client.rpc(name, args);
     if (error) throw error;

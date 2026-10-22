@@ -1,0 +1,16 @@
+<app-page-breadcrumb pageTitle="Productos" />
+<app-component-card title="Catálogo de artículos"><div class="space-y-4 text-gray-800 dark:text-gray-100">
+<p>Artículos por unidad. El control de existencias está pendiente.</p>
+<form (ngSubmit)="load()" class="flex flex-wrap gap-2"><input aria-label="Buscar productos" name="search" [(ngModel)]="search" [class]="field" placeholder="Nombre o SKU"><button [class]="button">Buscar</button>
+@if(auth.has('products.manage')){<button type="button" [class]="button" (click)="edit()">Nuevo producto</button>}</form>
+@if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
+@if(editing()){<form (ngSubmit)="save()" class="space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+<label class="block">Nombre<input name="name" [(ngModel)]="name" [class]="field" required maxlength="120"></label>
+<label class="block">SKU (opcional)<input name="sku" [(ngModel)]="sku" [class]="field" maxlength="60"></label>
+<label class="block">Precio en PEN<input name="price" [(ngModel)]="price" [class]="field" inputmode="decimal" required></label>
+<label class="block"><input type="checkbox" name="active" [(ngModel)]="active"> Activo</label>
+<button [class]="button" [disabled]="busy()">Guardar</button> <button type="button" [class]="button" [disabled]="busy()" (click)="editing.set(false)">Cancelar</button></form>}
+@if(loading()){<p role="status">Cargando…</p>}@else{
+@for(p of rows();track p.id){<div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{p.name}}</strong><p>{{p.sku || 'Sin SKU'}} · S/ {{money(p.price)}} · {{p.active ? 'Activo' : 'Inactivo'}}</p></div>@if(auth.has('products.manage')){<button [class]="button" (click)="edit(p)" [disabled]="busy()">Editar</button>}</div>}@empty{<p>Sin productos.</p>}}
+<div class="flex flex-wrap gap-3"><button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button><span>Página {{page}} · {{total}} productos</span><button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button></div>
+</div></app-component-card>

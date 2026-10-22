@@ -123,3 +123,7 @@ Las especificaciones generales contienen diagnósticos iniciales y actualizacion
 Al actualizar una fila, registrar fecha real y enlace a evidencia nueva; mantener la semana prevista original para poder comparar. No marcar finalización por presencia de una pantalla, tabla SQL o X en el cronograma. Los responsables, fechas reales y fecha inicial de S1 quedan por acordar; no se inventan para el informe.
 
 Revisión realizada: lectura de especificaciones y validaciones, inventario de tablas/archivos, inspección de dashboard/notificaciones, revisión de enlaces y cobertura de los29 IDs del cronograma. Sin pruebas funcionales o build nuevos porque esta entrega solo añade documentación. Sin consultas a Supabase remoto, cambios SQL, nuevas funcionalidades o despliegue.
+
+## Entrega visual de 4.2 — 2026-10-22
+
+Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).

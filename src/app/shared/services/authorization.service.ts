@@ -28,7 +28,13 @@ export class AuthorizationService {
 
   refresh(): Promise<boolean> {
     if (this.pending) return this.pending;
-    const request = this.load(this.revision);
+    const revision = this.revision;
+    const request = this.load(revision).then(result => {
+      // La sesión puede restaurarse mientras getUser inicia la primera consulta.
+      // Reconsultar la identidad vigente, sin aceptar permisos de la anterior.
+      return !result && revision !== this.revision && this.userId !== null
+        ? this.load(this.revision) : result;
+    });
     this.pending = request;
     void request.finally(() => { if (this.pending === request) this.pending = null; });
     return request;

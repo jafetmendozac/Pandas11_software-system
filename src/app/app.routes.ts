@@ -27,6 +27,8 @@ import { TarifasComponent } from './pages/tarifas/tarifas.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { authGuard, profileGuard } from './shared/guards/auth.guard';
 
+import { salesGuard } from './shared/guards/sales.guard';
+
 export const routes: Routes = [
   { path: '', pathMatch: 'full', loadComponent: () => import('./pages/inicio/inicio.component').then(m => m.InicioComponent), title: 'Spa Boutique Pandas 11 | Bienestar y estilo canino en Trujillo' },
   { path: 'access-denied', loadComponent: () => import('./pages/auth-pages/access-denied/access-denied.component').then(m => m.AccessDeniedComponent), title: 'Acceso no autorizado' },
@@ -86,6 +88,8 @@ export const routes: Routes = [
         component:CalenderComponent,
         title:'Angular Calender | TailAdmin - Angular Admin Dashboard Template'
       },
+      { path: 'ventas', loadComponent: () => import('./pages/ventas/ventas.component').then(m => m.VentasComponent), canActivate: [salesGuard], data: { permission: 'sales.read' }, title: 'Ventas | Pandas 11' },
+      { path: 'productos', loadComponent: () => import('./pages/productos/productos.component').then(m => m.ProductosComponent), canActivate: [salesGuard], data: { permission: 'products.read' }, title: 'Productos | Pandas 11' },
       { path: 'pagos', loadComponent: () => import('./pages/pagos/pagos.component').then(m => m.PagosComponent), data: { permission: 'payments.read' }, title: 'Pagos y saldos | Spa Boutique Pandas 11' },
       {
         path:'calendario',

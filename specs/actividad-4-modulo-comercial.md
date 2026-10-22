@@ -49,3 +49,7 @@ El trabajo SDD de 4.1 está en [requisitos](features/actividad-4-ventas-mixtas/r
 ## Evidencia pendiente para cierre formal
 
 Para 4.1–4.6 harán falta especificaciones aprobadas, migraciones y código correspondientes, pruebas con datos sintéticos, recorridos de aceptación y resultados fechados. La verificación de un esquema Supabase remoto no se realizó. No se modificó código, base de datos ni funcionalidad al preparar este anexo.
+
+## Entrega visual de 4.2 — 2026-10-22
+
+Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).

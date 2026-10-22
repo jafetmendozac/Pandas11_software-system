@@ -25,6 +25,13 @@ describe('AuthorizationService', () => {
     expect(await service.refresh()).toBeTrue();
     expect(service.has('panel.access')).toBeTrue();
   });
+  it('revalida cuando se restaura la sesión durante la primera consulta', async () => {
+    const pending = service.refresh();
+    event('SIGNED_IN', { user: { id: 'test-user' } });
+    expect(await pending).toBeTrue();
+    expect(service.has('panel.access')).toBeTrue();
+    await new Promise(r => setTimeout(r, 0));
+  });
   it('deniega perfil inactivo', async () => {
     profile.data = { active: false };
     expect(await service.refresh()).toBeFalse();

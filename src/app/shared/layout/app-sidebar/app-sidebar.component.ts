@@ -1,6 +1,7 @@
+import { SalesService } from '../../services/sales.service';
 import { AuthorizationService } from '../../services/authorization.service';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, inject, signal, effect } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
@@ -26,15 +27,21 @@ type NavItem = {
   templateUrl: './app-sidebar.component.html',
 })
 export class AppSidebarComponent {
+  private readonly sales = inject(SalesService);
+  readonly commercialAccess = signal(false);
+  private commercialRevision = 0;
+
 
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read'};
-    const visible = (path?:string):boolean => !path || !permission[path] || this.authorization.has(permission[path]);
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read'};
+    const visible = (path?:string):boolean => (!['/ventas','/productos'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.has(permission[path]));
     return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0);
   }
   // Main nav items
   navItems: NavItem[] = [
+    { name: 'Ventas', path: '/ventas', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h4"/></svg>' },
+    { name: 'Productos', path: '/productos', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M3 6h18v15H3zM3 6l9-4 9 4M12 6v15"/></svg>' },
     { name: 'Pagos y saldos', path: '/pagos', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>' },
     {
       name: 'Settings',
@@ -161,6 +168,14 @@ export class AppSidebarComponent {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
+    effect(() => {
+      const allowed = this.authorization.has('sales.read');
+      const rev = ++this.commercialRevision;
+      this.commercialAccess.set(false);
+      if (allowed) void this.sales.search('', 1, 1).then(() => {
+        if (rev === this.commercialRevision) this.commercialAccess.set(true);
+      }).catch(() => {});
+    });
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
     this.isHovered$ = this.sidebarService.isHovered$;

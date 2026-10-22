@@ -1,6 +1,6 @@
 # Actividad 4.1 — Modelo y lógica de venta mixta
 
-Fecha: 2026-10-21 (America/Lima). Estado: **decisiones de alcance aceptadas mediante «Vamos con eso»; implementación local en curso**.
+Fecha: 2026-10-21 (America/Lima). Estado: **decisiones de alcance aceptadas mediante «Vamos con eso»; implementación local validada; ver validation.md**.
 
 ## Objetivo y alcance
 
