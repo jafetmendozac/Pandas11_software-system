@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pandas11 UI y UX"
+  short_description: "Mejora la claridad y los flujos de Pandas11"
+  default_prompt: "Usa $pandas-ui-ux para revisar esta pantalla y proponer mejoras concretas de usabilidad."
