@@ -1,3 +1,5 @@
+-- Inventario: supabase/migrations/20261022140000_inventory_movements.sql
+-- y revalidación de permisos: supabase/migrations/20261022143000_inventory_permission_recheck.sql
 -- Ventas: modelo, politicas y RPC en supabase/migrations/20261021090000_sales_foundation.sql
 -- y catalogo paginado en supabase/migrations/20261021093000_sales_product_queries.sql;
 -- restriccion OWNER/ADMIN en supabase/migrations/20261021100000_sales_role_guard.sql.
@@ -443,6 +445,8 @@ CREATE TABLE "sales" (
  cancelled_by uuid references public.profiles(id),
  cancelled_at timestamptz,
  cancel_reason text,
+ inventory_disposition text check(inventory_disposition in ('RESTOCK','NO_RESTOCK')),
+ constraint sale_inventory_disposition check(inventory_disposition is null or status='CANCELLED'),
  constraint chk_sale_cancel check (
   (status='CANCELLED' and cancelled_by is not null and cancelled_at is not null and length(btrim(cancel_reason)) between 1 and 500)
   or (status<>'CANCELLED' and cancelled_by is null and cancelled_at is null and cancel_reason is null))
@@ -472,6 +476,36 @@ CREATE TABLE "sale_items" (
 CREATE UNIQUE INDEX sale_service_once ON "sale_items"(sale_id,appointment_item_id) WHERE appointment_item_id IS NOT NULL;
 CREATE UNIQUE INDEX sale_product_once ON "sale_items"(sale_id,product_id) WHERE product_id IS NOT NULL;
 CREATE INDEX sale_items_sale ON "sale_items"(sale_id);
+
+create table public.inventory_balances (
+ product_id uuid primary key references public.products(id) on delete cascade,
+ quantity integer not null default 0 check(quantity>=0),
+ initial_loaded boolean not null default false,
+ version integer not null default 1 check(version>0)
+);
+create table public.inventory_movements (
+ id uuid primary key default gen_random_uuid(),
+ product_id uuid not null references public.products(id),
+ kind text not null check(kind in ('INITIAL','RECEIPT','ADJUSTMENT','SALE','CANCELLATION')),
+ delta integer not null check(delta<>0),
+ balance_before integer not null check(balance_before>=0),
+ balance_after integer not null check(balance_after>=0),
+ reason text not null check(length(btrim(reason)) between 1 and 500),
+ created_by uuid not null references public.profiles(id),
+ created_at timestamptz not null default clock_timestamp(),
+ sale_id uuid references public.sales(id),
+ sale_item_id uuid references public.sale_items(id),
+ request_id uuid unique,
+ request_payload jsonb,
+ constraint inventory_arithmetic check(balance_after::bigint=balance_before::bigint+delta),
+ constraint inventory_source check(
+  (kind in ('SALE','CANCELLATION') and sale_id is not null and sale_item_id is not null and request_id is null and request_payload is null)
+  or (kind in ('INITIAL','RECEIPT','ADJUSTMENT') and sale_id is null and sale_item_id is null and request_id is not null and request_payload is not null)),
+ constraint inventory_sign check(kind='ADJUSTMENT' or (kind='SALE' and delta<0) or (kind<>'SALE' and delta>0))
+);
+create unique index inventory_sale_once on public.inventory_movements(sale_item_id,kind) where sale_item_id is not null;
+create index inventory_history on public.inventory_movements(product_id,created_at desc,id desc);
+create index inventory_sale on public.inventory_movements(sale_id);
 
 CREATE TABLE "billing_documents" (
   "id" uuid PRIMARY KEY,

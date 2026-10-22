@@ -169,3 +169,9 @@ Antes del trabajo: HEAD4b6c8a4; cambios documentales de preparación de Fase5 si
 Ejecutados: lint local sin errores; SQL137/137 (seis archivos); API de Fase5 107 comprobaciones; regresiones API0–4 repetidas:265; tipos app/spec correctos; Angular90/90 en ChromeHeadless. Build final de producción correcto3.42MB, sin advertencias. Recorrido real en Chrome correcto con registro/verificación OWNER, ADMIN sin verificación, STAFF denegado, foco y móvil/oscuro/RTL; sin errores JS ni conexiones remotas. Detalle vigente y límites en [validation.md](features/fase-5-pagos-adelantos/validation.md).
 
 Se añadió scripts/test-payments-api.mjs; comandos npm existentes sin cambios. Sin dependencias, commits, pushes ni cambios de producción. Se generó el entorno local ignorado con el script existente para ensayar solo contra55321, sin mostrar claves ni sobrescribir otros entornos.
+
+## Evolución de inventario — 2026-10-22
+
+Plan y decisiones INV-D01–INV-D05 aprobados mediante «Añadelo entonces» con `$sdd-feature`. Inventario local por producto/unidad, saldo cero inicial, entradas OWNER/ADMIN, ajustes OWNER, historial y descuento de stock al confirmar ventas. Anulación de productos confirmados solo OWNER con elección RESTOCK/NO_RESTOCK; dinero conservado. Se habilita confirmación comercial de productos, sin afirmar cobro de mostrador.
+
+Dos migraciones incrementales locales sin reset ni cambios remotos. Validación y límites en [inventario](features/actividad-4-inventario/validation.md). La restricción histórica de productos solo en borrador se sustituye para este nuevo alcance; caja, pagos de productos, mínimos/alertas y devoluciones parciales siguen pendientes.

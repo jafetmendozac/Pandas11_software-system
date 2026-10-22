@@ -182,3 +182,13 @@ Dos migraciones incrementales locales añaden payments y consultas: registro PEN
 PostgreSQL numeric calcula confirmado, pendiente de verificar y saldo; importes en texto decimal hacia Angular. PENDING/FAILED no descuentan deuda. Trigger de agenda impide bajar total bajo lo recibido sin cambiar su RPC. Comprobantes solo operación/referencia, sin Storage. Cobros internos solo BALANCE después de COMPLETED, sin pasarelas, devoluciones ni adelantos internos. Adelanto de autorreserva S/20 conserva RN-08 para una fase futura.
 
 Evidencia y límites: [validación Fase 5](features/fase-5-pagos-adelantos/validation.md). No acredita adopción remota.
+
+## Inventario — 2026-10-22
+
+Productos y ventas conservan sus rutas/componentes. InventoryService conecta search_inventory, search_inventory_movements y record_inventory_movement; InventoryBalance/Movement/Input tipan cantidades enteras y filtros. Página de productos consulta saldos e historial, recibe/carga existencias y habilita ajustes según capacidad OWNER verificada en servidor. Modales CDK con foco/reintento y protección de respuestas antiguas.
+
+inventory_balances mantiene saldo/version por producto; inventory_movements conserva deltas y saldo anterior/posterior. Trigger de alta crea balance cero y la migración inicializa productos existentes sin movimientos ficticios. RLS de lectura exige rol OWNER/ADMIN, sales.read e inventory.read; escrituras exclusivamente por RPC. inventory.receive habilita ingresos, inventory.adjust exige además OWNER activo. Historial sin permisos de edición/borrado para authenticated.
+
+Confirmación y cancelación usan mutex930003, productos ordenados por UUID y bloqueo de saldo, con revalidación de permisos tras esperas. Confirmar productos inserta salida única por línea y actualiza venta/saldo atómicamente; se valida subtotal de servicios separado del total mixto. Cancelar conserva la salida original; solo RESTOCK añade entrada compensatoria. NO_RESTOCK conserva la reducción y queda trazado en sales.inventory_disposition; cancelled_by/at/reason identifican responsable/fecha/motivo. Se conserva firma pública con argumento opcional para ventas sin productos confirmados, sin vía para omitir disposición cuando aplica. Reintentos de entrada/confirmación/anulación no duplican efectos.
+
+Dos migraciones locales: 20261022140000_inventory_movements y 20261022143000_inventory_permission_recheck. Pandas11.sql y contratos reflejan el modelo; no se inspeccionó ni migró el esquema remoto. Sin modificación de payments: saldo mixto/cobro de productos sigue fuera del sistema. Evidencia en [validación](features/actividad-4-inventario/validation.md).

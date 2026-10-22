@@ -33,7 +33,7 @@ export class SalesService {
   confirm(sale: Sale): Promise<Sale> {
     return this.rpc('confirm_sale', { p_id: sale.id, p_expected_version: sale.version });
   }
-  cancel(sale: Sale, reason: string): Promise<Sale> {
-    return this.rpc('cancel_sale', { p_id: sale.id, p_expected_version: sale.version, p_reason: reason });
+  cancel(sale: Sale, reason: string, disposition: import('./inventory.models').InventoryDisposition | null = null): Promise<Sale> {
+    return this.rpc('cancel_sale', { p_id: sale.id, p_expected_version: sale.version, p_reason: reason, p_disposition: disposition });
   }
 }

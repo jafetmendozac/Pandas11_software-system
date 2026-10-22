@@ -163,3 +163,18 @@ El usuario aceptó la propuesta de [ventas mixtas](features/actividad-4-ventas-m
 | RN-21 | OWNER y ADMIN pueden gestionar ventas. Si una venta tiene cobro confirmado, solo OWNER puede anularla; anular conserva el dinero y exige resolución separada, sin devolución automática. |
 
 Estas reglas no habilitan cobro de ventas de mostrador, inventario ni facturación. RN-02/RN-09/RN-12/RN-16–RN-18 siguen vigentes.
+
+
+## Inventario 4.4–4.5 — aprobación 2026-10-22
+
+El usuario aprobó el [plan de inventario](features/actividad-4-inventario/plan.md) y las decisiones INV-D01–INV-D05 mediante «Añadelo entonces» con `$sdd-feature`. La restricción histórica de RN-20 queda satisfecha localmente al incorporar stock transaccional, sin habilitar cobro de mostrador.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-22 | Un inventario del local por producto/unidades enteras. Catálogo existente inicia en cero, sin cantidades reales inferidas; sin variantes/lotes/ubicaciones. |
+| RN-23 | OWNER/ADMIN consultan y registran carga inicial/entradas; solo OWNER ajusta. Motivo obligatorio, sin saldo negativo. Carga inicial disponible únicamente antes del primer movimiento, positiva y no repetible; entradas posteriores usan reposición. |
+| RN-24 | Borrador no reserva stock. Confirmar una venta descuenta todas sus unidades atómicamente; insuficiencia revierte todo y no se vende la última unidad dos veces. Confirmación comercial no acredita dinero. |
+| RN-25 | Anular borrador no altera stock. Solo OWNER anula productos confirmados, con decisión explícita RESTOCK (todo recuperado/conservado y apto para venta) o NO_RESTOCK (sin reponer). Sin elección automática ni devoluciones parciales; conservar pagos sin devolver dinero. Actor, fecha y motivo de anulación registran también esa disposición. |
+| RN-26 | Historial inmutable para usuarios de la aplicación: carga inicial, entrada, ajuste, salida por venta y reposición por anulación. Delta, saldo anterior/posterior, actor, fecha y referencias; correcciones mediante otro movimiento. Reintentos no duplican efectos. |
+
+RN-25 amplía RN-21: la anulación de artículos confirmados exige OWNER incluso sin dinero confirmado. RN-12 y RN-16–RN-19 mantienen exactitud monetaria, permisos de cobro, snapshots de cita y pagos por referencia. Inventario no implementa caja, mínimos/alertas, valorización contable ni pagos de productos.

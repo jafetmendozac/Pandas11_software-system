@@ -44,7 +44,7 @@ select is(jsonb_array_length(public.get_sale(current_setting('test.sale.id')::uu
 select is(public.create_sale_draft(current_setting('test.sale.input')::jsonb)->>'id',current_setting('test.sale.id'),'Reintento idempotente');
 select throws_ok($$select public.create_sale_draft(current_setting('test.sale.input')::jsonb||'{"status":"CONFIRMED"}')$$,'22023',null,'No acepta estado forjado');
 select throws_ok($$select public.create_sale_draft(current_setting('test.sale.input')::jsonb||jsonb_build_object('request_id',gen_random_uuid()))$$,'23505',null,'Una venta activa por cita');
-select throws_ok($$select public.confirm_sale(current_setting('test.sale.id')::uuid,1)$$,'22023',null,'Articulo impide confirmar antes de inventario');
+select throws_ok($$select public.confirm_sale(current_setting('test.sale.id')::uuid,1)$$,'22023',null,'Stock cero impide confirmar articulo');
 select is((public.search_sales('Fixture ventas')->>'total')::integer,1,'Listado autorizado');
 select throws_ok($$insert into public.sales(client_id,request_id,request_payload,created_by)
  values(current_setting('test.sale.client')::uuid,gen_random_uuid(),'{}',current_setting('test.sale.admin')::uuid)$$,'42501',null,'Escritura directa revocada');
@@ -91,12 +91,12 @@ select set_config('test.sale.service_only',public.create_sale_draft(jsonb_build_
 select is(public.get_sale(current_setting('test.sale.service_only')::uuid)->>'total','30.25','Venta de cita sin productos usa snapshot');
 select is(public.confirm_sale(current_setting('test.sale.service_only')::uuid,1)->>'status','CONFIRMED','Servicio de cita se confirma');
 select is(public.get_sale(current_setting('test.sale.service_only')::uuid)->>'confirmed_appointment_payments','10.10','Venta confirmada referencia cobro existente');
-select throws_ok($$select public.confirm_sale(current_setting('test.sale.service_only')::uuid,1)$$,'40001',null,'Confirmacion con version vieja rechazada');
+select is(public.confirm_sale(current_setting('test.sale.service_only')::uuid,1)->>'status','CONFIRMED','Reintento de confirmacion idempotente');
 select set_config('test.sale.counter',public.create_sale_draft(jsonb_build_object('request_id',gen_random_uuid(),
  'client_id',current_setting('test.sale.client'),'products',jsonb_build_array(jsonb_build_object(
  'product_id',current_setting('test.sale.product'),'quantity',1))))->>'id',true);
 select is(public.get_sale(current_setting('test.sale.counter')::uuid)->>'status','DRAFT','Mostrador sin cita queda borrador');
-select throws_ok($$select public.confirm_sale(current_setting('test.sale.counter')::uuid,1)$$,'22023',null,'Mostrador no confirma sin inventario/cobro');
+select throws_ok($$select public.confirm_sale(current_setting('test.sale.counter')::uuid,1)$$,'22023',null,'Mostrador no confirma con stock insuficiente');
 reset role;
 select set_config('request.jwt.claim.sub',current_setting('test.sale.admin'),true);
 set local role authenticated;

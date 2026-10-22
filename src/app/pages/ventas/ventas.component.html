@@ -11,7 +11,7 @@
 @for(p of products();track p.id){<button [class]="button" (click)="add(p)">{{p.name}} · S/ {{money(p.price)}}</button>}
 <div class="flex gap-2"><button [class]="button" (click)="options(optionKind,optionPage-1)" [disabled]="optionPage===1">Anterior</button><span>Página {{optionPage}}</span><button [class]="button" (click)="options(optionKind,optionPage+1)" [disabled]="optionPage*10>=optionTotal">Siguiente</button></div>
 @for(l of lines;track l.product_id){<label class="block">{{l.name}}<input type="number" min="1" max="1000000" step="1" [(ngModel)]="l.quantity" [class]="field"></label><button [class]="button" (click)="lines.splice($index,1)">Quitar</button>}
-</fieldset><p>Los servicios y el total se obtienen al guardar. Los productos permanecen en borrador hasta habilitar inventario.</p>
+</fieldset><p>Los servicios y el total se obtienen al guardar. Al confirmar se descontará stock. El cobro de productos todavía no está habilitado.</p>
 <button [class]="button" (click)="create()" [disabled]="busy()">{{pending ? 'Reintentar mismo envío' : 'Guardar borrador'}}</button> <button [class]="button" (click)="creating.set(false)" [disabled]="busy() || !!pending">Cancelar</button></section>}
 @if(loading()){<p role="status">Cargando…</p>}@else{@for(s of rows();track s.id){<div class="flex flex-wrap justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{s.client_name}}</strong><p>{{label(s)}} · S/ {{money(s.total)}}</p></div><button [class]="button" (click)="detail(s)" [disabled]="busy()">Ver detalle</button></div>}@empty{<p>No hay ventas.</p>}}
 <div class="flex flex-wrap gap-3"><button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button><span>Página {{page}} · {{total}} ventas</span><button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button></div>
@@ -21,12 +21,15 @@
 @for(i of s.items;track i.id){<p class="border-b border-gray-200 py-2 dark:border-gray-700">{{i.description}} · {{i.quantity}} × S/ {{money(i.unit_price)}} = S/ {{money(i.line_total)}}</p>}
 <p class="my-3 font-semibold">Total: S/ {{money(s.total)}}</p><p>Cobros confirmados de cita: S/ {{money(s.confirmed_appointment_payments)}}. Este importe no acredita cobro de productos.</p>
 @if(s.appointment_id && auth.has('payments.read')){<a routerLink="/pagos" [queryParams]="{cita:s.appointment_id}" class="text-brand-500 underline">Ver pagos de la cita</a>}
-@if(s.items.length && !canConfirm(s) && s.status==='DRAFT'){<p>Las ventas con productos esperan control de stock.</p>}
+<p>Confirmar registra una venta y descuenta stock; no acredita pago. El cobro de productos todavía no está habilitado.</p>
+@if(s.inventory_disposition){<p>Mercadería al anular: {{s.inventory_disposition === 'RESTOCK' ? 'Repuesta al inventario' : 'Sin reposición'}}.</p>}
 @if(s.requires_resolution){<p role="status">Cobro conservado: requiere resolución, sin devolución automática.</p>}
 @if(s.cancel_reason){<p>Motivo: {{s.cancel_reason}}</p>}
 @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
 @if(conflict){<button [class]="button" (click)="reloadDetail()">Recargar venta</button>}
 @if(auth.has('sales.manage') && s.status!=='CANCELLED'){
-@if(canConfirm(s)){<button [class]="button" (click)="action()" [disabled]="busy() || conflict">Confirmar venta de servicios</button>}
-<p>La anulación con dinero confirmado requiere OWNER; el servidor verifica tu rol.</p><label class="block">Motivo de anulación<textarea [(ngModel)]="reason" maxlength="500" [class]="field"></textarea></label><button [class]="button" (click)="action(true)" [disabled]="busy() || conflict">Anular venta</button>}
+@if(canConfirm(s)){<button [class]="button" (click)="action()" [disabled]="busy() || conflict">{{hasProducts(s) ? 'Confirmar venta y salida de stock' : 'Confirmar venta de servicios'}}</button>}
+@if(canCancel(s)){
+@if(needsDisposition(s)){<label class="block">Mercadería al anular<select name="disposition" [(ngModel)]="disposition" [class]="field" [disabled]="busy()"><option value="">Selecciona una opción</option><option value="RESTOCK">Reponer todas las unidades (aptas para venta)</option><option value="NO_RESTOCK">No reponer (no recuperadas o no aptas)</option></select></label>}
+<p>Los pagos se conservan; la anulación no devuelve dinero.</p><label class="block">Motivo de anulación<textarea [(ngModel)]="reason" maxlength="500" [class]="field"></textarea></label><button [class]="button" (click)="action(true)" [disabled]="busy() || conflict">Anular venta</button>}@else{<p>Solo OWNER puede anular esta venta.</p>}}
 </section></div>}

@@ -36,6 +36,8 @@ export interface Sale {
   total: string;
   confirmed_appointment_payments: string;
   requires_resolution: boolean;
+  inventory_disposition: import('./inventory.models').InventoryDisposition | null;
+  can_cancel_products: boolean;
   items: SaleItem[];
   created_by: string;
   created_at: string;

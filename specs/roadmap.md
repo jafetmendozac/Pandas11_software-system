@@ -149,3 +149,9 @@ Tras «Vamos con eso», se implementó localmente el modelo y las RPC de ventas 
 ## Entrega visual de 4.2 — 2026-10-22
 
 Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).
+
+## Avance 4.4–4.5 — 2026-10-22
+
+Plan y decisiones INV-D01–INV-D05 aprobados mediante «Añadelo entonces» con `$sdd-feature`. Inventario local por producto/unidad, saldo cero inicial, entradas OWNER/ADMIN, ajustes OWNER, historial y descuento de stock al confirmar ventas. Anulación de productos confirmados solo OWNER con elección RESTOCK/NO_RESTOCK; dinero conservado. Se habilita confirmación comercial de productos, sin afirmar cobro de mostrador.
+
+Dos migraciones incrementales locales sin reset ni cambios remotos. Validación y límites en [inventario](features/actividad-4-inventario/validation.md). La restricción histórica de productos solo en borrador se sustituye para este nuevo alcance; caja, pagos de productos, mínimos/alertas y devoluciones parciales siguen pendientes.

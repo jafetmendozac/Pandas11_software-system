@@ -50,12 +50,12 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Parcial local | Catálogo simple, venta y detalle mixto en borrador, vínculo a cita, importes exactos, RLS y API; 171 pruebas SQL y 93 Angular correctas [E17]. | Falta pantalla y confirmación/cobro de ventas con artículos tras definir stock; sin despliegue remoto. |
-| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Pagos manuales de citas con Yape, Plin, efectivo, tarjeta y transferencia; verificación OWNER y saldos [E09, E17]. | Implementar la venta comercial y sus productos/servicios. Diferenciar registro de venta, cobro y documento de facturación. |
+| 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Implementado localmente | Modelo/RPC de servicios y productos, snapshots, autorización, confirmación y stock transaccional [E17, E20]. | Sin despliegue remoto; caja y cobros de productos pertenecen a siguientes puntos. |
+| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Páginas de ventas/productos, borradores, confirmación con stock y cobros de cita por referencia; cinco métodos manuales y OWNER verifica [E09, E17, E20]. | Cobro de mostrador/productos y asignación de saldo mixto pendientes; venta confirmada no acredita pago. |
 | 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Cita completada puede vincularse a una venta sin duplicar pagos; cobro final y saldo de cita existentes [E09, E17]. | Definir e implementar apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
-| 4.4 | Módulo Inventario: registro y stock automático | S9 | Parcial preparatorio | Existe catálogo simple de artículos por unidad para borradores de venta; todavía no existen existencias ni movimientos [E17]. | Definir stock inicial, entradas, salidas y efecto transaccional de ventas; aprobar implementación. |
-| 4.5 | Movimientos de inventario y su historial | S9 | Pendiente | No se identificó flujo de movimientos de stock ni historial conectado [E02, E11, E17]. | Definir kardex/movimientos, motivos, responsables, ajustes y trazabilidad; vincularlos con ventas e inventario. |
-| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Sin inventario operativo acreditado [E02, E11, E17]. | Acordar mínimos por producto, presentación de alertas y pruebas en los límites de stock. |
+| 4.4 | Módulo Inventario: registro y stock automático | S9 | Implementado y validado localmente | Stock por producto, carga inicial/entradas/ajustes, confirmación transaccional y pruebas concurrentes [E17, E20]. | Adopción remota y aceptación sobre operación real fuera de esta entrega; cobro de mostrador pendiente en 4.2. |
+| 4.5 | Movimientos de inventario y su historial | S9 | Implementado y validado localmente | Historial paginado, motivos/actor/saldos y referencia a ventas; anulaciones con disposición explícita [E20]. | Sin devoluciones parciales ni costos/valorización; fuera del alcance aprobado. |
+| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Inventario y movimientos ya disponibles localmente [E20]. | Acordar umbrales por producto, presentación/canal de alertas y pruebas; no implementado. |
 
 ## Actividad 5 — Construcción de analítica y fidelización
 
@@ -127,3 +127,7 @@ Revisión realizada: lectura de especificaciones y validaciones, inventario de t
 ## Entrega visual de 4.2 — 2026-10-22
 
 Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).
+
+| Código | Evidencia adicional |
+|---|---|
+| E20 | [Inventario y movimientos: validación](features/actividad-4-inventario/validation.md), migraciones incrementales, suite SQL y script API local. |
