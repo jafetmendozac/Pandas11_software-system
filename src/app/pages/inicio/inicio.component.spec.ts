@@ -4,28 +4,38 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { SupabaseService } from '../../shared/services/supabase.service';
+import { HomeFlyersService } from '../../shared/services/home-flyers.service';
 import { InicioComponent } from './inicio.component';
 
 describe('Inicio público y separación del panel', () => {
   let authorization: { refresh: jasmine.Spy; has: jasmine.Spy };
   let createSupabase: jasmine.Spy;
+  let flyers: { today: jasmine.Spy; signedUrl: jasmine.Spy };
 
   beforeEach(() => {
     authorization = { refresh: jasmine.createSpy().and.resolveTo(false), has: jasmine.createSpy().and.returnValue(false) };
     createSupabase = jasmine.createSpy('Supabase factory').and.returnValue({ signOut: async () => {} });
+    flyers = {
+      today: jasmine.createSpy().and.resolveTo(null),
+      signedUrl: jasmine.createSpy().and.resolveTo('https://example.test/flyer.png'),
+    };
     TestBed.configureTestingModule({ providers: [
       provideRouter(routes),
       { provide: AuthorizationService, useValue: authorization },
       { provide: SupabaseService, useFactory: createSupabase },
+      { provide: HomeFlyersService, useValue: flyers },
     ] });
   });
 
-  it('abre la raíz anónima sin consultar autorización ni construir Supabase o el shell privado', async () => {
+  it('abre la raíz anónima y conserva el contenido si falta un panfleto', async () => {
     const harness = await RouterTestingHarness.create('/');
+    await harness.fixture.whenStable();
     expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(InicioComponent);
     expect(TestBed.inject(Router).url).toBe('/');
     expect(authorization.refresh).not.toHaveBeenCalled();
     expect(createSupabase).not.toHaveBeenCalled();
+    expect(flyers.today).toHaveBeenCalled();
+    expect(harness.routeNativeElement?.querySelector('#daily-flyer-title')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('app-sidebar')).toBeNull();
     expect(harness.routeNativeElement?.textContent).toContain('Calle General Urco Mz. C Lote 11');
     expect(harness.routeNativeElement?.textContent).toContain('7 a. m. a 6 p. m.');
@@ -35,6 +45,24 @@ describe('Inicio público y separación del panel', () => {
     expect(harness.routeNativeElement?.textContent).not.toContain('972 704 860');
     expect(harness.routeNativeElement?.querySelector('a[href^="tel:"]')).toBeNull();
     expect(harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.whatsapp-float')?.href).toBe('https://wa.me/51972704860');
+  });
+
+  it('muestra el panfleto publicado y permite ampliarlo con cierre por teclado', async () => {
+    flyers.today.and.resolveTo({weekday:1,object_path:'1/demo.png',alt_text:'Promoción de baño del lunes',published:true,version:2,updated_at:null});
+    const harness = await RouterTestingHarness.create('/');
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    const image = harness.routeNativeElement?.querySelector<HTMLImageElement>('#daily-flyer-title + p + div img')
+      ?? harness.routeNativeElement?.querySelector<HTMLImageElement>('section[aria-labelledby="daily-flyer-title"] img');
+    expect(image?.alt).toBe('Promoción de baño del lunes');
+    const open = harness.routeNativeElement!.querySelector<HTMLButtonElement>('button[aria-label^="Ampliar panfleto"]')!;
+    open.click();
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('[role="dialog"]')).not.toBeNull();
+    harness.routeNativeElement!.querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('[role="dialog"]')).toBeNull();
   });
 
   it('el acceso de cuenta lleva a signin y el menú móvil cierra con Escape devolviendo foco', async () => {

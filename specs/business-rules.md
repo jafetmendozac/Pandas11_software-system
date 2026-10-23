@@ -191,3 +191,11 @@ El usuario aprobó el [plan](features/actividad-4-cobros-caja-alertas/plan.md) m
 | RN-30 | Producto con mínimo entero no negativo o NULL desactivado. Stock menor o igual al mínimo se muestra en `/productos`, sin bloquear ventas ni enviar avisos externos. OWNER/ADMIN configuran; STAFF/CLIENT no consultan inventario. |
 
 RN-21/RN-25 siguen exigiendo OWNER y disposición explícita para anular productos confirmados; los cobros PAID permanecen y la venta anulada exige resolución separada. La verificación de pagos de cita ahora exige caja abierta para cobros nuevos; el registro PENDING continúa permitido sin ella.
+
+## Panfletos semanales del inicio público — 2026-10-23
+
+| ID | Regla propuesta | Estado |
+|---|---|---|
+| RN-31 | La portada muestra un panfleto configurable por día de lunes a domingo, calculado en `America/Lima`; OWNER y ADMIN pueden reemplazarlo desde el panel. Una posición sin imagen publicada conserva la portada informativa existente. | Plan aprobado e implementado localmente; evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md). Despliegue remoto pendiente. |
+
+El panfleto dominical no significa apertura el domingo ni modifica RN-01. Las imágenes y sus afirmaciones comerciales requieren material autorizado del negocio; la implementación no publica automáticamente los carteles de referencia anteriores.

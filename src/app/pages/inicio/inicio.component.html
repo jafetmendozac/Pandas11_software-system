@@ -57,6 +57,19 @@
       </div>
     </section>
 
+    @if (activeFlyer(); as flyer) {
+      <section aria-labelledby="daily-flyer-title" class="section-shell mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20">
+        <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+          <div><p class="eyebrow mb-3">Novedades de Pandas 11</p><h2 id="daily-flyer-title" class="section-title">El panfleto de {{ flyerDays[flyer.row.weekday - 1] }}</h2></div>
+          <p class="muted max-w-sm text-sm leading-relaxed">Una imagen nueva para cada día de la semana. Consulta los detalles con nuestro equipo.</p>
+        </div>
+        <div class="service-card overflow-hidden rounded-3xl p-3 sm:p-5">
+          <img [src]="flyer.url" [alt]="flyer.row.alt_text || ''" decoding="async" class="mx-auto max-h-[48rem] w-full object-contain" />
+        </div>
+        <button #flyerOpen type="button" (click)="openFlyer()" class="button button-secondary mt-5 rounded-full px-5 py-3 text-sm font-semibold" [attr.aria-label]="'Ampliar panfleto de ' + flyerDays[flyer.row.weekday - 1]">Ampliar panfleto</button>
+      </section>
+    }
+
     <section id="servicios" aria-labelledby="services-title" class="section-shell mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-22">
       <div class="mb-9 flex flex-wrap items-end justify-between gap-5">
         <div><p class="eyebrow mb-3">Su cuidado, en buenas manos</p><h2 id="services-title" class="section-title">Un poco de spa.<br />Mucho de consentirlo.</h2></div>
@@ -101,6 +114,15 @@
       </div>
     </section>
   </main>
+
+  @if (flyerExpanded() && activeFlyer(); as flyer) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80 p-3 sm:p-6" (keydown.escape)="closeFlyer()">
+      <section role="dialog" aria-modal="true" aria-labelledby="flyer-dialog-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="max-h-full w-full max-w-5xl overflow-auto rounded-2xl bg-white p-4 text-gray-900 shadow-theme-xl dark:bg-gray-900 dark:text-white sm:p-6">
+        <div class="mb-4 flex items-center justify-between gap-4"><h2 id="flyer-dialog-title" class="text-lg font-semibold">Panfleto de {{ flyerDays[flyer.row.weekday - 1] }}</h2><button cdkFocusInitial type="button" (click)="closeFlyer()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700">Cerrar</button></div>
+        <img [src]="flyer.url" [alt]="flyer.row.alt_text || ''" class="mx-auto max-h-[calc(100vh-9rem)] w-full object-contain" />
+      </section>
+    </div>
+  }
 
   <a [href]="whatsapp" target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp, abre en otra pestaña" title="WhatsApp"
     class="whatsapp-float fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-[max(1.25rem,env(safe-area-inset-left))] z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-theme-lg transition-transform hover:scale-105 motion-reduce:transition-none">

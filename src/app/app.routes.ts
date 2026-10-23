@@ -47,6 +47,12 @@ export const routes: Routes = [
         title: 'Configuración | Spa & Boutique Pandas 11',
       },
       {
+        path: 'configuracion/panfletos',
+        loadComponent: () => import('./pages/settings/home-flyers-settings.component').then(m => m.HomeFlyersSettingsComponent),
+        data: { permission: 'home_flyers.manage' },
+        title: 'Panfletos semanales | Pandas 11',
+      },
+      {
         path: 'panel',
         component: EcommerceComponent,
         pathMatch: 'full',

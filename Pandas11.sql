@@ -4,6 +4,8 @@
 -- y catalogo paginado en supabase/migrations/20261021093000_sales_product_queries.sql;
 -- restriccion OWNER/ADMIN en supabase/migrations/20261021100000_sales_role_guard.sql.
 -- Pagos: políticas y RPC en supabase/migrations/20261018225928_payments_advances.sql.
+-- Panfletos semanales: tabla, Storage, RLS y RPC en
+-- supabase/migrations/20261023135240_weekly_home_flyers.sql.
 -- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
 -- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
 -- Clientes/mascotas: políticas y RPC versionados en
@@ -240,6 +242,25 @@ CREATE TABLE "business_settings" (
   "key" text PRIMARY KEY,
   "value" text,
   "updated_at" timestamptz
+);
+
+-- Un panfleto público por día; las imágenes viven en el bucket privado
+-- home-flyers. La lectura y escritura efectivas se definen en la migración.
+CREATE TABLE "home_flyers" (
+  weekday smallint PRIMARY KEY CHECK (weekday BETWEEN 1 AND 7),
+  object_path text UNIQUE,
+  alt_text text,
+  published boolean NOT NULL DEFAULT false,
+  version integer NOT NULL DEFAULT 1 CHECK (version > 0),
+  updated_at timestamptz,
+  updated_by uuid REFERENCES public.profiles(id),
+  CONSTRAINT home_flyer_content CHECK (
+    (object_path IS NULL AND alt_text IS NULL AND NOT published)
+    OR (object_path IS NOT NULL AND length(btrim(alt_text)) BETWEEN 5 AND 200)
+  ),
+  CONSTRAINT home_flyer_path CHECK (
+    object_path IS NULL OR object_path ~ '^[1-7]/[0-9a-f-]{36}\.(jpg|png|webp)$'
+  )
 );
 
 CREATE TABLE "clients" (

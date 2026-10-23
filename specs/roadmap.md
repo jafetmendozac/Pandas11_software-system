@@ -159,3 +159,7 @@ Dos migraciones incrementales locales sin reset ni cambios remotos. Validación 
 ## Avance 4.2, 4.3 y 4.6 — 2026-10-22
 
 Plan COM-D01–COM-D05 aprobado mediante «Vamos con eso». Cobros manuales de productos por venta confirmada, saldo separado de citas en ventas mixtas, verificación OWNER, caja única con apertura/cierre y movimientos, y mínimo informativo por producto se implementaron en Supabase local y Angular. Ver [validación comercial](features/actividad-4-cobros-caja-alertas/validation.md). Los diagnósticos anteriores de esta hoja y del anexo comercial son históricos. No se implementaron devolución de dinero, facturación, conciliación bancaria, notificaciones externas ni despliegue remoto.
+
+## Inicio público: panfletos semanales — 2026-10-23
+
+Requisitos PS-01–PS-07 y plan aprobados. Implementados localmente siete espacios (uno por día de Lima), lectura pública limitada por RLS/Storage, editor para OWNER/ADMIN, respaldo de portada y vista ampliada. La prueba visual usó una imagen local temporal que se retiró. Para mostrar panfletos reales faltan la migración al entorno de destino mediante un proceso aprobado y la carga por el negocio de siete imágenes autorizadas; ninguna se publicó aquí. Evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md).
