@@ -78,15 +78,17 @@
             }
           </h2>
           <ul class="flex flex-col gap-1">
-            @for (nav of visibleNavItems; track $index;let i = $index) {
+            @for (nav of visibleNavItems; track nav.path ?? nav.name) {
             <li>
               @if (nav.subItems) {
                 <button
-                  (click)="toggleSubmenu('main',i)"
+                  (click)="toggleSubmenu('main',nav)"
                   [attr.aria-label]="nav.name"
+                  [attr.aria-expanded]="openSubmenu === submenuKey('main', nav)"
+                  [attr.aria-controls]="submenuKey('main', nav)"
                   class="menu-item group cursor-pointer"
-                  [class.menu-item-active]="openSubmenu === 'main-' + i"
-                  [class.menu-item-inactive]="openSubmenu !== 'main-' + i"
+                  [class.menu-item-active]="isGroupActive(nav)"
+                  [class.menu-item-inactive]="!isGroupActive(nav)"
                   [ngClass]="{
                     'xl:justify-center': !(
                       (isExpanded$ | async) || (isHovered$ | async)
@@ -97,8 +99,8 @@
                 >
                   <span
                     class="menu-item-icon-size"
-                    [class.menu-item-icon-active]="openSubmenu === 'main-' + i"
-                    [class.menu-item-icon-inactive]="openSubmenu !== 'main-' + i"
+                    [class.menu-item-icon-active]="isGroupActive(nav)"
+                    [class.menu-item-icon-inactive]="!isGroupActive(nav)"
                     [innerHTML]="nav.icon | safeHtml"
                   >
                   </span>
@@ -114,8 +116,8 @@
                   <span
                     class="ms-auto absolute end-10 menu-dropdown-badge"
                     [ngClass]="{
-                      'menu-dropdown-badge-active': openSubmenu === 'main-' + i,
-                      'menu-dropdown-badge-inactive': openSubmenu !== 'main-' + i
+                      'menu-dropdown-badge-active': isGroupActive(nav),
+                      'menu-dropdown-badge-inactive': !isGroupActive(nav)
                     }"
                   >
                     new
@@ -125,7 +127,7 @@
                   (isMobileOpen$ | async)) {
                   <svg
                     [ngClass]="{
-                      'rotate-180 text-brand-500': openSubmenu === 'main-' + i
+                      'rotate-180 text-brand-500': openSubmenu === submenuKey('main', nav)
                     }"
                     width="1em"
                     height="1em"
@@ -146,7 +148,7 @@
                 </button>
                 <div
                   class="overflow-hidden transition-all duration-300"
-                  [id]="'main-' + i"
+                  [id]="submenuKey('main', nav)"
                   [style.display]="
                     (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async) 
                       ? 'block' 
@@ -154,19 +156,19 @@
                   "
                   [ngStyle]="{
                     height:
-                      openSubmenu === 'main-' + i
-                        ? (subMenuHeights['main-' + i] || 0) + 'px'
+                      openSubmenu === submenuKey('main', nav)
+                        ? (subMenuHeights[submenuKey('main', nav)] || 0) + 'px'
                         : '0px'
                   }"
                 >
                   <ul class="mt-2 space-y-1 ms-9">
-                    @for (subItem of nav.subItems; track $index) {
+                    @for (subItem of nav.subItems; track subItem.path) {
                     <li>
                       <a
                         [routerLink]="subItem.path"
-                        routerLinkActive=""
-                        (click)="onSubmenuClick()"
+                                                (click)="onSubmenuClick()"
                         class="menu-dropdown-item"
+                        [attr.aria-current]="isActive(subItem.path) ? 'page' : null"
                         [ngClass]="{
                               'menu-dropdown-item-inactive': !isActive(subItem.path),
                               'menu-dropdown-item-active': isActive(subItem.path),
@@ -215,9 +217,10 @@
                 <a
                   [routerLink]="nav.path"
                   [attr.aria-label]="nav.name"
-                  routerLinkActive="menu-item-active"
+                  [class.menu-item-active]="isActive(nav.path)"
                   class="menu-item group"
-                  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+                  [class.menu-item-inactive]="!isActive(nav.path)"
+                  [attr.aria-current]="isActive(nav.path) ? 'page' : null"
                 >
                   <span
                     class="menu-item-icon-size"
@@ -263,7 +266,7 @@
                 (isHovered$ | async) ||
                 (isMobileOpen$ | async)
             ) {
-              Others
+              Ejemplos
             } @else {
               <svg
                 width="1em"
@@ -284,15 +287,18 @@
           </h2>
 
           <ul class="flex flex-col gap-1">
-            @for (nav of (authorization.has('panel.access') ? othersItems : []); track $index;let i = $index) {
+            @for (nav of (authorization.has('panel.access') ? othersItems : []); track nav.path ?? nav.name) {
             <li>
               @if (nav.subItems) {
                 <button
-                  (click)="toggleSubmenu('others',i)"
+                  (click)="toggleSubmenu('others',nav)"
+                  [attr.aria-label]="nav.name"
+                  [attr.aria-expanded]="openSubmenu === submenuKey('others', nav)"
+                  [attr.aria-controls]="submenuKey('others', nav)"
                   class="menu-item group cursor-pointer"
                   [ngClass]="{
-                     'menu-item-active': openSubmenu === 'others-' + i,
-                     'menu-item-inactive': openSubmenu !== 'others-' + i,
+                     'menu-item-active': isGroupActive(nav),
+                     'menu-item-inactive': !isGroupActive(nav),
                     'xl:justify-center': !(
                       (isExpanded$ | async) || (isHovered$ | async)
                     ),
@@ -303,8 +309,8 @@
                   <span
                     class="menu-item-icon-size"
                     [ngClass]="{
-                      'menu-item-icon-active': openSubmenu === 'others-' + i,
-                      'menu-item-icon-inactive': openSubmenu !== 'others-' + i,
+                      'menu-item-icon-active': isGroupActive(nav),
+                      'menu-item-icon-inactive': !isGroupActive(nav),
                     }"
                     [innerHTML]="nav.icon | safeHtml"
                   >
@@ -321,8 +327,8 @@
                   <span
                     class="ms-auto absolute end-10 menu-dropdown-badge"
                     [ngClass]="{
-                      'menu-dropdown-badge-active': openSubmenu === 'others-' + i,
-                      'menu-dropdown-badge-inactive': openSubmenu !== 'others-' + i
+                      'menu-dropdown-badge-active': isGroupActive(nav),
+                      'menu-dropdown-badge-inactive': !isGroupActive(nav)
                     }"
                   >
                     new
@@ -332,7 +338,7 @@
                   (isMobileOpen$ | async)) {
                   <svg
                     [ngClass]="{
-                      'rotate-180 text-brand-500': openSubmenu === 'others-' + i
+                      'rotate-180 text-brand-500': openSubmenu === submenuKey('others', nav)
                     }"
                     width="1em"
                     height="1em"
@@ -353,7 +359,7 @@
                 </button>
                 <div
                   class="overflow-hidden transition-all duration-300"
-                  [id]="'others-' + i"
+                  [id]="submenuKey('others', nav)"
                   [style.display]="
                     (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async) 
                       ? 'block' 
@@ -361,19 +367,19 @@
                   "
                   [ngStyle]="{
                     height:
-                      openSubmenu === 'others-' + i
-                        ? (subMenuHeights['others-' + i] || 0) + 'px'
+                      openSubmenu === submenuKey('others', nav)
+                        ? (subMenuHeights[submenuKey('others', nav)] || 0) + 'px'
                         : '0px'
                   }"
                 >
                   <ul class="mt-2 space-y-1 ms-9">
-                    @for (subItem of nav.subItems; track $index) {
+                    @for (subItem of nav.subItems; track subItem.path) {
                     <li>
                       <a
                         [routerLink]="subItem.path"
-                        routerLinkActive=""
-                        (click)="onSubmenuClick()"
+                                                (click)="onSubmenuClick()"
                         class="menu-dropdown-item"
+                        [attr.aria-current]="isActive(subItem.path) ? 'page' : null"
                         [ngClass]="{
                               'menu-dropdown-item-inactive': !isActive(subItem.path),
                               'menu-dropdown-item-active': isActive(subItem.path),
@@ -421,9 +427,10 @@
                 @if (nav.path) {
                 <a
                   [routerLink]="nav.path"
-                  routerLinkActive="menu-item-active"
+                  [class.menu-item-active]="isActive(nav.path)"
                   class="menu-item group"
-                  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+                  [class.menu-item-inactive]="!isActive(nav.path)"
+                  [attr.aria-current]="isActive(nav.path) ? 'page' : null"
                 >
                   <span
                     class="menu-item-icon-size"
