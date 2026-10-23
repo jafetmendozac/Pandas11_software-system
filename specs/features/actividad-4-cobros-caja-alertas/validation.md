@@ -1,6 +1,6 @@
 # Validación — Cobros comerciales, caja básica y mínimos
 
-Fecha: 2026-10-22 (America/Lima). Estado: COM-01–COM-06 implementados y validados localmente; COM-07 implementado y comprobado con Angular/ChromeHeadless, pendiente de recorrido visual manual de móvil/oscuro/RTL.
+Fecha: 2026-10-22 (America/Lima). Estado: COM-01–COM-07 implementados y validados localmente, incluido el recorrido visual de móvil, oscuro y RTL. Pendientes: aceptación operativa y adopción remota.
 
 ## Autorización y preflight
 
@@ -16,7 +16,7 @@ El usuario aprobó COM-D01–COM-D05 y el cambio de modelo del [plan](plan.md) m
 | COM-04 / RN-28 | Una caja OPEN como máximo. Trigger transaccional impide verificar sin caja y publica una entrada única por cita/producto y método. Cobros PAID históricos no reciben movimientos inventados. Revalidación de permiso después de esperar sesión. |
 | COM-05 / RN-29 | Fondo, ingreso/retiro manual OWNER, retiro sin efectivo esperado negativo, totales por medio, contado y diferencia de cierre. Cierre y movimientos con reintentos/versiones; sesiones y movimientos consultables. |
 | COM-06 / RN-22–RN-26, RN-30 | `minimum_stock` NULL/entero, consulta paginada de stock ≤ mínimo y filtro en `/productos`. Pruebas de cruce por venta y eliminación de alerta por reposición; sin bloqueo de venta. |
-| COM-07 / RN-27–RN-30 | `/caja`, saldos y cobros en `/ventas`, enlace de caja desde `/pagos`, mínimos en `/productos`; build y pruebas Angular en ChromeHeadless. No se hizo un recorrido visual manual de los nuevos flujos en móvil/oscuro/RTL. |
+| COM-07 / RN-27–RN-30 | `/caja`, saldos y cobros en `/ventas`, enlace de caja desde `/pagos`, mínimos en `/productos`; build, pruebas Angular y recorrido Chrome con datos sintéticos a 1280 y 390 px en claro, oscuro y RTL. |
 
 ## Migraciones y archivos
 
@@ -39,6 +39,14 @@ Se aplicaron seis migraciones incrementales **solo localmente**, en orden: `2026
 
 La primera ejecución de suites SQL mostró fallos esperados en fixtures previos que verificaban cobros sin caja; se actualizaron para abrir sesión. La nueva prueba reveló una ambigüedad de alias en `close_cash`, corregida con migración incremental. La prueba de venta mixta comparó inicialmente `99.00` con el texto exacto `99`; se ajustó la expectativa sin alterar el importe. Una compilación inicial en sandbox terminó con código 134 y una revisión automática posterior agotó su plazo; el build final con acceso autorizado completó correctamente.
 
+## Recorrido visual de cierre
+
+Se inició sesión con la cuenta ficticia OWNER del entorno local y se crearon, exclusivamente en Supabase local, un cliente y producto sintéticos, una venta confirmada de dos unidades, un cobro pendiente de S/ 4.25 y una caja con fondo de S/ 10.00. Se inspeccionaron `/caja`, `/ventas` y `/productos` en Chrome de escritorio (1280 px) y móvil (390 px) en claro, oscuro y RTL; también el diálogo de venta y el filtro de mínimos. No se observó desbordamiento horizontal de la página a 390 px; el diálogo mantuvo desplazamiento interno y foco inicial en «Cerrar». Al verificar el cobro desde la UI, ventas pasó de cobrado S/ 0.00/saldo S/ 10.00 a cobrado S/ 4.25/saldo S/ 5.75, y caja mostró un único movimiento de S/ 4.25 con efectivo esperado S/ 14.25. El filtro mostró 1 unidad frente a mínimo 2. Los registros sintéticos se eliminaron al concluir.
+
+Se corrigieron textos observados en el recorrido: códigos internos de método/estado/rol visibles en ventas y movimientos de caja, instrucción de confirmar una venta ya confirmada y plural «1 unidades». Se reutilizaron las etiquetas de pago existentes; no cambió la lógica financiera ni el esquema. Las capturas y el harness exploratorio fueron temporales y no forman una suite E2E versionada.
+
+Tras estas correcciones, `npm test -- --watch=false --browsers=ChromeHeadless` volvió a pasar **114/114**, `npm run build` terminó correctamente con la misma advertencia previa de 118 bytes en CSS de inicio y `git diff --check` no encontró errores.
+
 ## Límites y pendientes
 
-No hay recorrido visual manual de `/caja`, `/ventas` y `/productos` en móvil, oscuro y RTL; las pruebas Angular usan ChromeHeadless y el build comprueba plantillas, pero no sustituyen inspección visual. No se probó adopción ni datos de base remota. Los mínimos son avisos dentro de productos, sin notificaciones externas. La caja es un registro operativo; no incluye conciliación bancaria, factura, devolución, múltiples locales ni contabilidad. Los pagos históricos anteriores a esta función permanecen sin sesión y no se asignan por inferencia. Un guardado de producto y su mínimo son dos RPC consecutivas: ante un fallo entre ambas, la UI conserva el formulario y el operador debe recargar/reintentar el mínimo.
+No se probó adopción ni datos de base remota. Para aceptación operativa aún se requiere que personal autorizado revise con casos propios la apertura/cierre de caja, verificación y rechazo de cobros, anulación con disposición de stock y alerta de mínimos. Antes de una adopción remota se necesita identificar el entorno destino, comparar sus migraciones/RLS/datos con `Pandas11.sql` y las seis migraciones, preparar respaldo y secuencia de aplicación, y obtener aprobación específica; no se ejecutan cambios en producción en esta tarea. Los mínimos son avisos dentro de productos, sin notificaciones externas. La caja es un registro operativo; no incluye conciliación bancaria, factura, devolución, múltiples locales ni contabilidad. Los pagos históricos anteriores a esta función permanecen sin sesión y no se asignan por inferencia. Un guardado de producto y su mínimo son dos RPC consecutivas: ante un fallo entre ambas, la UI conserva el formulario y el operador debe recargar/reintentar el mínimo.

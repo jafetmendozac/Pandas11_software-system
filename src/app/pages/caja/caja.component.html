@@ -18,7 +18,7 @@
 @if(auth.has('cash.close')){<form (ngSubmit)="close()" class="flex flex-wrap items-end gap-3"><label>Efectivo contado<input name="counted" [(ngModel)]="counted" [class]="field" inputmode="decimal"></label><button [class]="button" [disabled]="busy()">Cerrar caja</button></form>}
 }
 <h3 class="font-semibold">Movimientos</h3>
-@for(m of rows();track m.id){<article class="border-b border-gray-200 py-2 dark:border-gray-700"><strong>{{label(m.source)}} · {{m.method}} · S/ {{money(m.amount)}}</strong><p>{{m.reason}} · {{date(m.created_at)}}</p></article>}@empty{<p>No hay movimientos en esta caja.</p>}
+@for(m of rows();track m.id){<article class="border-b border-gray-200 py-2 dark:border-gray-700"><strong>{{label(m.source)}} · {{paymentMethods[m.method]}} · S/ {{money(m.amount)}}</strong><p>{{m.reason}} · {{date(m.created_at)}}</p></article>}@empty{<p>No hay movimientos en esta caja.</p>}
 <div class="flex gap-3"><button [class]="button" (click)="movements(page-1)" [disabled]="page===1">Anterior</button><span>Página {{page}} · {{total}}</span><button [class]="button" (click)="movements(page+1)" [disabled]="page*10>=total">Siguiente</button></div>
 } @else {<p>Aún no hay caja registrada.</p>}
 @if(!hasOpen()){

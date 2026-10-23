@@ -22,7 +22,7 @@
 <p class="my-3 font-semibold">Total: S/ {{money(s.total)}}</p><p>Servicios de cita: S/ {{money(s.service_total)}} · cobrado en cita: S/ {{money(s.confirmed_appointment_payments)}}</p>
 <p>Productos: S/ {{money(s.product_total)}} · cobrado: S/ {{money(s.confirmed_product_payments)}}</p>
 @if(s.appointment_id && auth.has('payments.read')){<a routerLink="/pagos" [queryParams]="{cita:s.appointment_id}" class="text-brand-500 underline">Ver pagos de la cita</a>}
-<p>Confirmar registra una venta y descuenta stock; el pago se verifica por separado.</p>
+@if(s.status==='DRAFT'){<p>Confirmar registra la venta y descuenta stock; el pago se verifica por separado.</p>}
 @if(paymentSummary();as ps){@if(s.status==='CONFIRMED' && hasProducts(s)){
 <section class="my-4 space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"><h3 class="font-semibold">Cobros de productos</h3>
 <p>Confirmado S/ {{money(ps.product_paid)}} · pendiente de verificar S/ {{money(ps.product_pending)}} · saldo S/ {{money(ps.product_outstanding)}}</p>
@@ -30,8 +30,8 @@
 <label>Método<select [(ngModel)]="paymentMethod" [class]="field" [disabled]="busy() || !!pendingPayment"><option value="CASH">Efectivo</option><option value="YAPE">Yape</option><option value="PLIN">Plin</option><option value="CARD">Tarjeta</option><option value="TRANSFER">Transferencia</option></select></label>
 <label>Operación (opcional)<input [(ngModel)]="operationCode" [class]="field" maxlength="120" [disabled]="busy() || !!pendingPayment"></label><label>Referencia (opcional)<input [(ngModel)]="externalRef" [class]="field" maxlength="120" [disabled]="busy() || !!pendingPayment"></label></div>
 <button [class]="button" (click)="registerPayment()" [disabled]="busy()">{{pendingPayment?'Reintentar mismo cobro':'Registrar cobro pendiente'}}</button>}
-<p>OWNER verifica el cobro con <a routerLink="/caja" class="text-brand-500 underline">caja abierta</a>. Registrar no confirma recepción.</p>
-@for(p of paymentRows();track p.id){<div class="border-t border-gray-200 py-2 dark:border-gray-700"><strong>S/ {{money(p.amount)}} · {{p.method}} · {{p.status}}</strong>
+<p>El propietario verifica el cobro con <a routerLink="/caja" class="text-brand-500 underline">caja abierta</a>. Registrar no confirma recepción.</p>
+@for(p of paymentRows();track p.id){<div class="border-t border-gray-200 py-2 dark:border-gray-700"><strong>S/ {{money(p.amount)}} · {{paymentMethods[p.method]}} · {{paymentStatuses[p.status]}}</strong>
 @if(p.rejection_reason){<p>Rechazo: {{p.rejection_reason}}</p>}
 @if(p.status==='PENDING' && auth.has('sale_payments.verify')){<div class="flex flex-wrap gap-2"><button [class]="button" (click)="decidePayment(p,true)" [disabled]="busy()">Verificar</button><input aria-label="Motivo de rechazo" [(ngModel)]="rejectionReason" [class]="field" maxlength="500" placeholder="Motivo de rechazo"><button [class]="button" (click)="decidePayment(p,false)" [disabled]="busy()">Rechazar</button></div>}
 </div>}@empty{<p>No hay cobros de productos.</p>}
@@ -46,5 +46,5 @@
 @if(canConfirm(s)){<button [class]="button" (click)="action()" [disabled]="busy() || conflict">{{hasProducts(s) ? 'Confirmar venta y salida de stock' : 'Confirmar venta de servicios'}}</button>}
 @if(canCancel(s)){
 @if(needsDisposition(s)){<label class="block">Mercadería al anular<select name="disposition" [(ngModel)]="disposition" [class]="field" [disabled]="busy()"><option value="">Selecciona una opción</option><option value="RESTOCK">Reponer todas las unidades (aptas para venta)</option><option value="NO_RESTOCK">No reponer (no recuperadas o no aptas)</option></select></label>}
-<p>Los pagos se conservan; la anulación no devuelve dinero.</p><label class="block">Motivo de anulación<textarea [(ngModel)]="reason" maxlength="500" [class]="field"></textarea></label><button [class]="button" (click)="action(true)" [disabled]="busy() || conflict">Anular venta</button>}@else{<p>Solo OWNER puede anular esta venta.</p>}}
+<p>Los pagos se conservan; la anulación no devuelve dinero.</p><label class="block">Motivo de anulación<textarea [(ngModel)]="reason" maxlength="500" [class]="field"></textarea></label><button [class]="button" (click)="action(true)" [disabled]="busy() || conflict">Anular venta</button>}@else{<p>Solo el propietario puede anular esta venta.</p>}}
 </section></div>}

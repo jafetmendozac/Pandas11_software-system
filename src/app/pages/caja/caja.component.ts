@@ -7,11 +7,13 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
 import { limaDateTime } from '../../shared/services/work-calendar.service';
+import { PAYMENT_METHODS } from '../../shared/services/payment.models';
 
 @Component({ standalone:true, selector:'app-caja', imports:[FormsModule,PageBreadcrumbComponent,ComponentCardComponent], templateUrl:'./caja.component.html' })
 export class CajaComponent {
   readonly api=inject(CommercialService); readonly auth=inject(AuthorizationService);
   readonly money=decimalLabel; readonly date=limaDateTime;
+  readonly paymentMethods=PAYMENT_METHODS;
   readonly field='w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
   readonly button='rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-700';
   readonly session=signal<CashSession|null>(null); readonly rows=signal<CashMovement[]>([]);

@@ -13,13 +13,15 @@ import { ComponentCardComponent } from '../../shared/components/common/component
 import { decimalLabel } from '../../shared/services/service-pricing.models';
 import { CommercialService } from '../../shared/services/commercial.service';
 import { SalePayment, SalePaymentSummary } from '../../shared/services/commercial.models';
-import { PaymentMethod } from '../../shared/services/payment.models';
+import { PaymentMethod, PAYMENT_METHODS, PAYMENT_STATUSES } from '../../shared/services/payment.models';
 @Component({standalone:true,selector:'app-ventas',imports:[FormsModule,RouterLink,A11yModule,PageBreadcrumbComponent,ComponentCardComponent],templateUrl:'./ventas.component.html'})
 export class VentasComponent implements OnDestroy {
  readonly api = inject(SalesService); readonly auth = inject(AuthorizationService);
  readonly commercial = inject(CommercialService);
  readonly error = signal(''); readonly loading = signal(false); readonly busy = signal(false);
  readonly money = decimalLabel;
+ readonly paymentMethods = PAYMENT_METHODS;
+ readonly paymentStatuses = PAYMENT_STATUSES;
  readonly field = 'w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
  readonly button = 'rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-700';
  search = ''; page = 1; total = 0; private revision = 0;
