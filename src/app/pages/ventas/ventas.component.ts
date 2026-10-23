@@ -11,9 +11,13 @@ import { Appointment } from '../../shared/services/appointment.models';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
+import { CommercialService } from '../../shared/services/commercial.service';
+import { SalePayment, SalePaymentSummary } from '../../shared/services/commercial.models';
+import { PaymentMethod } from '../../shared/services/payment.models';
 @Component({standalone:true,selector:'app-ventas',imports:[FormsModule,RouterLink,A11yModule,PageBreadcrumbComponent,ComponentCardComponent],templateUrl:'./ventas.component.html'})
 export class VentasComponent implements OnDestroy {
  readonly api = inject(SalesService); readonly auth = inject(AuthorizationService);
+ readonly commercial = inject(CommercialService);
  readonly error = signal(''); readonly loading = signal(false); readonly busy = signal(false);
  readonly money = decimalLabel;
  readonly field = 'w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
@@ -28,11 +32,26 @@ export class VentasComponent implements OnDestroy {
  clientId=''; clientName=''; appointmentId=''; lines:{product_id:string;quantity:number;name:string}[]=[];
  disposition: InventoryDisposition | '' = '';
  reason=''; pending:SaleDraftInput|null=null; conflict=false;
+ readonly paymentSummary=signal<SalePaymentSummary|null>(null);
+ readonly paymentRows=signal<SalePayment[]>([]);
+ paymentPage=1; paymentTotal=0;
+ paymentAmount=''; paymentMethod:PaymentMethod='CASH'; operationCode=''; externalRef=''; rejectionReason='';
+ pendingPayment:{sale_id:string;amount:string;method:PaymentMethod;operation_code:string|null;external_ref:string|null;request_id:string}|null=null;
  private opener:HTMLElement|null=null;
  constructor(){void this.load();}
  async load(page=1){const rev=++this.revision;this.page=page;this.loading.set(true);this.error.set('');try{const r=await this.api.search(this.search,page);if(rev===this.revision){this.rows.set(r.rows);this.total=r.total;}}catch(e){if(rev===this.revision)this.error.set(this.message(e));}finally{if(rev===this.revision)this.loading.set(false);}}
- async detail(s:Sale){if(this.busy())return;this.opener=document.activeElement as HTMLElement;this.busy.set(true);this.error.set('');try{this.selected.set(await this.api.get(s.id));this.reason='';this.disposition='';this.conflict=false;}catch(e){this.error.set(this.message(e));}finally{this.busy.set(false);}}
- close(){if(this.busy())return;this.selected.set(null);this.opener?.focus();}
+ async detail(s:Sale){if(this.busy())return;this.opener=document.activeElement as HTMLElement;this.busy.set(true);this.error.set('');try{this.selected.set(await this.api.get(s.id));this.reason='';this.disposition='';this.conflict=false;await this.loadPayments(s.id);}catch(e){this.error.set(this.message(e));}finally{this.busy.set(false);}}
+ async loadPayments(id:string,page=1){if(!this.auth.has('sale_payments.read'))return;const [summary,list]=await Promise.all([this.commercial.saleSummary(id),this.commercial.salePayments(id,page)]);this.paymentSummary.set(summary);this.paymentRows.set(list.rows);this.paymentPage=page;this.paymentTotal=list.total;}
+ async registerPayment(){const s=this.selected();if(!s||this.busy()||!this.auth.has('sale_payments.create'))return;
+   if(!this.pendingPayment){if(!/^\d+(\.\d{1,2})?$/.test(this.paymentAmount)||Number(this.paymentAmount)<=0||this.operationCode.length>120||this.externalRef.length>120){this.error.set('Importe positivo con máximo dos decimales; referencias de hasta 120 caracteres.');return;}
+   this.pendingPayment={sale_id:s.id,amount:this.paymentAmount,method:this.paymentMethod,operation_code:this.operationCode.trim()||null,external_ref:this.externalRef.trim()||null,request_id:crypto.randomUUID()};}
+   this.busy.set(true);this.error.set('');try{await this.commercial.registerSalePayment(this.pendingPayment);this.pendingPayment=null;this.paymentAmount='';this.operationCode='';this.externalRef='';await this.loadPayments(s.id);}
+   catch(e){const code=(e as {code?:string}).code;if(code&&/^(22|23|40|42)/.test(code))this.pendingPayment=null;this.error.set(this.message(e));}finally{this.busy.set(false);}}
+ async decidePayment(p:SalePayment,verify:boolean){const s=this.selected();if(!s||this.busy()||!this.auth.has('sale_payments.verify'))return;
+   if(!verify&&!this.rejectionReason.trim()){this.error.set('Escribe el motivo del rechazo.');return;}
+   this.busy.set(true);this.error.set('');try{if(verify)await this.commercial.verifySalePayment(p);else await this.commercial.rejectSalePayment(p,this.rejectionReason.trim());this.rejectionReason='';await this.loadPayments(s.id);this.selected.set(await this.api.get(s.id));}
+   catch(e){this.error.set(this.message(e));}finally{this.busy.set(false);}}
+ close(){if(this.busy())return;this.selected.set(null);this.paymentSummary.set(null);this.paymentRows.set([]);this.pendingPayment=null;this.opener?.focus();}
  start(){if(this.busy()||this.pending||!this.auth.has('sales.manage'))return;this.pending=null;this.clientId='';this.clientName='';this.appointmentId='';this.lines=[];this.creating.set(true);void this.options('clients');}
  async options(kind=this.optionKind,page=1){const rev=++this.optionRevision;this.optionKind=kind;this.optionPage=page;this.error.set('');this.clients.set([]);this.appointments.set([]);this.products.set([]);
  try{if(kind==='clients'){const r=await this.clientsApi.search({search:this.optionSearch,page,size:10});if(rev===this.optionRevision){this.clients.set(r.rows);this.optionTotal=r.total;}}

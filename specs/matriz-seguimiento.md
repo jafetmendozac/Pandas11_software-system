@@ -51,11 +51,11 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
 | 4.1 | Iniciar Ventas: modelo y lógica de venta mixta | S7 | Implementado localmente | Modelo/RPC de servicios y productos, snapshots, autorización, confirmación y stock transaccional [E17, E20]. | Sin despliegue remoto; caja y cobros de productos pertenecen a siguientes puntos. |
-| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Parcial | Páginas de ventas/productos, borradores, confirmación con stock y cobros de cita por referencia; cinco métodos manuales y OWNER verifica [E09, E17, E20]. | Cobro de mostrador/productos y asignación de saldo mixto pendientes; venta confirmada no acredita pago. |
-| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Parcial | Cita completada puede vincularse a una venta sin duplicar pagos; cobro final y saldo de cita existentes [E09, E17]. | Definir e implementar apertura/movimientos/cierre de caja; cobros de citas no equivalen a cierre de caja. |
+| 4.2 | Módulo Ventas: registro de venta y métodos de pago | S8 | Implementado y validado localmente | Ventas confirmadas, cobro de productos por separado de cita y cinco métodos manuales con verificación OWNER [E09, E17, E20, E21]. | Aceptación operativa y despliegue remoto; facturación/devolución fuera del alcance. |
+| 4.3 | Conexión Cita → Venta y cierre de caja básico | S8 | Implementado y validado localmente | Relación cita→venta opcional, caja única con apertura, ingresos verificados, movimientos manuales y cierre con diferencia [E21]. | Aceptación operativa y despliegue remoto; conciliación bancaria fuera del alcance. |
 | 4.4 | Módulo Inventario: registro y stock automático | S9 | Implementado y validado localmente | Stock por producto, carga inicial/entradas/ajustes, confirmación transaccional y pruebas concurrentes [E17, E20]. | Adopción remota y aceptación sobre operación real fuera de esta entrega; cobro de mostrador pendiente en 4.2. |
 | 4.5 | Movimientos de inventario y su historial | S9 | Implementado y validado localmente | Historial paginado, motivos/actor/saldos y referencia a ventas; anulaciones con disposición explícita [E20]. | Sin devoluciones parciales ni costos/valorización; fuera del alcance aprobado. |
-| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Pendiente | Inventario y movimientos ya disponibles localmente [E20]. | Acordar umbrales por producto, presentación/canal de alertas y pruebas; no implementado. |
+| 4.6 | Finalizar Inventario: alertas de stock mínimo | S10 | Implementado y validado localmente | Umbral por producto o NULL, filtro/aviso en `/productos`, sin bloquear ventas [E21]. | Aceptación operativa y despliegue remoto; avisos externos fuera del alcance. |
 
 ## Actividad 5 — Construcción de analítica y fidelización
 
@@ -101,6 +101,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E17 | [Anexo del módulo comercial](actividad-4-modulo-comercial.md) y [validación de 4.1](features/actividad-4-ventas-mixtas/validation.md): separación entre cita, cobro, venta, caja e inventario; modelo y API local de ventas, decisiones y límites pendientes. |
 | E18 | [Anexo de analítica y fidelización](actividad-5-analitica-fidelizacion.md): puntos 5.1–5.5, fuentes disponibles, componentes de demostración, dependencias y criterios por definir. Preparado para revisión. |
 | E19 | [Anexo de calidad y transferencia](actividad-6-calidad-transferencia.md): puntos 6.1–6.4, evidencia de pruebas locales, paquete de aceptación, manuales y registro pendiente de capacitación/entrega. Preparado para revisión. |
+| E21 | [Cobros, caja y mínimos](features/actividad-4-cobros-caja-alertas/validation.md): migraciones locales, RLS, suite SQL, API y Angular. |
 
 ## Reservas online y diferencias de alcance
 

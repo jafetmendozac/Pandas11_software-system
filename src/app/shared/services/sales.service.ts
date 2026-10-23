@@ -20,6 +20,12 @@ export class SalesService {
     return this.rpc('save_product', { p_id: input.id ?? null, p_name: input.name, p_sku: input.sku,
       p_price: input.price, p_active: input.active });
   }
+  setMinimum(id: string, minimum: number | null): Promise<Product> {
+    return this.rpc('set_product_minimum', { p_id: id, p_minimum: minimum });
+  }
+  lowStock(search = '', page = 1): Promise<ProductPage> {
+    return this.rpc('search_low_stock', { p_search: search, p_page: page, p_size: 10 });
+  }
 
   products(search = '', page = 1, size = 10, active: boolean | null = null): Promise<ProductPage> {
     return this.rpc('search_products', { p_search: search, p_page: page, p_size: size, p_active: active });

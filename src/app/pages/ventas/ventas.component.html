@@ -11,7 +11,7 @@
 @for(p of products();track p.id){<button [class]="button" (click)="add(p)">{{p.name}} · S/ {{money(p.price)}}</button>}
 <div class="flex gap-2"><button [class]="button" (click)="options(optionKind,optionPage-1)" [disabled]="optionPage===1">Anterior</button><span>Página {{optionPage}}</span><button [class]="button" (click)="options(optionKind,optionPage+1)" [disabled]="optionPage*10>=optionTotal">Siguiente</button></div>
 @for(l of lines;track l.product_id){<label class="block">{{l.name}}<input type="number" min="1" max="1000000" step="1" [(ngModel)]="l.quantity" [class]="field"></label><button [class]="button" (click)="lines.splice($index,1)">Quitar</button>}
-</fieldset><p>Los servicios y el total se obtienen al guardar. Al confirmar se descontará stock. El cobro de productos todavía no está habilitado.</p>
+</fieldset><p>Los servicios y el total se obtienen al guardar. Al confirmar se descontará stock. El cobro de productos se registra después de confirmar.</p>
 <button [class]="button" (click)="create()" [disabled]="busy()">{{pending ? 'Reintentar mismo envío' : 'Guardar borrador'}}</button> <button [class]="button" (click)="creating.set(false)" [disabled]="busy() || !!pending">Cancelar</button></section>}
 @if(loading()){<p role="status">Cargando…</p>}@else{@for(s of rows();track s.id){<div class="flex flex-wrap justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{s.client_name}}</strong><p>{{label(s)}} · S/ {{money(s.total)}}</p></div><button [class]="button" (click)="detail(s)" [disabled]="busy()">Ver detalle</button></div>}@empty{<p>No hay ventas.</p>}}
 <div class="flex flex-wrap gap-3"><button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button><span>Página {{page}} · {{total}} ventas</span><button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button></div>
@@ -19,9 +19,24 @@
 @if(selected();as s){<div class="fixed inset-0 z-99999 flex items-center justify-center bg-gray-950/70 p-4"><section role="dialog" aria-modal="true" aria-labelledby="sale-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl bg-white p-6 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
 <button cdkFocusInitial [class]="button" (click)="close()" [attr.aria-disabled]="busy()">Cerrar</button><h2 id="sale-title" class="my-3 text-xl font-semibold">{{s.client_name}} · {{label(s)}}</h2>
 @for(i of s.items;track i.id){<p class="border-b border-gray-200 py-2 dark:border-gray-700">{{i.description}} · {{i.quantity}} × S/ {{money(i.unit_price)}} = S/ {{money(i.line_total)}}</p>}
-<p class="my-3 font-semibold">Total: S/ {{money(s.total)}}</p><p>Cobros confirmados de cita: S/ {{money(s.confirmed_appointment_payments)}}. Este importe no acredita cobro de productos.</p>
+<p class="my-3 font-semibold">Total: S/ {{money(s.total)}}</p><p>Servicios de cita: S/ {{money(s.service_total)}} · cobrado en cita: S/ {{money(s.confirmed_appointment_payments)}}</p>
+<p>Productos: S/ {{money(s.product_total)}} · cobrado: S/ {{money(s.confirmed_product_payments)}}</p>
 @if(s.appointment_id && auth.has('payments.read')){<a routerLink="/pagos" [queryParams]="{cita:s.appointment_id}" class="text-brand-500 underline">Ver pagos de la cita</a>}
-<p>Confirmar registra una venta y descuenta stock; no acredita pago. El cobro de productos todavía no está habilitado.</p>
+<p>Confirmar registra una venta y descuenta stock; el pago se verifica por separado.</p>
+@if(paymentSummary();as ps){@if(s.status==='CONFIRMED' && hasProducts(s)){
+<section class="my-4 space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"><h3 class="font-semibold">Cobros de productos</h3>
+<p>Confirmado S/ {{money(ps.product_paid)}} · pendiente de verificar S/ {{money(ps.product_pending)}} · saldo S/ {{money(ps.product_outstanding)}}</p>
+@if(auth.has('sale_payments.create')){<div class="grid gap-2 sm:grid-cols-2"><label>Importe<input [(ngModel)]="paymentAmount" [class]="field" inputmode="decimal" [disabled]="busy() || !!pendingPayment"></label>
+<label>Método<select [(ngModel)]="paymentMethod" [class]="field" [disabled]="busy() || !!pendingPayment"><option value="CASH">Efectivo</option><option value="YAPE">Yape</option><option value="PLIN">Plin</option><option value="CARD">Tarjeta</option><option value="TRANSFER">Transferencia</option></select></label>
+<label>Operación (opcional)<input [(ngModel)]="operationCode" [class]="field" maxlength="120" [disabled]="busy() || !!pendingPayment"></label><label>Referencia (opcional)<input [(ngModel)]="externalRef" [class]="field" maxlength="120" [disabled]="busy() || !!pendingPayment"></label></div>
+<button [class]="button" (click)="registerPayment()" [disabled]="busy()">{{pendingPayment?'Reintentar mismo cobro':'Registrar cobro pendiente'}}</button>}
+<p>OWNER verifica el cobro con <a routerLink="/caja" class="text-brand-500 underline">caja abierta</a>. Registrar no confirma recepción.</p>
+@for(p of paymentRows();track p.id){<div class="border-t border-gray-200 py-2 dark:border-gray-700"><strong>S/ {{money(p.amount)}} · {{p.method}} · {{p.status}}</strong>
+@if(p.rejection_reason){<p>Rechazo: {{p.rejection_reason}}</p>}
+@if(p.status==='PENDING' && auth.has('sale_payments.verify')){<div class="flex flex-wrap gap-2"><button [class]="button" (click)="decidePayment(p,true)" [disabled]="busy()">Verificar</button><input aria-label="Motivo de rechazo" [(ngModel)]="rejectionReason" [class]="field" maxlength="500" placeholder="Motivo de rechazo"><button [class]="button" (click)="decidePayment(p,false)" [disabled]="busy()">Rechazar</button></div>}
+</div>}@empty{<p>No hay cobros de productos.</p>}
+<div class="flex gap-2"><button [class]="button" (click)="loadPayments(s.id,paymentPage-1)" [disabled]="paymentPage===1 || busy()">Anterior</button><span>Página {{paymentPage}} · {{paymentTotal}}</span><button [class]="button" (click)="loadPayments(s.id,paymentPage+1)" [disabled]="paymentPage*10>=paymentTotal || busy()">Siguiente</button></div>
+</section>}}
 @if(s.inventory_disposition){<p>Mercadería al anular: {{s.inventory_disposition === 'RESTOCK' ? 'Repuesta al inventario' : 'Sin reposición'}}.</p>}
 @if(s.requires_resolution){<p role="status">Cobro conservado: requiere resolución, sin devolución automática.</p>}
 @if(s.cancel_reason){<p>Motivo: {{s.cancel_reason}}</p>}

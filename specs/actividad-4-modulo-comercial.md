@@ -59,3 +59,7 @@ Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradore
 Plan y decisiones INV-D01–INV-D05 aprobados mediante «Añadelo entonces» con `$sdd-feature`. Inventario local por producto/unidad, saldo cero inicial, entradas OWNER/ADMIN, ajustes OWNER, historial y descuento de stock al confirmar ventas. Anulación de productos confirmados solo OWNER con elección RESTOCK/NO_RESTOCK; dinero conservado. Se habilita confirmación comercial de productos, sin afirmar cobro de mostrador.
 
 Dos migraciones incrementales locales sin reset ni cambios remotos. Validación y límites en [inventario](features/actividad-4-inventario/validation.md). La restricción histórica de productos solo en borrador se sustituye para este nuevo alcance; caja, pagos de productos, mínimos/alertas y devoluciones parciales siguen pendientes.
+
+## Actualización 4.2, 4.3 y 4.6 — 2026-10-22
+
+Tras aprobar COM-D01–COM-D05 mediante «Vamos con eso», se implementaron localmente cobros de productos separados de la cita, caja única con ingreso automático de pagos verificados y cierre con diferencia, y mínimos informativos por producto. La [validación](features/actividad-4-cobros-caja-alertas/validation.md) registra pruebas y límites. Los diagnósticos anteriores de este anexo quedan como historia de avance, no como estado vigente. Sin despliegue remoto, facturación, devolución de dinero o conciliación bancaria.

@@ -34,14 +34,15 @@ export class AppSidebarComponent {
 
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read'};
-    const visible = (path?:string):boolean => (!['/ventas','/productos'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.has(permission[path]));
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read'};
+    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.has(permission[path]));
     return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0);
   }
   // Main nav items
   navItems: NavItem[] = [
     { name: 'Ventas', path: '/ventas', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h4"/></svg>' },
     { name: 'Productos', path: '/productos', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M3 6h18v15H3zM3 6l9-4 9 4M12 6v15"/></svg>' },
+    { name: 'Caja', path: '/caja', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4M17 14v3"/></svg>' },
     { name: 'Pagos y saldos', path: '/pagos', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>' },
     {
       name: 'Settings',

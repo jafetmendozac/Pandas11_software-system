@@ -103,9 +103,17 @@ select set_config('test.inv.mixed',public.create_sale_draft(jsonb_build_object('
  'appointment_id',current_setting('test.sale.appointment'),'products',jsonb_build_array(jsonb_build_object('product_id',current_setting('test.inv.product'),'quantity',1))))->>'id',true);
 select set_config('test.inv.payment',public.register_payment(jsonb_build_object('appointment_id',current_setting('test.sale.appointment'),
  'type','BALANCE','method','CASH','amount','10.10','request_id',gen_random_uuid()))->>'id',true);
+select public.open_cash('0',gen_random_uuid());
 select lives_ok($$select public.verify_payment(current_setting('test.inv.payment')::uuid,1)$$,'Pago de cita verificado');
 select is(public.confirm_sale(current_setting('test.inv.mixed')::uuid,1)->>'total','129.25','Confirma total mixto mayor que subtotal de servicios');
 select is(public.get_sale(current_setting('test.inv.mixed')::uuid)->>'confirmed_appointment_payments','10.10','Referencia cobro de cita');
+select is(public.sale_payment_summary(current_setting('test.inv.mixed')::uuid)->>'service_total','30.25','Subtotal de servicios separado');
+select is(public.sale_payment_summary(current_setting('test.inv.mixed')::uuid)->>'product_total','99','Subtotal de productos separado');
+select set_config('test.inv.product_payment',public.register_sale_payment(jsonb_build_object('sale_id',current_setting('test.inv.mixed'),
+ 'method','YAPE','amount','20.00','request_id',gen_random_uuid()))->>'id',true);
+select is(public.verify_sale_payment(current_setting('test.inv.product_payment')::uuid,1)->>'status','PAID','Cobro de producto mixto verificado');
+select is(public.sale_payment_summary(current_setting('test.inv.mixed')::uuid)->>'product_outstanding','79.00','Pago de cita no reduce saldo de productos');
+select is(public.get_sale(current_setting('test.inv.mixed')::uuid)->>'confirmed_appointment_payments','10.10','Cobro de productos no duplica dinero de cita');
 select is((select count(*)::integer from public.payments where appointment_id=current_setting('test.sale.appointment')::uuid),1,'No crea otro pago');
 select is((select unit_price::text from public.sale_items where sale_id=current_setting('test.inv.mixed')::uuid and kind='SERVICE'),'30.25','Precio de servicio preservado');
 select is(public.cancel_sale(current_setting('test.inv.mixed')::uuid,2,'Mercaderia recuperada','RESTOCK')->>'requires_resolution','true','Anulacion mixta exige resolver dinero separado');

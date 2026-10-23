@@ -91,6 +91,7 @@ export const routes: Routes = [
       { path: 'ventas', loadComponent: () => import('./pages/ventas/ventas.component').then(m => m.VentasComponent), canActivate: [salesGuard], data: { permission: 'sales.read' }, title: 'Ventas | Pandas 11' },
       { path: 'productos', loadComponent: () => import('./pages/productos/productos.component').then(m => m.ProductosComponent), canActivate: [salesGuard], data: { permission: 'products.read' }, title: 'Productos | Pandas 11' },
       { path: 'pagos', loadComponent: () => import('./pages/pagos/pagos.component').then(m => m.PagosComponent), data: { permission: 'payments.read' }, title: 'Pagos y saldos | Spa Boutique Pandas 11' },
+      { path: 'caja', loadComponent: () => import('./pages/caja/caja.component').then(m => m.CajaComponent), canActivate: [salesGuard], data: { permission: 'cash.read' }, title: 'Caja | Pandas 11' },
       {
         path:'calendario',
         data: { permission: 'appointments.read' },

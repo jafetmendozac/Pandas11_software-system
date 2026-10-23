@@ -425,6 +425,7 @@ CREATE TABLE "products" (
  unit text not null default 'UNIT' check (unit='UNIT'),
  price numeric not null check (price>=0 and price<'Infinity'::numeric and price=round(price,2)),
  active boolean not null default true,
+ minimum_stock integer check(minimum_stock>=0),
  created_at timestamptz not null default clock_timestamp(),
  updated_at timestamptz not null default clock_timestamp()
 );
@@ -506,6 +507,69 @@ create table public.inventory_movements (
 create unique index inventory_sale_once on public.inventory_movements(sale_item_id,kind) where sale_item_id is not null;
 create index inventory_history on public.inventory_movements(product_id,created_at desc,id desc);
 create index inventory_sale on public.inventory_movements(sale_id);
+
+-- Cobros comerciales, caja y mínimos: estructura local de referencia.
+-- RPC, grants, RLS y disparadores están en las migraciones 20261022160000,
+-- 20261022163000, 20261022164000, 20261022165000, 20261022166000 y 20261022167000; no ejecutar este archivo raíz.
+create table public.sale_payments (
+ id uuid primary key default gen_random_uuid(),
+ sale_id uuid not null references public.sales(id),
+ method public.payment_method not null,
+ status public.payment_status not null default 'PENDING',
+ amount numeric not null check(amount>0 and amount<'Infinity'::numeric and amount=round(amount,2)),
+ operation_code text check(operation_code is null or length(btrim(operation_code)) between 1 and 120),
+ external_ref text check(external_ref is null or length(btrim(external_ref)) between 1 and 120),
+ verified_by uuid references public.profiles(id),
+ paid_at timestamptz,
+ created_at timestamptz not null default clock_timestamp(),
+ created_by uuid not null references public.profiles(id),
+ version integer not null default 1 check(version>0),
+ rejection_reason text check(rejection_reason is null or length(btrim(rejection_reason)) between 1 and 500),
+ request_id uuid not null unique,
+ constraint sale_payment_state check (
+  (status='PAID' and verified_by is not null and paid_at is not null and rejection_reason is null)
+  or (status='PENDING' and verified_by is null and paid_at is null and rejection_reason is null)
+  or (status='FAILED' and verified_by is null and paid_at is null and rejection_reason is not null))
+);
+create index sale_payments_sale on public.sale_payments(sale_id,created_at desc,id desc);
+create table public.cash_sessions (
+ id uuid primary key default gen_random_uuid(),
+ status text not null default 'OPEN' check(status in ('OPEN','CLOSED')),
+ opening_cash numeric not null check(opening_cash>=0 and opening_cash<'Infinity'::numeric and opening_cash=round(opening_cash,2)),
+ opened_at timestamptz not null default clock_timestamp(),
+ opened_by uuid not null references public.profiles(id),
+ request_id uuid not null unique,
+ closed_at timestamptz,
+ closed_by uuid references public.profiles(id),
+ counted_cash numeric check(counted_cash>=0 and counted_cash<'Infinity'::numeric and counted_cash=round(counted_cash,2)),
+ expected_cash numeric check(expected_cash>=0 and expected_cash<'Infinity'::numeric and expected_cash=round(expected_cash,2)),
+ difference numeric,
+ version integer not null default 1 check(version>0),
+ constraint cash_session_state check(
+  (status='OPEN' and closed_at is null and closed_by is null and counted_cash is null and expected_cash is null and difference is null)
+  or (status='CLOSED' and closed_at is not null and closed_by is not null and counted_cash is not null and expected_cash is not null and difference=counted_cash-expected_cash))
+);
+create unique index cash_one_open on public.cash_sessions(status) where status='OPEN';
+create table public.cash_movements (
+ id uuid primary key default gen_random_uuid(),
+ session_id uuid not null references public.cash_sessions(id),
+ source text not null check(source in ('APPOINTMENT_PAYMENT','SALE_PAYMENT','MANUAL_IN','MANUAL_OUT')),
+ method public.payment_method not null,
+ amount numeric not null check(amount<>0 and amount<'Infinity'::numeric and amount>'-Infinity'::numeric and amount=round(amount,2)),
+ appointment_payment_id uuid unique references public.payments(id),
+ sale_payment_id uuid unique references public.sale_payments(id),
+ request_id uuid unique,
+ request_payload jsonb,
+ reason text not null check(length(btrim(reason)) between 1 and 500),
+ created_at timestamptz not null default clock_timestamp(),
+ created_by uuid not null references public.profiles(id),
+ constraint cash_movement_source check(
+  (source='APPOINTMENT_PAYMENT' and appointment_payment_id is not null and sale_payment_id is null and request_id is null and request_payload is null and amount>0)
+  or (source='SALE_PAYMENT' and sale_payment_id is not null and appointment_payment_id is null and request_id is null and request_payload is null and amount>0)
+  or (source='MANUAL_IN' and method='CASH' and amount>0 and appointment_payment_id is null and sale_payment_id is null and request_id is not null and request_payload is not null)
+  or (source='MANUAL_OUT' and method='CASH' and amount<0 and appointment_payment_id is null and sale_payment_id is null and request_id is not null and request_payload is not null))
+);
+create index cash_movements_session on public.cash_movements(session_id,created_at desc,id desc);
 
 CREATE TABLE "billing_documents" (
   "id" uuid PRIMARY KEY,

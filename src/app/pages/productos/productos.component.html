@@ -3,15 +3,17 @@
 <p>Artículos por unidad. Las ventas confirmadas descuentan existencias; los borradores no reservan stock.</p>
 <form (ngSubmit)="load()" class="flex flex-wrap gap-2"><input aria-label="Buscar productos" name="search" [(ngModel)]="search" [class]="field" placeholder="Nombre o SKU"><button [class]="button">Buscar</button>
 @if(auth.has('products.manage')){<button type="button" [class]="button" (click)="edit()">Nuevo producto</button>}</form>
+@if(auth.has('inventory.read')){<label class="flex items-center gap-2"><input type="checkbox" [(ngModel)]="lowOnly" (change)="load()"> Solo productos en mínimo o menos</label>}
 @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
 @if(editing()){<form (ngSubmit)="save()" class="space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
 <label class="block">Nombre<input name="name" [(ngModel)]="name" [class]="field" required maxlength="120"></label>
 <label class="block">SKU (opcional)<input name="sku" [(ngModel)]="sku" [class]="field" maxlength="60"></label>
 <label class="block">Precio en PEN<input name="price" [(ngModel)]="price" [class]="field" inputmode="decimal" required></label>
+<label class="block">Stock mínimo (vacío desactiva alerta)<input name="minimum" [(ngModel)]="minimum" [class]="field" type="number" min="0" max="2147483647" step="1"></label>
 <label class="block"><input type="checkbox" name="active" [(ngModel)]="active"> Activo</label>
 <button [class]="button" [disabled]="busy()">Guardar</button> <button type="button" [class]="button" [disabled]="busy()" (click)="editing.set(false)">Cancelar</button></form>}
 @if(loading()){<p role="status">Cargando…</p>}@else{
-@for(p of rows();track p.id){<div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{p.name}}</strong><p>{{p.sku || 'Sin SKU'}} · S/ {{money(p.price)}} · {{p.active ? 'Activo' : 'Inactivo'}}</p>@if(balances()[p.id];as b){<p>Stock: <strong>{{b.quantity}}</strong> unidades</p>}</div>@if(auth.has('products.manage')){<button [class]="button" (click)="edit(p)" [disabled]="busy()">Editar</button>}@if(auth.has('inventory.read')){<button [class]="button" (click)="openStock(p)" [disabled]="busy()">Stock e historial</button>}</div>}@empty{<p>Sin productos.</p>}}
+@for(p of rows();track p.id){<div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{p.name}}</strong><p>{{p.sku || 'Sin SKU'}} · S/ {{money(p.price)}} · {{p.active ? 'Activo' : 'Inactivo'}}</p>@if(stockQuantity(p)!==null){<p>Stock: <strong>{{stockQuantity(p)}}</strong> unidades · mínimo: {{p.minimum_stock===null?'Sin alerta':p.minimum_stock}}</p>}@if(isLow(p)){<p role="status" class="font-semibold text-warning-600 dark:text-warning-400">Stock en mínimo o menos</p>}</div>@if(auth.has('products.manage')){<button [class]="button" (click)="edit(p)" [disabled]="busy()">Editar</button>}@if(auth.has('inventory.read')){<button [class]="button" (click)="openStock(p)" [disabled]="busy()">Stock e historial</button>}</div>}@empty{<p>Sin productos.</p>}}
 <div class="flex flex-wrap gap-3"><button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button><span>Página {{page}} · {{total}} productos</span><button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button></div>
 </div></app-component-card>
 @if(stockProduct();as p){

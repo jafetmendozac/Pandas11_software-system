@@ -1,0 +1,31 @@
+<app-page-breadcrumb pageTitle="Caja" />
+<app-component-card title="Caja del local"><div class="space-y-5 text-gray-800 dark:text-gray-100">
+<p>Los cobros se registran en caja al verificarlos. Los pagos anteriores a esta función permanecen como históricos sin caja asignada.</p>
+@if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
+@if(session();as s){
+<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+<h2 class="font-semibold">{{s.status==='OPEN'?'Caja abierta':'Última caja cerrada'}} · {{date(s.opened_at)}}</h2>
+<p>Fondo: S/ {{money(s.opening_cash)}} · Efectivo esperado: S/ {{money(s.expected_cash)}}</p>
+@if(s.status==='CLOSED'){<p>Contado: S/ {{money(s.counted_cash || '0')}} · Diferencia: S/ {{money(s.difference || '0')}}</p>}
+<div class="flex flex-wrap gap-3"><span>Efectivo: S/ {{money(s.totals.CASH || '0')}}</span><span>Yape: S/ {{money(s.totals.YAPE || '0')}}</span><span>Plin: S/ {{money(s.totals.PLIN || '0')}}</span><span>Tarjeta: S/ {{money(s.totals.CARD || '0')}}</span><span>Transferencia: S/ {{money(s.totals.TRANSFER || '0')}}</span></div>
+</div>
+@if(s.status==='OPEN'){
+@if(auth.has('cash.move')){<form (ngSubmit)="record()" class="grid gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700 sm:grid-cols-2">
+<label>Movimiento manual<select name="source" [(ngModel)]="source" [class]="field" [disabled]="busy() || !!pendingMove"><option value="MANUAL_IN">Ingreso de efectivo</option><option value="MANUAL_OUT">Retiro de efectivo</option></select></label>
+<label>Importe PEN<input name="amount" [(ngModel)]="amount" [class]="field" inputmode="decimal" [disabled]="busy() || !!pendingMove"></label>
+<label class="sm:col-span-2">Motivo<textarea name="reason" [(ngModel)]="reason" [class]="field" maxlength="500" [disabled]="busy() || !!pendingMove"></textarea></label>
+<button [class]="button" [disabled]="busy()">{{pendingMove?'Reintentar mismo movimiento':'Registrar movimiento'}}</button></form>}
+@if(auth.has('cash.close')){<form (ngSubmit)="close()" class="flex flex-wrap items-end gap-3"><label>Efectivo contado<input name="counted" [(ngModel)]="counted" [class]="field" inputmode="decimal"></label><button [class]="button" [disabled]="busy()">Cerrar caja</button></form>}
+}
+<h3 class="font-semibold">Movimientos</h3>
+@for(m of rows();track m.id){<article class="border-b border-gray-200 py-2 dark:border-gray-700"><strong>{{label(m.source)}} · {{m.method}} · S/ {{money(m.amount)}}</strong><p>{{m.reason}} · {{date(m.created_at)}}</p></article>}@empty{<p>No hay movimientos en esta caja.</p>}
+<div class="flex gap-3"><button [class]="button" (click)="movements(page-1)" [disabled]="page===1">Anterior</button><span>Página {{page}} · {{total}}</span><button [class]="button" (click)="movements(page+1)" [disabled]="page*10>=total">Siguiente</button></div>
+} @else {<p>Aún no hay caja registrada.</p>}
+@if(!hasOpen()){
+@if(auth.has('cash.open')){<form (ngSubmit)="open()" class="flex flex-wrap items-end gap-3"><label>Fondo inicial de efectivo<input name="opening" [(ngModel)]="opening" [class]="field" inputmode="decimal" [disabled]="busy() || !!pendingOpen"></label><button [class]="button" [disabled]="busy()">{{pendingOpen?'Reintentar apertura':'Abrir caja'}}</button></form>}}
+<button [class]="button" (click)="load()" [disabled]="busy()">Actualizar</button>
+<section class="space-y-2"><h3 class="font-semibold">Sesiones anteriores</h3>
+@for(item of sessions();track item.id){<button [class]="button" (click)="load(item.id)" [disabled]="busy()">{{item.status==='OPEN'?'Abierta':'Cerrada'}} · {{date(item.opened_at)}} · S/ {{money(item.expected_cash)}}</button>}@empty{<p>Sin sesiones registradas.</p>}
+<div class="flex gap-3"><button [class]="button" (click)="loadSessions(sessionPage-1)" [disabled]="sessionPage===1 || busy()">Anterior</button><span>Página {{sessionPage}} · {{sessionTotal}}</span><button [class]="button" (click)="loadSessions(sessionPage+1)" [disabled]="sessionPage*10>=sessionTotal || busy()">Siguiente</button></div>
+</section>
+</div></app-component-card>

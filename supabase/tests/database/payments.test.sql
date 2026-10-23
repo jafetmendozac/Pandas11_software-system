@@ -27,6 +27,7 @@ select throws_ok($$insert into public.payments(appointment_id,type,method,amount
 reset role;
 select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
 set local role authenticated;
+select public.open_cash('0',gen_random_uuid());
 select lives_ok($$select public.verify_payment(current_setting('test.payment')::uuid,1)$$,'OWNER verifica');
 select is(public.appointment_payment_summary(current_setting('test.appointment')::uuid)->>'confirmed','20.10','Suma confirmada exacta');
 select is(public.appointment_payment_summary(current_setting('test.appointment')::uuid)->>'outstanding','80.25','Saldo decimal exacto');

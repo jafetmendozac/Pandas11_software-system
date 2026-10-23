@@ -59,4 +59,9 @@ describe('Inventario en productos', () => {
   it('no registra entradas manuales sobre productos inactivos',async()=>{
     component.stockProduct.set({...p,active:false});await component.recordStock();expect(inventory.record).not.toHaveBeenCalled();
   });
+  it('señala el mínimo exacto y respeta umbral desactivado',()=>{
+    expect(component.isLow({...p,minimum_stock:10})).toBeTrue();
+    expect(component.isLow({...p,minimum_stock:9})).toBeFalse();
+    expect(component.isLow({...p,minimum_stock:null})).toBeFalse();
+  });
 });

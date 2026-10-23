@@ -178,3 +178,16 @@ El usuario aprobó el [plan de inventario](features/actividad-4-inventario/plan.
 | RN-26 | Historial inmutable para usuarios de la aplicación: carga inicial, entrada, ajuste, salida por venta y reposición por anulación. Delta, saldo anterior/posterior, actor, fecha y referencias; correcciones mediante otro movimiento. Reintentos no duplican efectos. |
 
 RN-25 amplía RN-21: la anulación de artículos confirmados exige OWNER incluso sin dinero confirmado. RN-12 y RN-16–RN-19 mantienen exactitud monetaria, permisos de cobro, snapshots de cita y pagos por referencia. Inventario no implementa caja, mínimos/alertas, valorización contable ni pagos de productos.
+
+## Cobros comerciales, caja y mínimos — aprobación 2026-10-22
+
+El usuario aprobó el [plan](features/actividad-4-cobros-caja-alertas/plan.md) mediante «Vamos con eso» después de revisar COM-D01–COM-D05. Aplicado solo en Supabase local.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-27 | Cobros de productos vinculados a venta, separados de pagos de cita. Una venta mixta muestra saldos de servicios/cita y productos por separado; no duplica dinero. OWNER/ADMIN registran PENDING con los cinco medios manuales; solo OWNER verifica/rechaza. PAID reduce saldo de productos y no se devuelve automáticamente. |
+| RN-28 | Una caja abierta por local. Cada verificación nueva de cobro de cita o producto exige caja OPEN y crea un ingreso único por medio; PAID históricos anteriores quedan sin sesión asignada. |
+| RN-29 | OWNER/ADMIN abren y cierran caja y consultan; solo OWNER registra ingreso/retiro manual de efectivo con motivo. El retiro no deja efectivo esperado negativo. Cierre conserva contado, esperado, diferencia y resumen por medio; no cambia pagos. |
+| RN-30 | Producto con mínimo entero no negativo o NULL desactivado. Stock menor o igual al mínimo se muestra en `/productos`, sin bloquear ventas ni enviar avisos externos. OWNER/ADMIN configuran; STAFF/CLIENT no consultan inventario. |
+
+RN-21/RN-25 siguen exigiendo OWNER y disposición explícita para anular productos confirmados; los cobros PAID permanecen y la venta anulada exige resolución separada. La verificación de pagos de cita ahora exige caja abierta para cobros nuevos; el registro PENDING continúa permitido sin ella.

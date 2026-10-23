@@ -17,19 +17,25 @@ export class ProductosComponent implements OnDestroy {
  readonly money = decimalLabel;
  readonly field = 'w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
  readonly button = 'rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-700';
- search = ''; page = 1; total = 0; private revision = 0;
+ search = ''; lowOnly = false; page = 1; total = 0; private revision = 0;
  ngOnDestroy() { this.revision++; this.historyRevision++; }
  message(e: unknown) { return (e as {message?:string})?.message || 'No se pudo completar la operación.'; }
  rows = signal<Product[]>([]); editing = signal(false);
- id: string | null = null; name = ''; sku = ''; price = ''; active = true;
+ id: string | null = null; name = ''; sku = ''; price = ''; active = true; minimum = '';
  ngOnInit() { void this.load(); }
  async load(page = 1) { const rev = ++this.revision; this.page=page; this.loading.set(true); this.error.set('');
- try { const r=await this.api.products(this.search,page); if(rev===this.revision){this.rows.set(r.rows);this.total=r.total;await this.loadStock(rev);} }
+ try { const r=this.lowOnly ? await this.api.lowStock(this.search,page) : await this.api.products(this.search,page); if(rev===this.revision){this.rows.set(r.rows);this.total=r.total;
+   if(this.lowOnly){this.balances.set(Object.fromEntries(r.rows.map(p=>[p.id,{product_id:p.id,name:p.name,sku:p.sku,active:p.active,quantity:p.quantity??0,initial_loaded:p.initial_loaded??false,version:p.balance_version??1}])));this.canAdjust.set(this.auth.has('inventory.adjust'));}
+   else await this.loadStock(rev);
+ } }
  catch(e){if(rev===this.revision)this.error.set(this.message(e));} finally{if(rev===this.revision)this.loading.set(false);} }
- edit(p?:Product){if(this.busy() || !this.auth.has('products.manage'))return; this.id=p?.id??null;this.name=p?.name??'';this.sku=p?.sku??'';this.price=p?.price??'';this.active=p?.active??true;this.editing.set(true);this.error.set('');}
+ edit(p?:Product){if(this.busy() || !this.auth.has('products.manage'))return; this.id=p?.id??null;this.name=p?.name??'';this.sku=p?.sku??'';this.price=p?.price??'';this.active=p?.active??true;this.minimum=p?.minimum_stock?.toString()??'';this.editing.set(true);this.error.set('');}
  async save(){if(this.busy() || !this.auth.has('products.manage'))return;
- if(!this.name.trim() || this.name.trim().length>120 || this.sku.length>60 || !/^\d+(\.\d{1,2})?$/.test(this.price)){this.error.set('Revisa nombre, SKU y precio (máximo dos decimales).');return;}
- this.busy.set(true);try{await this.api.saveProduct({id:this.id,name:this.name.trim(),sku:this.sku.trim()||null,price:this.price,active:this.active});this.editing.set(false);await this.load(this.page);}catch(e){this.error.set(this.message(e));}finally{this.busy.set(false);}}
+ if(!this.name.trim() || this.name.trim().length>120 || this.sku.length>60 || !/^\d+(\.\d{1,2})?$/.test(this.price) ||
+   (this.minimum!=='' && (!/^\d+$/.test(this.minimum) || !Number.isSafeInteger(Number(this.minimum)) || Number(this.minimum)>2147483647))){this.error.set('Revisa nombre, SKU, precio y mínimo entero no negativo.');return;}
+ this.busy.set(true);try{const p=await this.api.saveProduct({id:this.id,name:this.name.trim(),sku:this.sku.trim()||null,price:this.price,active:this.active});await this.api.setMinimum(p.id,this.minimum===''?null:Number(this.minimum));this.editing.set(false);await this.load(this.page);}catch(e){this.error.set(this.message(e));}finally{this.busy.set(false);}}
+ stockQuantity(p:Product):number|null {return this.balances()[p.id]?.quantity??p.quantity??null;}
+ isLow(p:Product):boolean {const q=this.stockQuantity(p);return p.minimum_stock!==null&&q!==null&&q<=p.minimum_stock;}
  readonly inventory = inject(InventoryService);
  readonly balances = signal<Record<string, InventoryBalance>>({});
  readonly canAdjust = signal(false);
@@ -100,7 +106,9 @@ export class ProductosComponent implements OnDestroy {
    try {
      await this.inventory.record(this.pendingMovement);
      this.pendingMovement = null; this.delta = null; this.stockReason = '';
-     await this.loadStock(); this.kind = 'RECEIPT'; await this.loadHistory();
+     if (this.lowOnly) { await this.load(this.page); if (!this.rows().some(row=>row.id===p.id)) this.stockProduct.set(null); }
+     else await this.loadStock();
+     this.kind = 'RECEIPT'; if(this.stockProduct()) await this.loadHistory();
    } catch(e) {
      const code = (e as {code?:string}).code;
      if (code && /^(22|23|40|42)/.test(code)) this.pendingMovement = null;

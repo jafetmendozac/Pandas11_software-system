@@ -15,7 +15,7 @@ let checks = 0;
 const ok = (condition, label) => { assert.ok(condition, label); checks++; };
 const value = async request => { const r = await request; assert.ifError(r.error); return r.data; };
 const fail = async (request, label) => { const r = await request; ok(!!r.error, label); return r.error; };
-let clientCreated = false;
+let clientCreated = false, cashSessionId = null;
 try {
   for (const role of ['OWNER', 'ADMIN', 'STAFF', 'CLIENT']) {
     const email = `payments-${randomUUID()}@example.test`, password = randomUUID() + 'Aa1!';
@@ -24,6 +24,7 @@ try {
     const api = createClient(env.API_URL, env.ANON_KEY, opts); await value(api.auth.signInWithPassword({ email, password })); actors[role] = { api, id: d.user.id };
   }
   const owner = actors.OWNER.api, admin = actors.ADMIN.api, staff = actors.STAFF.api, client = actors.CLIENT.api;
+  cashSessionId = (await value(owner.rpc('open_cash', { p_opening: '0', p_request_id: randomUUID() }))).id;
   const anon = createClient(env.API_URL, env.ANON_KEY, opts);
   sql(`insert into public.clients(id,first_name) values('${clientId}','${prefix}')`); clientCreated = true;
   const appointment = (status = 'COMPLETED', total = '100.35', source = 'INTERNAL') => {
@@ -150,6 +151,7 @@ try {
   ok(confirmed >= 90.10, 'Sumas conservadas');
   console.log(`Fase 5 API: ${checks} comprobaciones correctas.`);
 } finally {
+  if (cashSessionId) sql(`delete from public.cash_movements where session_id='${cashSessionId}';delete from public.cash_sessions where id='${cashSessionId}'`);
   if (clientCreated) sql(`delete from public.payments where appointment_id in(select id from public.appointments where client_id='${clientId}');delete from public.appointments where client_id='${clientId}';delete from public.clients where id='${clientId}'`);
   for (const id of users) await root.auth.admin.deleteUser(id);
 }

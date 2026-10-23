@@ -8,6 +8,10 @@ export interface Product {
   unit: 'UNIT';
   price: string;
   active: boolean;
+  minimum_stock: number | null;
+  quantity?: number;
+  balance_version?: number;
+  initial_loaded?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +39,9 @@ export interface Sale {
   currency: 'PEN';
   total: string;
   confirmed_appointment_payments: string;
+  confirmed_product_payments: string;
+  service_total: string;
+  product_total: string;
   requires_resolution: boolean;
   inventory_disposition: import('./inventory.models').InventoryDisposition | null;
   can_cancel_products: boolean;

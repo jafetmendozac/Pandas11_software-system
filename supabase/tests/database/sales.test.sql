@@ -73,6 +73,7 @@ set local role authenticated;
 select set_config('test.sale.payment',public.register_payment(jsonb_build_object('appointment_id',current_setting('test.sale.appointment'),
  'type','BALANCE','method','CASH','amount','10.10','request_id',gen_random_uuid()))->>'id',true);
 select is(public.get_sale(current_setting('test.sale.id')::uuid)->>'confirmed_appointment_payments','0','Pendiente no figura recibido');
+select public.open_cash('0',gen_random_uuid());
 select lives_ok($$select public.verify_payment(current_setting('test.sale.payment')::uuid,1)$$,'OWNER verifica cobro de cita');
 select is(public.get_sale(current_setting('test.sale.id')::uuid)->>'confirmed_appointment_payments','10.10','Cobro existente visible una vez');
 reset role;
