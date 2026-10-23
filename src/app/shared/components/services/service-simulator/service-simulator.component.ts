@@ -8,8 +8,8 @@ import { decimalLabel } from '../../../services/service-pricing.models';
   selector: 'app-service-simulator', standalone: true, imports: [FormsModule],
   template: `
   <section class="space-y-4 rounded-xl border border-gray-200 bg-white p-5 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-    <h2 class="text-lg font-semibold">Calcular precio y duración</h2>
-    <p class="text-sm">Solo servicio. No incluye transporte ni reserva un horario. Las dimensiones no indicadas usan reglas generales.</p>
+    <h2 class="text-lg font-semibold">Comprueba una tarifa</h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Selecciona un servicio y, si los conoces, el tamaño y el pelaje. El cálculo no incluye transporte ni reserva un horario.</p>
     @if (error()) { <p role="alert" class="text-error-600 dark:text-error-400">{{ error() }}</p> }
     @if (loading()) { <p role="status">Cargando catálogo…</p> }
     <form (ngSubmit)="calculate()" class="space-y-4">
@@ -35,9 +35,9 @@ import { decimalLabel } from '../../../services/service-pricing.models';
     </form>
     @if (quote(); as result) {
       <div role="status" aria-live="polite" class="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
-        <p class="text-lg font-semibold">S/ {{ label(result.price) }} · {{ result.duration_minutes }} minutos</p>
-        <p>Origen: {{ sourceLabel(result.source) }}</p>
-        @if (result.rule_id) { <p class="break-all text-sm">Tarifa: {{ result.rule_id }}</p> }
+        <p class="text-sm font-medium">Precio y tiempo calculados</p>
+        <p class="mt-1 text-lg font-semibold">S/ {{ label(result.price) }} · {{ result.duration_minutes }} minutos</p>
+        <p class="mt-1 text-sm">Se aplicó: {{ sourceLabel(result.source) }}</p>
       </div>
     }
   </section>`,

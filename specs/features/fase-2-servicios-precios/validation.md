@@ -45,3 +45,11 @@ Sin recorrido manual completo de la aplicación; pruebas de componentes ejecutad
 # Seguimiento visual de tarifas — 2026-10-21
 
 Durante el recorrido de aceptación de actividades 1–3, la tabla Tarifas para STAFF mostraba el UUID del servicio aunque `search_service_prices` ya devolvía `service_name`. `TarifasComponent` ahora incorpora las etiquetas de las filas consultadas a las opciones de visualización, conservando UUID en los valores de formulario y permisos de gestión. Una nueva prueba de componente verifica nombre visible y ausencia de acción de alta para STAFF. Resultado: 93/93 pruebas Angular, compilación local y de producción correctas; Chrome local mostró «DEMO Baño» en lugar del UUID. La producción avisó un exceso de 118 bytes en el CSS de la portada, sin relación con este ajuste. Evidencia en el [paquete de revisión](../../aceptacion-actividades-1-3.md).
+
+## Ajuste UI/UX de tarifas — 2026-10-23
+
+El usuario autorizó mejorar la página existente con `pandas-ui-ux`. Se revisó el recorrido de mantener una tarifa y comprobarla con el simulador. La introducción anterior abría con la prioridad técnica de reglas y el resultado mostraba un UUID interno, ambos poco útiles para decidir el precio.
+
+La página ahora explica que cada regla aporta precio y duración para un servicio, tamaño y pelaje. El formulario aclara el uso de «Todos» como tarifa general y exige duración en minutos enteros. El simulador guía la elección y presenta precio, minutos y procedencia legible sin mostrar el identificador técnico. Se conservan la prioridad RN-11, la precisión y regla completa de RN-12, el precio cero válido, los comodines y los permisos existentes. No se cambiaron consultas, SQL, cálculos ni valores almacenados.
+
+`npm run build` pasó con la advertencia CSS preexistente de la portada (118 bytes). Las 5 pruebas focalizadas de tarifas y simulador pasaron en ChromeHeadless; `git diff --check` correcto. No se modificó Supabase ni se añadieron dependencias. La revisión UX se basó en código y especificaciones; no se realizó recorrido visual manual de esta página en navegador.
