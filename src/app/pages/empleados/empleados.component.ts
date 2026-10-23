@@ -23,7 +23,7 @@ export class EmpleadosComponent implements OnInit,OnDestroy {
     {key:'phone',label:'Teléfono',required:false},
     {key:'skill_level',label:'Habilidad',options:[{value:'ASSISTANT',label:'Asistente: baño'},{value:'ALL_SERVICES',label:'Baño y corte'}]},
     {key:'active',label:'Estado',options:[{value:'true',label:'Activo'},{value:'false',label:'Inactivo'}]},
-    {key:'profile_active',label:'Perfil activo',editable:false},
+    {key:'profile_active',label:'Cuenta activa',editable:false},
   ];
   async ngOnInit():Promise<void>{await Promise.all([this.loadEmployees(),this.loadProfiles()]);}
   ngOnDestroy():void{this.revision++;}

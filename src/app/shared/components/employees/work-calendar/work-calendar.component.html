@@ -2,20 +2,21 @@
   @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{ error() }}</p>}
   @if(loading()){<p role="status">Cargando calendario laboral…</p>}
   @if(employee; as person){
-    <app-component-card [title]="'Turnos de ' + (person.employee_name || 'empleado')" desc="Hora de Lima. Se admiten turnos partidos y consecutivos, sin cruces de medianoche. El fin después de las 18:00 debe estar cubierto por un turno explícito.">
+    <app-component-card [title]="'Turnos de ' + (person.employee_name || 'empleado')" desc="Turnos semanales en hora de Lima. Se admiten turnos partidos y consecutivos, sin cruces de medianoche. El fin después de las 18:00 debe estar cubierto por un turno explícito.">
       <app-personalized-table #shiftTable [columns]="periodColumns" [tableData]="data().schedules" [saveAction]="saveShift"
         [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
         addLabel="Añadir turno" createTitle="Añadir turno" editTitle="Editar turno" />
     </app-component-card>
   }@else{
-    <p>Selecciona «Horarios y disponibilidad» en un empleado para mantener sus turnos y bloqueos personales.</p>
+    <p class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">Los turnos y bloqueos personales aparecerán aquí cuando elijas «Ver horarios» en un empleado.</p>
   }
-  <app-component-card title="Horario del local" desc="Lunes a sábado, incluidos feriados. Domingo de descanso. Estos tramos no crean turnos de empleados.">
+  <app-component-card title="Horario del local" desc="Define cuándo atiende el negocio: lunes a sábado, incluidos feriados; domingo de descanso. No crea turnos personales.">
     <app-personalized-table #businessTable [columns]="periodColumns" [tableData]="data().business" [saveAction]="saveBusiness"
       [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
       addLabel="Añadir tramo comercial" createTitle="Añadir tramo comercial" editTitle="Editar horario del local" />
   </app-component-card>
-  <app-component-card title="Bloqueos y ausencias" desc="Fechas y horas en America/Lima. Sin empleado seleccionado se muestran los bloqueos globales. Con empleado, se incluyen también los personales. Los recojos se registran manualmente aquí.">
+  <div class = 'py-1'></div>
+  <app-component-card title="Ausencias y bloqueos" desc="Hora de Lima. Sin empleado seleccionado ves los bloqueos del local; al seleccionar uno, también aparecen sus ausencias. Los recojos se registran manualmente aquí.">
     <app-personalized-table #blockTable [columns]="blockColumns" [tableData]="data().blocks" [saveAction]="saveBlock"
       [allowCreate]="authorization.has('time_blocks.manage')" [allowEdit]="authorization.has('time_blocks.manage')" [allowDelete]="authorization.has('time_blocks.manage')"
       searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />

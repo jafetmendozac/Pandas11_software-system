@@ -72,3 +72,11 @@ Disponibilidad laboral es un snapshot de turnos menos bloqueos registrados; no s
 No hay recorrido E2E manual completo del panel ni inspección visual en todos los tamaños/temas; los componentes sí se ejecutaron en ChromeHeadless. No se verificó reconstrucción completa de una instancia nueva ni despliegue remoto: se comprobó la adopción incremental local preservando datos. No se instalaron dependencias ni se hicieron commits/pushes.
 
 A continuación, revisión del usuario sobre la implementación y sobre la experiencia de gestión laboral. La siguiente fase no se inicia automáticamente.
+
+## Ajuste UI/UX de empleados — 2026-10-23
+
+El usuario autorizó mejorar la página existente con `pandas-ui-ux`. Recorrido revisado en código: abrir `/empleados`, buscar una persona, elegir «Ver horarios» y consultar turnos, horario del local, ausencias y capacidad laboral. Se identificó una fricción de orientación: el calendario mezclaba datos generales y personales sin un encabezado que indicara el contexto seleccionado. También aparecía «Perfil activo», un término técnico para la cuenta vinculada.
+
+Se cambió el título a «Personal y horarios», se añadió una guía breve, se renombró la acción a «Ver horarios» y se muestra el nombre de la persona seleccionada sobre el calendario. Sin selección, el encabezado explica que se ven horario y bloqueos generales. «Cuenta activa» sustituye la etiqueta técnica; las ayudas de turnos y ausencias distinguen datos personales de los del local. RN-01, RN-03, RN-06, RN-07 y RN-10 siguen aplicando; no se cambió el cálculo, las consultas, los permisos, los valores de habilidad ni la advertencia de que la consulta no reserva capacidad.
+
+`npm run build` pasó con la advertencia CSS preexistente de `inicio.component.css` (118 bytes). Las 10 pruebas focalizadas de empleados/calendario pasaron en ChromeHeadless; `git diff --check` pasó. No se modificó Supabase ni se instaló ninguna dependencia. No se realizó una revisión visual manual de esta página en navegador; la revisión UX se basó en componentes y especificaciones.
