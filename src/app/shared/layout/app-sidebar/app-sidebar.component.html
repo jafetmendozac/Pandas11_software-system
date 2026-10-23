@@ -58,7 +58,7 @@
             }"
           >
             @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) 
-            { Menu } 
+            { Menú }
            @else {
             <svg
               width="1em"
@@ -83,6 +83,7 @@
               @if (nav.subItems) {
                 <button
                   (click)="toggleSubmenu('main',i)"
+                  [attr.aria-label]="nav.name"
                   class="menu-item group cursor-pointer"
                   [class.menu-item-active]="openSubmenu === 'main-' + i"
                   [class.menu-item-inactive]="openSubmenu !== 'main-' + i"
@@ -213,6 +214,7 @@
                 @if (nav.path) {
                 <a
                   [routerLink]="nav.path"
+                  [attr.aria-label]="nav.name"
                   routerLinkActive="menu-item-active"
                   class="menu-item group"
                   [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"

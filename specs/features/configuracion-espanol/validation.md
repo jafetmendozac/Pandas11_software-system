@@ -34,3 +34,17 @@ No se encontraron herramientas de navegador disponibles en esta sesión; no se r
 La miga global Home, header, sidebar y perfil están fuera del alcance aprobado. Los nombres, códigos, descripciones y errores externos pueden conservar su idioma original. No hubo cambios de base de datos, dependencias, commits ni pushes.
 
 Los cambios preexistentes de AGENTS.md, Pandas11.sql y archivos sin seguimiento se conservaron.
+
+## Revisión UI/UX posterior — 2026-10-23
+
+La solicitud posterior autorizó extender esta pantalla y el rótulo del menú lateral. La validación histórica anterior corresponde solo a la traducción original.
+
+| Criterio | Resultado |
+|---|---|
+| UX-01 | Menú lateral «Configuración», ruta `/configuracion` y permiso conservados. «Menú» también queda en español; los enlaces e íconos del menú tienen nombre accesible al colapsarse. |
+| UX-02 | La página agrupa enlaces visibles en Portada pública, Acceso del equipo y Tu espacio personal; conserva las condiciones `home_flyers.manage` y `security.read`. RN-31 sigue aplicando al editor de panfletos. |
+| UX-03 | Acciones específicas en cada tarjeta. El texto de roles distingue quien puede administrar de quien solo consulta según `roles.manage`. |
+| UX-04 | Apariencia explica el alcance local, opciones de orden sin siglas técnicas y acción «Descartar cambios» diferenciada de guardar. No se alteraron `light`/`dark`, `ltr`/`rtl` ni `ThemeService`. |
+| UX-05 | Recorrido Chrome local con cuenta OWNER sintética a 1280 y 390 px, claro y oscuro/RTL: tres grupos visibles, apertura de Apariencia y ancho de documento igual al viewport. Capturas revisadas; se ajustó el espacio entre tarjetas y acciones. |
+
+`npm run build` pasó con la advertencia ya existente del presupuesto CSS de la portada (118 bytes). Dos pruebas Karma existentes del menú lateral pasaron. Se revisó `git diff --check`. No hubo nuevas consultas, escrituras de roles, cambios SQL/RLS, dependencias ni despliegue remoto. La revisión de permisos STAFF/CLIENT se basó en las condiciones de plantilla y guards existentes; el recorrido visual se hizo con OWNER. No se realizó estudio con usuarios.

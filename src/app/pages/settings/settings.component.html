@@ -1,18 +1,55 @@
 <app-page-breadcrumb pageTitle="Configuración" />
 @if (section === 'home') {
-  <div class="mb-6"><h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">Configuración del espacio de trabajo</h2><p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Elige una opción para administrar tu espacio de trabajo.</p></div>
-  <div class="grid gap-5 md:grid-cols-3">
+  <div class="mb-7 max-w-2xl">
+    <p class="text-sm leading-6 text-gray-600 dark:text-gray-400">Elige qué quieres cambiar en la portada, el acceso del equipo o tu propia pantalla.</p>
+  </div>
+  <div class="space-y-9">
     @if (authorization.has('home_flyers.manage')) {
-    <a routerLink="/configuracion/panfletos" class="group rounded-2xl border border-gray-200 bg-white p-6 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400"><svg class="mb-5 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m6 16 4-4 3 3 3-4 3 4M8 8h.01" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="block text-base font-semibold text-gray-800 dark:text-white/90">Panfletos semanales</span><span class="mt-2 block text-sm text-gray-500 dark:text-gray-400">Cambia la imagen de la portada para cada día de la semana.</span><span class="mt-5 block text-sm font-medium text-brand-500 dark:text-brand-400">Administrar panfletos <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span></a>
+      <section aria-labelledby="settings-public-title">
+        <h3 id="settings-public-title" class="mb-3 text-base font-semibold text-gray-800 dark:text-white/90">Portada pública</h3>
+        <div class="grid gap-4 md:grid-cols-2">
+          <a routerLink="/configuracion/panfletos" class="group flex flex-col rounded-2xl border border-gray-200 bg-white p-5 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400">
+            <svg class="mb-4 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m6 16 4-4 3 3 3-4 3 4M8 8h.01" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="text-base font-semibold text-gray-800 dark:text-white/90">Panfletos de cada día</span>
+            <span class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Elige la imagen que se verá de lunes a domingo en la página de inicio.</span>
+            <span class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-400">Editar panfletos <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span>
+          </a>
+        </div>
+      </section>
     }
     @if (authorization.has('security.read')) {
-    <button type="button" (click)="section = 'roles'" class="group rounded-2xl border border-gray-200 bg-white p-6 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400"><svg class="mb-5 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="block text-base font-semibold text-gray-800 dark:text-white/90">Roles y permisos</span><span class="mt-2 block text-sm text-gray-500 dark:text-gray-400">Crea y edita roles, desactívalos y asigna sus permisos.</span><span class="mt-5 block text-sm font-medium text-brand-500 dark:text-brand-400">Abrir configuración <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span></button>
+      <section aria-labelledby="settings-team-title">
+        <h3 id="settings-team-title" class="mb-3 text-base font-semibold text-gray-800 dark:text-white/90">Acceso del equipo</h3>
+        <div class="grid gap-4 md:grid-cols-2">
+          <button type="button" (click)="section = 'roles'" class="group flex flex-col rounded-2xl border border-gray-200 bg-white p-5 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400">
+            <svg class="mb-4 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="text-base font-semibold text-gray-800 dark:text-white/90">Roles y permisos</span>
+            <span class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ authorization.has('roles.manage') ? 'Administra los roles y decide a qué puede acceder cada uno.' : 'Consulta los roles y permisos disponibles para el equipo.' }}</span>
+            <span class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-400">Ver roles y permisos <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span>
+          </button>
+        </div>
+      </section>
     }
-    <button type="button" (click)="section = 'appearance'" class="group rounded-2xl border border-gray-200 bg-white p-6 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400"><svg class="mb-5 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9V3Z" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="block text-base font-semibold text-gray-800 dark:text-white/90">Apariencia y diseño</span><span class="mt-2 block text-sm text-gray-500 dark:text-gray-400">Personaliza el tema de color y la dirección del diseño en este dispositivo.</span><span class="mt-5 block text-sm font-medium text-brand-500 dark:text-brand-400">Abrir configuración <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span></button>
-    <a routerLink="/profile" class="group rounded-2xl border border-gray-200 bg-white p-6 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400"><svg class="mb-5 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 0 1 16 0" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="block text-base font-semibold text-gray-800 dark:text-white/90">Mi cuenta</span><span class="mt-2 block text-sm text-gray-500 dark:text-gray-400">Consulta y actualiza la información de tu perfil personal.</span><span class="mt-5 block text-sm font-medium text-brand-500 dark:text-brand-400">Abrir configuración <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span></a>
+    <section aria-labelledby="settings-personal-title">
+      <h3 id="settings-personal-title" class="mb-3 text-base font-semibold text-gray-800 dark:text-white/90">Tu espacio personal</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        <button type="button" (click)="section = 'appearance'" class="group flex flex-col rounded-2xl border border-gray-200 bg-white p-5 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400">
+          <svg class="mb-4 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9V3Z" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="text-base font-semibold text-gray-800 dark:text-white/90">Apariencia</span>
+          <span class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Elige modo claro u oscuro y la dirección de lectura en este dispositivo.</span>
+          <span class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-400">Cambiar apariencia <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span>
+        </button>
+        <a routerLink="/profile" class="group flex flex-col rounded-2xl border border-gray-200 bg-white p-5 text-start shadow-theme-xs transition hover:border-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-400">
+          <svg class="mb-4 h-7 w-7 stroke-current text-brand-500 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 0 1 16 0" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="text-base font-semibold text-gray-800 dark:text-white/90">Mi perfil</span>
+          <span class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Revisa y actualiza tus datos personales.</span>
+          <span class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-400">Ir a mi perfil <span class="inline-block rtl:rotate-180" aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </section>
   </div>
 } @else {
-  <button type="button" (click)="section = 'home'; cancel()" class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"><span class="rtl:rotate-180" aria-hidden="true">←</span> Toda la configuración</button>
+  <button type="button" (click)="section = 'home'; cancel()" class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"><span class="rtl:rotate-180" aria-hidden="true">←</span> Volver a configuración</button>
   @if (section === 'roles') {
     @if (authorization.has('security.read')) { <app-role-settings /> } @else { <p>No tienes permiso para administrar seguridad.</p> }
   } @else {
@@ -29,58 +66,53 @@
       </svg>
     </span>
     <div>
-      <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">Personaliza tu espacio de trabajo</h2>
-      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Personaliza la apariencia de Spa &amp; Boutique Pandas 11 en este dispositivo.</p>
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">Apariencia del panel</h2>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Estos cambios solo afectan cómo ves Pandas 11 en este dispositivo.</p>
     </div>
   </div>
 </div>
 
 <div class="grid gap-6 xl:grid-cols-3">
   <form (ngSubmit)="save()" class="space-y-6 xl:col-span-2">
-    <app-component-card title="Apariencia" desc="Elige un tema cómodo para tu panel.">
-      <fieldset>
-        <legend class="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tema de color</legend>
-        <div class="grid gap-4 sm:grid-cols-2">
-          @for (option of ['light', 'dark']; track option) {
-            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-5 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:border-gray-700 dark:has-[:checked]:border-brand-400 dark:has-[:checked]:bg-brand-500/10">
-              <input type="radio" name="theme" [value]="option" [(ngModel)]="theme" (ngModelChange)="message = ''" class="h-4 w-4 accent-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500" />
-              <span>
-                <span class="block text-sm font-semibold text-gray-800 dark:text-white/90">{{ option === 'light' ? 'Modo claro' : 'Modo oscuro' }}</span>
-                <span class="mt-1 block text-theme-xs text-gray-500 dark:text-gray-400">{{ option === 'light' ? 'Un espacio de trabajo claro y luminoso' : 'Una vista más suave con poca luz' }}</span>
-              </span>
-            </label>
-          }
-        </div>
-      </fieldset>
-    </app-component-card>
+    <div class="mb-6">
+      <app-component-card title="Tema de pantalla" desc="Elige cómo se ve el panel en este dispositivo.">
+        <fieldset>
+          <legend class="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tema de color</legend>
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (option of ['light', 'dark']; track option) {
+              <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-5 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:border-gray-700 dark:has-[:checked]:border-brand-400 dark:has-[:checked]:bg-brand-500/10">
+                <input type="radio" name="theme" [value]="option" [(ngModel)]="theme" (ngModelChange)="message = ''" class="h-4 w-4 accent-brand-500 focus-visible:outline-2 focus-visible:outline-brand-500" />
+                <span>
+                  <span class="block text-sm font-semibold text-gray-800 dark:text-white/90">{{ option === 'light' ? 'Modo claro' : 'Modo oscuro' }}</span>
+                  <span class="mt-1 block text-theme-xs text-gray-500 dark:text-gray-400">{{ option === 'light' ? 'Un espacio de trabajo claro y luminoso' : 'Una vista más suave con poca luz' }}</span>
+                </span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </app-component-card>
+    </div>
 
-    <app-component-card title="Diseño" desc="Establece la dirección de lectura de tu espacio de trabajo.">
-      <label for="direction" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Dirección del diseño</label>
+    <app-component-card title="Dirección de lectura" desc="Ajusta el orden visual de los menús y controles.">
+      <label for="direction" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Orden de la interfaz</label>
       <select id="direction" name="direction" [(ngModel)]="direction" (ngModelChange)="message = ''" class="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-        <option value="ltr">De izquierda a derecha (LTR)</option>
-        <option value="rtl">De derecha a izquierda (RTL)</option>
+        <option value="ltr">De izquierda a derecha</option>
+        <option value="rtl">De derecha a izquierda</option>
       </select>
-      <p class="mt-3 text-theme-xs text-gray-500 dark:text-gray-400">Cambia la dirección del diseño sin cambiar el idioma de los textos.</p>
+      <p class="mt-3 text-theme-xs text-gray-500 dark:text-gray-400">Cambia la posición de los elementos del panel; el idioma de los textos sigue igual.</p>
     </app-component-card>
 
     @if (message) {
       <p role="status" aria-live="polite" class="rounded-xl border p-4 text-sm" [class]="error ? 'border-error-200 bg-error-50 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400' : 'border-success-200 bg-success-50 text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400'">{{ message }}</p>
     }
-    <div class="flex flex-wrap justify-end gap-3">
-      <button type="button" (click)="cancel()" class="rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Cancelar</button>
+    <div class="mt-6 flex flex-wrap justify-end gap-3">
+      <button type="button" (click)="cancel()" class="rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Descartar cambios</button>
       <button type="submit" class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600">Guardar preferencias</button>
     </div>
   </form>
 
-  <aside class="space-y-6">
-    <app-component-card title="Tu cuenta" desc="Administra tu información personal.">
-      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">Consulta y actualiza los datos de tu perfil desde la página de tu cuenta.</p>
-      <a routerLink="/profile" class="inline-flex items-center gap-2 text-sm font-medium text-brand-500 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-        Ir al perfil
-        <svg class="h-4 w-4 stroke-current rtl:rotate-180" viewBox="0 0 20 20" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </a>
-    </app-component-card>
-    <p class="px-1 text-theme-xs leading-5 text-gray-500 dark:text-gray-400">Las preferencias se guardan en este navegador. Los demás dispositivos y miembros del equipo conservan su propia configuración.</p>
+  <aside class="rounded-2xl border border-gray-200 bg-white p-5 text-sm leading-6 text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+    Tus preferencias se guardan en este navegador. Los demás dispositivos y miembros del equipo conservan su propia apariencia.
   </aside>
 </div>
 

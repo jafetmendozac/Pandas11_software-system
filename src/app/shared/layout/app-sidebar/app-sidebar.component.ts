@@ -45,7 +45,7 @@ export class AppSidebarComponent {
     { name: 'Caja', path: '/caja', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4M17 14v3"/></svg>' },
     { name: 'Pagos y saldos', path: '/pagos', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>' },
     {
-      name: 'Settings',
+      name: 'Configuración',
       path: '/configuracion',
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 17h16M8 4v6m8 4v6" stroke-linecap="round"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>`,
     },

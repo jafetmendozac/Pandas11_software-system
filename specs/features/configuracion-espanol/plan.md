@@ -33,3 +33,7 @@ Los textos dinámicos y errores externos pueden estar en inglés. Los componente
 ## Aprobación
 
 El usuario autorizó explícitamente la implementación del plan en la conversación: «Te doy autorización para implementarlo».
+
+## Ajuste UI/UX autorizado — 2026-10-23
+
+La solicitud posterior autoriza mejorar la página de configuración con `pandas-ui-ux`. Se cambia el rótulo del menú lateral a «Configuración» y se reorganiza la portada de `/configuracion` en tres grupos orientados a tareas. Se aclaran las acciones, el efecto local de apariencia y el texto visible de LTR/RTL. Se conservan rutas, permisos, operaciones de roles, `ThemeService`, valores persistidos y modelo Supabase. Validar compilación, pruebas pertinentes y recorrido visual local. No se requiere migración ni despliegue remoto.
