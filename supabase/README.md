@@ -9,11 +9,13 @@ npm run start:local
 
 `start:local` genera un archivo ignorado `environment.local.ts` con URL y clave pública locales. No modifica los entornos existentes ni imprime secretos. El registro exige confirmar correo en el buzón local. Un CLIENT puede usar `/mi-perfil`; no entra al panel.
 
-## Seed optativo para probar Fases 0–4
+## Seed optativo para probar agenda y flujo comercial
 
 ```sh
 supabase migration up --local
 npm run seed:local
+npm run seed:commercial
+node scripts/test-commercial-seed.mjs
 npm run start:local
 ```
 
@@ -21,7 +23,9 @@ Carga únicamente en la instancia local cuentas confirmadas OWNER/ADMIN/STAFF/CL
 
 Cuentas `demo.fases.owner@example.test`, `demo.fases.admin@example.test`, `demo.fases.staff@example.test` y `demo.fases.client@example.test`. Contraseña inicial pública de demostración: `Pandas11-Demo-2026!`. No son credenciales reales ni deben usarse fuera del entorno local.
 
-Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
+Las fichas muestran nombres ficticios de personas y mascotas sin prefijos técnicos. El segundo comando añade una cita completada, productos, stock, venta mixta, venta de mostrador, cobros separados y caja cerrada. La cita histórica se inserta como fixture SQL local con validación transaccional; sus cambios de estado usan RPC. Solo se ejecuta contra los puertos locales 55321/55322; se detiene si hay una caja abierta ajena. No modifica las citas anteriores ni datos remotos.
+
+Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md) y [validación comercial](../specs/features/seed-flujo-comercial/validation.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
 
 ## Primer owner
 

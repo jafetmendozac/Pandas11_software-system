@@ -53,7 +53,8 @@ async function main() {
     if (!user) {
       user = (await value(root.auth.admin.createUser({email: email(role), password, email_confirm: true,
         app_metadata: {local_demo_seed: marker, demo_start_date: startDate.toString()},
-        user_metadata: {first_name: `DEMO ${role}`, last_name: 'Pruebas locales'},
+        user_metadata: {first_name: ({OWNER: 'Ana', ADMIN: 'Diego', STAFF: 'María', CLIENT: 'Lucía'})[role],
+          last_name: ({OWNER: 'Valdez', ADMIN: 'Ramos', STAFF: 'Torres', CLIENT: 'Herrera'})[role]},
       }))).user;
     }
     assert.match(user.id, /^[a-f0-9-]{36}$/);
@@ -63,6 +64,28 @@ async function main() {
   const bootstrap = roles.map(role => `insert into public.user_roles(user_id,role_id)
     select ${literal(accounts[role])}::uuid,id from public.roles where code=${literal(role)} on conflict do nothing;`).join('\n');
   const fixtures = [];
+  // Ajustar únicamente nombres antiguos intactos del propio seed. Una edición manual se conserva.
+  const displayNames = [
+    `update public.clients set first_name='Lucía',last_name='Herrera' where id='${id(101)}' and first_name in ('DEMO Lucía','Lucía') and last_name in ('Cliente con cuenta','Herrera') and (first_name='DEMO Lucía' or last_name='Cliente con cuenta');`,
+    `update public.clients set first_name='Mateo',last_name='Ríos' where id='${id(102)}' and first_name in ('DEMO Mateo','Mateo') and last_name in ('Cliente sin cuenta','Ríos') and (first_name='DEMO Mateo' or last_name='Cliente sin cuenta');`,
+    `update public.clients set first_name='Rosa',last_name='Salazar' where id='${id(103)}' and first_name in ('DEMO Archivo','Rosa') and last_name in ('Cliente retirado','Salazar') and (first_name='DEMO Archivo' or last_name='Cliente retirado');`,
+    ...[[201,'DEMO Luna','Luna'],[202,'DEMO Toby','Toby'],[203,'DEMO Rocky','Rocky'],[204,'DEMO Histórico','Milo']]
+      .map(([n,oldName,newName]) => `update public.pets set name=${literal(newName)} where id='${id(n)}' and name=${literal(oldName)};`),
+    ...[[301,'DEMO Baño','Baño canino'],[302,'DEMO Baño y corte','Baño y corte canino'],
+      [303,'DEMO Servicio interno','Hidratación de pelaje'],[304,'DEMO Servicio inactivo','Spa de temporada']]
+      .map(([n,oldName,newName]) => `update public.services set name=${literal(newName)} where id='${id(n)}' and name=${literal(oldName)};`),
+    ...[['OWNER','DEMO OWNER','Pruebas locales','Ana','Valdez'],['ADMIN','DEMO ADMIN','Pruebas locales','Diego','Ramos'],
+      ['STAFF','DEMO STAFF','Pruebas locales','María','Torres'],['CLIENT','DEMO CLIENT','Pruebas locales','Lucía','Herrera']]
+      .map(([role,oldFirst,oldLast,first,last]) => `update public.profiles set first_name=${literal(first)},last_name=${literal(last)} where id=${literal(accounts[role])}::uuid and first_name=${literal(oldFirst)} and last_name=${literal(oldLast)};`),
+    `update public.pet_vaccinations set vaccine='Antirrábica' where id='${id(251)}' and vaccine='DEMO Antirrábica vigente';`,
+    `update public.pet_vaccinations set vaccine='Séxtuple' where id='${id(252)}' and vaccine='DEMO Vacuna vencida';`,
+    `update public.client_internal set notes='Confirmar teléfono de contacto antes de la cita.' where client_id='${id(101)}' and notes='DEMO INTERNO: confirmar contacto antes de atender.';`,
+    `update public.pet_internal set notes='Rocky puede reaccionar al cepillado; consultar manejo con Mateo.' where pet_id='${id(203)}' and notes='DEMO INTERNO: antecedentes ficticios de mordida; revisar manejo con responsable.';`,
+    `update public.services set description='Baño, secado y cepillado.' where id='${id(301)}' and description='Tarifas y minutos ficticios para probar prioridad de reglas.';`,
+    `update public.services set description='Baño, secado y corte.' where id='${id(302)}' and description='Ejemplo ficticio con relevo; requiere especialista.';`,
+    `update public.time_blocks set reason='Recojo a domicilio de una mascota.' where id='${id(701)}' and reason='DEMO: recojo manual; trabajador ocupado (sin viaje de regreso ni cotización automática)';`,
+    `update public.time_blocks set reason='Ausencia programada.' where id='${id(702)}' and reason='DEMO: ausencia / descanso';`,
+  ];
   // Inserción aditiva por UUID estable; los cambios manuales en filas existentes se conservan.
   // Comprobar vínculos/marcas para no reutilizar un UUID que pertenezca a otro conjunto de datos.
   function fixture(table, rows, identity, primary = 'id') {
@@ -77,30 +100,30 @@ async function main() {
     }
   }
   fixture('clients', [
-    {id: id(101), profile_id: accounts.CLIENT, first_name: 'DEMO Lucía', last_name: 'Cliente con cuenta',
-      email: email('CLIENT'), address: 'Dirección ficticia de prueba 101', whatsapp_opt_in: false},
-    {id: id(102), first_name: 'DEMO Mateo', last_name: 'Cliente sin cuenta', address: 'Dirección ficticia de prueba 102'},
-    {id: id(103), first_name: 'DEMO Archivo', last_name: 'Cliente retirado', deleted_at: `${startDate}T00:00:00-05:00`},
+    {id: id(101), profile_id: accounts.CLIENT, first_name: 'Lucía', last_name: 'Herrera',
+      email: email('CLIENT'), address: 'Calle Los Cedros 124, Trujillo', whatsapp_opt_in: false},
+    {id: id(102), first_name: 'Mateo', last_name: 'Ríos', address: 'Jirón Las Palmeras 317, Trujillo'},
+    {id: id(103), first_name: 'Rosa', last_name: 'Salazar', deleted_at: `${startDate}T00:00:00-05:00`},
   ], 'first_name');
   fixture('pets', [
-    {id: id(201), client_id: id(101), name: 'DEMO Luna', breed: 'Mestiza', pet_sex: 'FEMALE',
+    {id: id(201), client_id: id(101), name: 'Luna', breed: 'Mestiza', pet_sex: 'FEMALE',
       pet_size: 'SMALL', pet_coat_type: 'LONG', weight_kg: 6, allergies: true,
       client_notes: 'Información comunicable: usar champú indicado por su dueña.'},
-    {id: id(202), client_id: id(101), name: 'DEMO Toby', pet_sex: 'MALE', pet_size: 'TOY', pet_coat_type: 'SHORT', weight_kg: 3},
-    {id: id(203), client_id: id(102), name: 'DEMO Rocky', pet_sex: 'MALE', pet_size: 'LARGE', pet_coat_type: 'CURLY', bites: true, weight_kg: 25},
-    {id: id(204), client_id: id(103), name: 'DEMO Histórico', active: false, deleted_at: `${startDate}T00:00:00-05:00`},
+    {id: id(202), client_id: id(101), name: 'Toby', pet_sex: 'MALE', pet_size: 'TOY', pet_coat_type: 'SHORT', weight_kg: 3},
+    {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', pet_coat_type: 'CURLY', bites: true, weight_kg: 25},
+    {id: id(204), client_id: id(103), name: 'Milo', active: false, deleted_at: `${startDate}T00:00:00-05:00`},
   ], 'client_id');
   fixture('pet_vaccinations', [
-    {id: id(251), pet_id: id(201), vaccine: 'DEMO Antirrábica vigente', applied_on: today.subtract({days: 30}).toString(), valid_until: today.add({days: 335}).toString()},
-    {id: id(252), pet_id: id(203), vaccine: 'DEMO Vacuna vencida', applied_on: today.subtract({days: 400}).toString(), valid_until: today.subtract({days: 35}).toString()},
+    {id: id(251), pet_id: id(201), vaccine: 'Antirrábica', applied_on: today.subtract({days: 30}).toString(), valid_until: today.add({days: 335}).toString()},
+    {id: id(252), pet_id: id(203), vaccine: 'Séxtuple', applied_on: today.subtract({days: 400}).toString(), valid_until: today.subtract({days: 35}).toString()},
   ], 'pet_id');
-  fixture('client_internal', [{client_id: id(101), notes: 'DEMO INTERNO: confirmar contacto antes de atender.', updated_by: accounts.OWNER}], 'client_id', 'client_id');
-  fixture('pet_internal', [{pet_id: id(203), notes: 'DEMO INTERNO: antecedentes ficticios de mordida; revisar manejo con responsable.', updated_by: accounts.OWNER}], 'pet_id', 'pet_id');
+  fixture('client_internal', [{client_id: id(101), notes: 'Confirmar teléfono de contacto antes de la cita.', updated_by: accounts.OWNER}], 'client_id', 'client_id');
+  fixture('pet_internal', [{pet_id: id(203), notes: 'Rocky puede reaccionar al cepillado; consultar manejo con Mateo.', updated_by: accounts.OWNER}], 'pet_id', 'pet_id');
   fixture('services', [
-    {id: id(301), name: 'DEMO Baño', description: 'Tarifas y minutos ficticios para probar prioridad de reglas.', base_price: '45.00', base_duration_minutes: 60},
-    {id: id(302), name: 'DEMO Baño y corte', description: 'Ejemplo ficticio con relevo; requiere especialista.', base_price: '90.00', base_duration_minutes: 120, requires_specialist: true},
-    {id: id(303), name: 'DEMO Servicio interno', description: 'No visible al cliente.', base_price: '30.00', base_duration_minutes: 30, visible_to_clients: false},
-    {id: id(304), name: 'DEMO Servicio inactivo', base_price: '10.00', base_duration_minutes: 30, active: false},
+    {id: id(301), name: 'Baño canino', description: 'Baño, secado y cepillado.', base_price: '45.00', base_duration_minutes: 60},
+    {id: id(302), name: 'Baño y corte canino', description: 'Baño, secado y corte.', base_price: '90.00', base_duration_minutes: 120, requires_specialist: true},
+    {id: id(303), name: 'Hidratación de pelaje', description: 'Servicio interno de acondicionamiento.', base_price: '30.00', base_duration_minutes: 30, visible_to_clients: false},
+    {id: id(304), name: 'Spa de temporada', base_price: '10.00', base_duration_minutes: 30, active: false},
   ], 'name');
   fixture('service_prices', [
     {id: id(401), service_id: id(301), pet_size: null, pet_coat_type: null, price: '40.00', duration_minutes: 60},
@@ -118,11 +141,11 @@ async function main() {
   ]), 'employee_id');
   fixture('time_blocks', [
     {id: id(701), employee_id: id(502), starts_at: `${startDate}T11:00:00-05:00`, ends_at: `${startDate}T12:00:00-05:00`,
-      reason: 'DEMO: recojo manual; trabajador ocupado (sin viaje de regreso ni cotización automática)', created_by: accounts.OWNER},
+      reason: 'Recojo a domicilio de una mascota.', created_by: accounts.OWNER},
     {id: id(702), employee_id: id(501), starts_at: `${startDate.add({days: 1})}T13:00:00-05:00`, ends_at: `${startDate.add({days: 1})}T14:00:00-05:00`,
-      reason: 'DEMO: ausencia / descanso', created_by: accounts.OWNER},
+      reason: 'Ausencia programada.', created_by: accounts.OWNER},
   ], 'employee_id');
-  sql(`begin; select pg_advisory_xact_lock(930003);\n${bootstrap}\n${fixtures.join('\n')}\ncommit;`);
+  sql(`begin; select pg_advisory_xact_lock(930003);\n${bootstrap}\n${displayNames.join('\n')}\n${fixtures.join('\n')}\ncommit;`);
 
   const owner = createClient(env.API_URL, env.ANON_KEY, options);
   await value(owner.auth.signInWithPassword({email: email('OWNER'), password}));
@@ -138,8 +161,8 @@ async function main() {
     {key: 'cancelada', client: 102, cancel: true, items: [item(203, 301, [stage(502, 'SERVICE', '14:00', '15:00')])]},
   ];
   for (const scenario of cases) {
-    const notes = `[${marker}:${scenario.key}] Datos ficticios para pruebas locales.`;
-    const existing = await value(root.from('appointments').select('id').eq('client_id', id(scenario.client)).eq('client_notes', notes));
+    const notes = `[${marker}:${scenario.key}] ${scenario.cancel ? 'Cliente canceló la atención programada.' : 'Atención solicitada en el local.'}`;
+    const existing = await value(root.from('appointments').select('id').eq('client_id', id(scenario.client)).like('client_notes', `[${marker}:${scenario.key}]%`));
     assert.ok(existing.length <= 1, `Hay marcadores duplicados para ${scenario.key}; revisar sin sobrescribir`);
     if (existing.length) {
       console.log(`Conservada cita ${scenario.key}: ${existing[0].id}`);
@@ -151,9 +174,9 @@ async function main() {
       client_id: id(scenario.client), client_notes: notes, items: scenario.items,
     }}));
     appointment = await value(owner.rpc('save_appointment_internal', {p_id: appointment.id,
-      p_expected_version: appointment.version, p_notes: 'DEMO INTERNO: observación reservada, separada de la ficha comunicable.'}));
+      p_expected_version: appointment.version, p_notes: 'Confirmar detalles del servicio con recepción antes del ingreso.'}));
     if (scenario.cancel) appointment = await value(owner.rpc('change_appointment_status', {
-      p_id: appointment.id, p_expected_version: appointment.version, p_target: 'CANCELLED', p_reason: 'DEMO: cancelación solicitada por cliente ficticio',
+      p_id: appointment.id, p_expected_version: appointment.version, p_target: 'CANCELLED', p_reason: 'Cliente solicitó cancelar la cita.',
     }));
     console.log(`Creada cita ${scenario.key}: ${appointment.id} (${appointment.status})`);
   }

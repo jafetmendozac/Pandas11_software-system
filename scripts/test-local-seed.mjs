@@ -60,7 +60,8 @@ try {
   const detail = await value(actors.STAFF.rpc('get_appointment', {p_id: split.id}));
   ok(detail.items.length === 2 && detail.items.flatMap(i => i.stages).length === 3, 'STAFF consulta dos mascotas y tres etapas');
   ok(Number(detail.total_price) === 115 && !detail.needs_attention, 'Total 90 + 25 con cobertura válida');
-  ok(!JSON.stringify(detail).includes('DEMO INTERNO'), 'Notas internas separadas de ficha ordinaria');
+  ok(!JSON.stringify(detail).includes('Confirmar detalles del servicio con recepción antes del ingreso.')
+    && !JSON.stringify(detail).includes('DEMO INTERNO'), 'Notas internas separadas de ficha ordinaria');
   ok((await value(owner.from('appointment_internal').select('appointment_id').in('appointment_id', appointments.map(a => a.id)))).length === 3, 'Notas internas de las tres citas');
   ok((await value(client.from('appointments').select('id').in('id', appointments.map(a => a.id)))).length === 0, 'CLIENT sin agenda interna');
   const date = new Intl.DateTimeFormat('en-CA', {timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit'}).format(new Date(split.starts_at));
