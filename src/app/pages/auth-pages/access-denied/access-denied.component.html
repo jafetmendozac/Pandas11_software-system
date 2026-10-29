@@ -1,0 +1,52 @@
+<main class="flex min-h-dvh flex-col bg-gray-50 px-5 py-8 text-gray-800 dark:bg-gray-950 dark:text-white/90 sm:px-8">
+  <div class="mx-auto flex w-full max-w-4xl items-center">
+    <a routerLink="/" class="inline-flex items-center gap-3 rounded-lg text-sm font-semibold text-gray-800 outline-none focus-visible:ring-4 focus-visible:ring-brand-200 dark:text-white dark:focus-visible:ring-brand-500/40">
+      <span class="flex size-10 items-center justify-center rounded-xl bg-brand-500 text-sm font-bold text-white" aria-hidden="true">P11</span>
+      <span>Spa &amp; Boutique Pandas 11</span>
+    </a>
+  </div>
+
+  <section aria-labelledby="access-title" class="mx-auto my-auto w-full max-w-xl py-12">
+    <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-gray-900 sm:p-10">
+      <div class="mb-7 flex size-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300" aria-hidden="true">
+        <svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="10" width="14" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2" />
+        </svg>
+      </div>
+
+      <p class="mb-2 text-sm font-semibold text-brand-600 dark:text-brand-300">Acceso restringido</p>
+      <h1 id="access-title" class="text-title-sm font-semibold tracking-tight text-gray-900 dark:text-white sm:text-title-md">No puedes abrir esta página</h1>
+      <p class="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
+        No pudimos habilitar esta sección con tu cuenta actual. Es posible que no tenga permiso, esté inactiva o que no hayamos podido verificarla.
+      </p>
+      <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">
+        Si necesitas entrar, consulta con la persona que administra las cuentas del negocio.
+      </p>
+
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a routerLink="/" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-semibold text-white shadow-theme-xs transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
+          Volver al inicio
+        </a>
+        @if (canViewProfile()) {
+          <a routerLink="/mi-perfil" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5">
+            Ver mi perfil
+          </a>
+        }
+      </div>
+
+      <div class="mt-7 border-t border-gray-200 pt-5 dark:border-gray-800">
+        @if (checking()) {
+          <p role="status" class="text-sm text-gray-500 dark:text-gray-400">Comprobando las opciones de tu cuenta…</p>
+        } @else {
+          <button type="button" (click)="signOut()" [disabled]="signingOut()" class="rounded-md text-sm font-semibold text-brand-600 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:cursor-wait disabled:opacity-60 dark:text-brand-300">
+            {{ signingOut() ? 'Cerrando sesión…' : 'Cambiar de cuenta' }}
+          </button>
+        }
+        @if (signOutError()) {
+          <p role="alert" class="mt-3 text-sm text-error-600 dark:text-error-400">{{ signOutError() }}</p>
+        }
+      </div>
+    </div>
+  </section>
+</main>
