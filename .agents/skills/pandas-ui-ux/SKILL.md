@@ -1,6 +1,6 @@
 ---
 name: pandas-ui-ux
-description: Analiza, diseña y mejora la UI y UX de Pandas11 para facilitar las tareas de sus usuarios. Úsala al revisar pantallas poco amigables, formularios, navegación, tablas, diálogos, mensajes, accesibilidad o flujos nuevos de ventas, inventario, citas y pagos. Propone cambios concretos y aplica los autorizados respetando SDD, permisos y reglas de negocio. No usar para cambios exclusivamente de backend sin impacto en la experiencia.
+description: Analiza, diseña y mejora la UI y UX de Pandas11 para facilitar las tareas de sus usuarios. Úsala al revisar pantallas poco amigables, formularios, navegación, tablas, diálogos, mensajes, accesibilidad o flujos nuevos de ventas, inventario, citas y pagos. Presenta primero los cambios exactos y aplica solo el plan aprobado, respetando SDD, permisos y reglas de negocio. No usar para cambios exclusivamente de backend sin impacto en la experiencia.
 ---
 
 # UI y UX de Pandas11
@@ -55,12 +55,13 @@ Para ejemplos propios del proyecto, consultar [patrones y casos](references/pand
 - Conservar el contenido y la identidad de solicitudes cuyo resultado sea desconocido. No generar un nuevo envío ni habilitar cambios incompatibles con un reintento seguro solo para desbloquear la pantalla. Explicar cómo resolver la operación pendiente.
 - No presentar como disponible una función pendiente ni habilitarla mediante cambios de apariencia.
 
-## 5. Implementar dentro de la autorización existente
+## 5. Presentar los cambios exactos y esperar aprobación
 
-- Para diagnósticos e ideas, entregar propuestas; no modificar la aplicación.
-- Para cambios UI autorizados, explicar brevemente qué se modificará y aplicar cambios acotados siguiendo los patrones instalados.
-- Si aparece una funcionalidad nueva, cambio importante de comportamiento o de esquema, seguir `sdd-feature`: preparar requisitos, plan y validación con reglas RN y obtener aprobación del alcance pendiente antes de implementarlo. No volver a solicitar aprobación de un plan ya autorizado si no cambió su alcance.
-- No extender una mejora de pantalla a un rediseño global ni modificar producción.
+- Antes de editar archivos del proyecto, realizar únicamente análisis de lectura y entregar al usuario una propuesta concreta. Indicar las pantallas y archivos previstos, los elementos que cambiarán, el comportamiento resultante, las reglas o permisos afectados y cómo se comprobará. Si algún detalle depende de una decisión del usuario, señalarlo en la propuesta.
+- Pedir aprobación explícita de esa propuesta y esperar la respuesta antes de modificar código, estilos, pruebas, especificaciones o datos. Una solicitud general como «mejora esta página» o «arregla estos problemas» inicia el análisis y la propuesta; no sustituye la aprobación de los cambios exactos.
+- Si el usuario ya aprobó en la conversación un plan concreto que cubre exactamente el trabajo actual, aplicar ese plan sin pedir otra aprobación. Si durante la implementación aparece un cambio fuera de ese alcance, presentar la ampliación exacta y esperar su aprobación antes de aplicarla.
+- Para diagnósticos e ideas, entregar solo hallazgos y propuestas. Para una funcionalidad nueva, un cambio importante de comportamiento o de esquema, seguir también el flujo SDD del proyecto; la aprobación debe cubrir los requisitos y el plan antes de implementar.
+- Una vez aprobado, aplicar cambios acotados con los patrones instalados. No extender una mejora de pantalla a un rediseño global ni modificar producción.
 
 ## 6. Validar y entregar
 
