@@ -47,19 +47,14 @@ describe('Inicio público y separación del panel', () => {
     expect(harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.whatsapp-float')?.href).toBe('https://wa.me/51972704860');
   });
 
-  it('muestra el panfleto publicado y permite ampliarlo con cierre por teclado', async () => {
+  it('muestra el panfleto publicado como modal y permite cerrarlo o ampliarlo de nuevo', async () => {
     flyers.today.and.resolveTo({weekday:1,object_path:'1/demo.png',alt_text:'Promoción de baño del lunes',published:true,version:2,updated_at:null});
     const harness = await RouterTestingHarness.create('/');
     await harness.fixture.whenStable();
     harness.detectChanges();
-    const image = harness.routeNativeElement?.querySelector<HTMLImageElement>('#daily-flyer-title + p + div img')
-      ?? harness.routeNativeElement?.querySelector<HTMLImageElement>('section[aria-labelledby="daily-flyer-title"] img');
-    expect(image?.alt).toBe('Promoción de baño del lunes');
-    const open = harness.routeNativeElement!.querySelector<HTMLButtonElement>('button[aria-label^="Ampliar panfleto"]')!;
-    open.click();
-    await harness.fixture.whenStable();
-    harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('[aria-labelledby="daily-flyer-title"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('[role="dialog"] img')?.getAttribute('alt')).toBe('Promoción de baño del lunes');
     harness.routeNativeElement!.querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
     harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('[role="dialog"]')).toBeNull();

@@ -17,7 +17,6 @@ export class InicioComponent implements OnInit, OnDestroy {
   constructor(_theme: ThemeService) {}
 
   @ViewChild('menuToggle') private menuToggle?: ElementRef<HTMLButtonElement>;
-  @ViewChild('flyerOpen') private flyerOpen?: ElementRef<HTMLButtonElement>;
   private readonly flyerApi = inject(HomeFlyersService);
   private readonly zone = inject(NgZone);
   private flyerRevision = 0;
@@ -80,30 +79,19 @@ export class InicioComponent implements OnInit, OnDestroy {
         return;
       }
       const url = await this.flyerApi.signedUrl(row.object_path);
-      if (revision === this.flyerRevision) this.activeFlyer.set({ row, url });
+      if (revision === this.flyerRevision) {
+        this.activeFlyer.set({ row, url });
+        this.flyerExpanded.set(true);
+      }
     } catch {
       // La portada informativa permanece disponible si no responde Storage.
       if (revision === this.flyerRevision) this.activeFlyer.set(null);
     }
   }
 
-  async openFlyer(): Promise<void> {
-    const current = this.activeFlyer();
-    if (!current?.row.object_path) return;
-    try {
-      const url = await this.flyerApi.signedUrl(current.row.object_path);
-      if (this.activeFlyer()?.row.object_path !== current.row.object_path) return;
-      this.activeFlyer.set({ row: current.row, url });
-      this.flyerExpanded.set(true);
-    } catch {
-      this.flyerExpanded.set(false);
-    }
-  }
-
   closeFlyer(): void {
     if (!this.flyerExpanded()) return;
     this.flyerExpanded.set(false);
-    this.flyerOpen?.nativeElement.focus();
   }
 
   closeMenu(restoreFocus = false): void {

@@ -1,5 +1,5 @@
 <div class="relative inline-block w-full">
-  <button
+  <button #trigger
     type="button"
     class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800
       {{
@@ -8,8 +8,12 @@
         : 'text-gray-400 dark:text-gray-400'
     }} {{ className }}"
     (click)="toggleDropdown()"
+    [disabled]="disabled"
+    [attr.aria-label]="ariaLabel"
     aria-haspopup="listbox"
     [attr.aria-expanded]="isOpen"
+    [class.cursor-not-allowed]="disabled"
+    [class.opacity-50]="disabled"
   >
     <span class="truncate">{{ selectedLabel }}</span>
     <svg

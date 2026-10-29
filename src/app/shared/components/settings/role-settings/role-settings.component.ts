@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { A11yModule } from '@angular/cdk/a11y';
 import { ComponentCardComponent } from '../../common/component-card/component-card.component';
 import { ModalComponent } from '../../ui/modal/modal.component';
+import { CustomSelectComponent, CustomSelectOption } from '../../form/custom-select/custom-select.component';
 import { AuthorizationService } from '../../../services/authorization.service';
 import { Permission, Role, RoleInput, RolePermission, RolesService } from '../../../services/roles.service';
 
 @Component({
   selector: 'app-role-settings',
   standalone: true,
-  imports: [FormsModule, A11yModule, ComponentCardComponent, ModalComponent],
+  imports: [FormsModule, A11yModule, ComponentCardComponent, ModalComponent, CustomSelectComponent],
   templateUrl: './role-settings.component.html',
 })
 export class RoleSettingsComponent implements OnInit {
@@ -67,7 +68,23 @@ export class RoleSettingsComponent implements OnInit {
   }
   filteredPermissions(): Permission[] {
     const query = this.search.trim().toLowerCase();
-    return this.permissions().filter(item => `${item.code} ${item.description}`.toLowerCase().includes(query));
+    return this.permissions().filter(item => this.permissionLabel(item).toLowerCase().includes(query));
+  }
+  permissionLabel(permission: Permission): string {
+    return permission.description.replace(/\bOWNER\b/g, 'Propietario');
+  }
+  roleOptions(includeOwner = true): CustomSelectOption[] {
+    return this.roles().filter(role => includeOwner || role.code !== 'OWNER')
+      .map(role => ({ value: role.id, label: `${role.name}${role.active ? '' : ' (Inactivo)'}` }));
+  }
+  userOptions(): CustomSelectOption[] {
+    return this.users.map(user => {
+      const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Usuario sin nombre';
+      const repeated = this.users.filter(other =>
+        ([other.first_name, other.last_name].filter(Boolean).join(' ') || 'Usuario sin nombre') === name,
+      ).length > 1;
+      return { value: user.id, label: `${name}${repeated ? ` · ${user.id.slice(0, 8)}` : ''}${user.active ? '' : ' (Inactivo)'}` };
+    });
   }
   edit(role: Role): void {
     this.notice.set('');

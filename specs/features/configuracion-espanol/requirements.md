@@ -31,3 +31,7 @@ El usuario pidió mejorar la página existente y comenzar por el nombre en espa�
 - UX-03: las acciones dicen qué abren («Editar panfletos», «Ver roles y permisos», «Cambiar apariencia», «Ir a mi perfil») y la descripción de roles no promete edición a quien solo puede consultar.
 - UX-04: la sección de apariencia explica que sus cambios son locales, usa nombres comunes para el orden visual y distingue descartar de guardar.
 - UX-05: el recorrido funciona con teclado y en móvil, claro, oscuro y RTL, sin desbordamiento horizontal.
+
+## Decisión posterior — 2026-10-28
+
+La aprobación de [Correcciones de experiencia](../configuracion-experiencia/requirements.md) sustituye UX-04 en la parte de dirección: se retira «Dirección de lectura» de Apariencia y se mantiene el tema claro/oscuro con vista previa, guardar y descartar. R-05 conserva el contrato de datos; en «Asignar permisos» se muestran descripciones en español en lugar de códigos técnicos.

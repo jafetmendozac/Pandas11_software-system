@@ -82,3 +82,31 @@
 }
 
 .public-site a.whatsapp-float { background: var(--color-success-600); color: #fff; }
+.flyer-dialog { background: color-mix(in srgb, #07191d 82%, transparent); backdrop-filter: blur(10px); animation: flyer-water-in .55s ease-out both; }
+.flyer-dialog-panel { position: relative; background: transparent; animation: flyer-emerge .9s cubic-bezier(.22, 1.35, .36, 1) both; }
+.flyer-dialog-panel::after { content: ''; position: absolute; inset-inline: 8%; inset-block-end: -1.25rem; height: 2.5rem; border: 2px solid color-mix(in srgb, var(--color-brand-300) 60%, transparent); border-radius: 50%; opacity: 0; pointer-events: none; animation: flyer-ripple 1s .18s ease-out both; }
+.flyer-dialog-close { color: #fff; background: color-mix(in srgb, #07191d 72%, transparent); transition: background-color .2s ease, transform .2s ease; }
+.flyer-dialog-close:hover { background: var(--color-brand-600); transform: rotate(90deg); }
+.flyer-dialog-image { border-radius: 1.25rem; }
+
+@keyframes flyer-water-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes flyer-emerge {
+  0% { opacity: 0; transform: translateY(3.5rem) scale(.92); }
+  55% { opacity: 1; transform: translateY(-.6rem) scale(1.015); }
+  78% { transform: translateY(.2rem) scale(.998); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes flyer-ripple {
+  0% { opacity: 0; transform: scale(.35); }
+  25% { opacity: .8; }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flyer-dialog, .flyer-dialog-panel, .flyer-dialog-panel::after { animation: none; }
+}

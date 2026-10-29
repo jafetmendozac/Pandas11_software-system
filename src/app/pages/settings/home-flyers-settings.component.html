@@ -29,7 +29,9 @@
           <p class="text-sm text-gray-600 dark:text-gray-400">La imagen publicada para este día aparece en la portada durante todo el día en Trujillo. Si desactivas su publicación, la portada muestra su contenido habitual.</p>
           <div class="flex min-h-48 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
             @if (previewUrl(); as url) {
-              <img [src]="url" alt="" class="max-h-[32rem] w-full object-contain" />
+              <button type="button" (click)="openPreview()" aria-label="Ampliar vista previa del panfleto" class="w-full rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
+                <img [src]="url" [alt]="alt || 'Vista previa del panfleto'" class="max-h-[32rem] w-full object-contain" />
+              </button>
             } @else {
               <p class="px-4 text-center text-sm text-gray-500 dark:text-gray-400">Aún no hay vista previa para este día.</p>
             }
@@ -38,8 +40,11 @@
             <fieldset [disabled]="busy() || !!pending" class="space-y-5">
               <div>
                 <label for="flyer-file" class="mb-2 block text-sm font-medium">Imagen del panfleto</label>
-                <input #fileInput id="flyer-file" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseFile($event)"
-                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm file:me-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:file:bg-gray-800 dark:file:text-brand-300" />
+                <input #fileInput id="flyer-file" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseFile($event)" tabindex="-1" class="sr-only" />
+                <div class="flex flex-wrap items-center gap-3">
+                  <button #chooseFileButton type="button" (click)="fileInput.click()" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Elegir imagen</button>
+                  <span role="status" class="min-w-0 break-all text-sm text-gray-600 dark:text-gray-400">{{ file?.name || (flyer.object_path ? 'Se conserva la imagen actual' : 'Ninguna imagen seleccionada') }}</span>
+                </div>
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">JPG, PNG o WebP · máximo 5 MiB. La imagen se verá completa para que no se corte el texto del cartel.</p>
                 @if (file) { <button type="button" (click)="discardFile()" class="mt-2 text-sm font-medium text-brand-600 underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400">Descartar imagen elegida</button> }
               </div>
@@ -65,4 +70,18 @@
   </div>
 } @else {
   <button type="button" (click)="load()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700 dark:text-white">Reintentar carga</button>
+}
+
+@if (previewOpen()) {
+  @if (previewUrl(); as url) {
+    <app-modal [isOpen]="true" [showCloseButton]="false" (close)="closePreview()" className="m-4 max-w-5xl p-4 sm:p-6">
+      <section role="dialog" aria-modal="true" aria-labelledby="flyer-preview-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="custom-scrollbar max-h-[88vh] overflow-y-auto">
+        <div class="mb-4 flex items-start justify-between gap-4">
+          <div><h2 id="flyer-preview-title" class="text-xl font-semibold text-gray-800 dark:text-white/90">Vista previa del panfleto</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Imagen completa del {{ days[selectedDay() - 1] }}. Cierra la vista previa para continuar editando.</p></div>
+          <button cdkFocusInitial type="button" (click)="closePreview()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200">Cerrar</button>
+        </div>
+        <img [src]="url" [alt]="alt || 'Vista previa del panfleto'" class="mx-auto max-h-[calc(88vh-8rem)] w-full object-contain" />
+      </section>
+    </app-modal>
+  }
 }

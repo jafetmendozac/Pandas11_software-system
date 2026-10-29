@@ -58,6 +58,11 @@ export class SupabaseService {
     }
   }
 
+  async updatePassword(password: string): Promise<void> {
+    const { error } = await this.supabase.auth.updateUser({ password });
+    if (error) throw error;
+  }
+
   // Ejemplo de un método para obtener datos
   async getClients() {
     const { data, error } = await this.supabase

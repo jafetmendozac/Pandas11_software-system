@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
@@ -13,20 +13,29 @@ import { RoleSettingsComponent } from '../../shared/components/settings/role-set
   imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent, RoleSettingsComponent],
   templateUrl: './settings.component.html',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnDestroy {
   readonly authorization = inject(AuthorizationService);
   private readonly themeService = inject(ThemeService);
   theme: 'light' | 'dark' = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  direction: 'ltr' | 'rtl' = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
   section: 'home' | 'appearance' | 'roles' = 'home';
   message = '';
   error = false;
 
+  openAppearance(): void {
+    this.theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    this.message = '';
+    this.error = false;
+    this.section = 'appearance';
+  }
+
+  previewTheme(theme: 'light' | 'dark'): void {
+    this.themeService.previewTheme(theme);
+    this.message = '';
+  }
+
   save(): void {
     try {
       this.themeService.setTheme(this.theme);
-      localStorage.setItem('dir', this.direction);
-      document.documentElement.setAttribute('dir', this.direction);
       this.error = false;
       this.message = 'Tus preferencias se han guardado en este navegador.';
     } catch {
@@ -36,8 +45,12 @@ export class SettingsComponent {
   }
 
   cancel(): void {
-    this.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    this.direction = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
+    this.theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    this.themeService.previewTheme(this.theme);
     this.message = '';
+  }
+
+  ngOnDestroy(): void {
+    if (this.section === 'appearance') this.cancel();
   }
 }

@@ -73,4 +73,31 @@ describe('Editor semanal de panfletos', () => {
     expect(component.error()).toContain('No se pudo subir');
     expect(api.save).not.toHaveBeenCalled();
   });
+
+  it('abre la imagen elegida en un modal y devuelve el foco al cerrar', async () => {
+    const fixture=TestBed.createComponent(HomeFlyersSettingsComponent);
+    const component=fixture.componentInstance;
+    component.selectedDay.set(1);
+    fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const choose=root.querySelector<HTMLButtonElement>('button[aria-label="Ampliar vista previa del panfleto"]');
+    expect(choose).not.toBeNull();
+    const trigger=root.querySelector<HTMLButtonElement>('button:has(+ span[role="status"])');
+    expect(trigger?.textContent).toContain('Elegir imagen');
+    trigger!.focus();
+    const input=root.querySelector<HTMLInputElement>('input[type=file]')!;
+    Object.defineProperty(input,'files',{configurable:true,value:[new File(['imagen'],'panfleto.png',{type:'image/png'})]});
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(component.previewOpen()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
+    await fixture.whenStable();
+    expect(root.querySelector('[role="dialog"]')?.contains(document.activeElement)).toBeTrue();
+    root.querySelector<HTMLButtonElement>('[role="dialog"] button')!.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(component.previewOpen()).toBeFalse();
+    expect(document.activeElement).toBe(trigger);
+    expect(fixture.nativeElement.textContent).toContain('panfleto.png');
+  });
 });

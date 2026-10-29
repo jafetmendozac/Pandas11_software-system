@@ -39,7 +39,7 @@ La mayoría de las rutas importa directamente sus componentes. Configuración us
 
 No se identificó gestión centralizada mediante `onAuthStateChange`. El guard no verifica rol, permisos o `profiles.active`; no hay guards de permiso ni `canActivateChild` identificados. La autorización efectiva debe comprobarse mediante RLS.
 
-Google, recuperación de contraseña, reenvío de confirmación y doble factor no tienen un flujo funcional completo identificado. El control visual de doble factor modifica estado local.
+Google, recuperación de contraseña, reenvío de confirmación y doble factor no tienen un flujo funcional completo identificado. El control visual de doble factor, que solo modificaba estado local, se retiró de Mi perfil en la corrección de experiencia del 2026-10-28; el cambio de contraseña de una sesión autenticada usa Supabase Auth.
 
 ## Capas de servicios y dependencias
 

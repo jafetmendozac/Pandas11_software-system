@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { ThemeService } from './shared/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,7 @@ import { RouterModule } from '@angular/router';
   styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit {
+  constructor(_themeService: ThemeService) {}
   title = 'Angular Ecommerce Dashboard | TailAdmin';
 
   ngOnInit(): void {

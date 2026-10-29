@@ -6,6 +6,8 @@ import { HomeFlyersService } from '../../shared/services/home-flyers.service';
 import { HOME_FLYER_DAYS, HomeFlyer, weekdayInLima } from '../../shared/services/home-flyers.models';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
+import { A11yModule } from '@angular/cdk/a11y';
+import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
 
 interface PendingSave {
   weekday: number;
@@ -19,11 +21,12 @@ interface PendingSave {
 
 @Component({
   selector: 'app-home-flyers-settings', standalone: true,
-  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent],
+  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent, A11yModule, ModalComponent],
   templateUrl: './home-flyers-settings.component.html',
 })
 export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('chooseFileButton') private chooseFileButton?: ElementRef<HTMLButtonElement>;
   private readonly api = inject(HomeFlyersService);
   readonly auth = inject(AuthorizationService);
   readonly days = HOME_FLYER_DAYS;
@@ -33,6 +36,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly previewUrl = signal<string | null>(null);
+  readonly previewOpen = signal(false);
   readonly error = signal('');
   readonly notice = signal('');
   alt = '';
@@ -41,6 +45,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   pending: PendingSave | null = null;
   private objectUrl: string | null = null;
   private previewRevision = 0;
+  private previewReturnFocus: HTMLElement | null = null;
 
   ngOnInit(): void { void this.load(); }
   ngOnDestroy(): void { this.previewRevision++; this.revokeObjectUrl(); }
@@ -84,6 +89,8 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
       this.file = file;
       this.objectUrl = URL.createObjectURL(file);
       this.previewUrl.set(this.objectUrl);
+      this.previewReturnFocus = this.chooseFileButton?.nativeElement ?? null;
+      this.previewOpen.set(true);
       this.error.set(''); this.notice.set('');
     } catch (error) {
       input.value = '';
@@ -96,7 +103,21 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
     this.file = null;
     this.clearFileInput();
     this.revokeObjectUrl();
+    this.previewOpen.set(false);
     void this.loadPreview();
+  }
+
+  openPreview(): void {
+    if (!this.previewUrl()) return;
+    this.previewReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    this.previewOpen.set(true);
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
+    const returnFocus = this.previewReturnFocus;
+    this.previewReturnFocus = null;
+    queueMicrotask(() => returnFocus?.focus());
   }
 
   async save(): Promise<void> {
@@ -181,6 +202,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
     this.file = null;
     this.clearFileInput();
     this.revokeObjectUrl();
+    this.previewOpen.set(false);
     this.alt = saved.alt_text ?? '';
     this.published = saved.published;
     await this.loadPreview();
@@ -190,6 +212,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   }
 
   private resetForm(): void {
+    this.previewOpen.set(false);
     this.file = null;
     this.clearFileInput();
     this.revokeObjectUrl();
