@@ -201,3 +201,7 @@ RLS limita lectura a OWNER/ADMIN con permisos; escrituras solo mediante RPC. Ang
 ## Panfletos semanales del inicio público — 2026-10-23
 
 La migración local `20261023135240_weekly_home_flyers.sql` añade siete filas recurrentes `home_flyers`, un bucket privado y el permiso `home_flyers.manage` para OWNER/ADMIN. RLS expone al visitante solo la fila publicada del día en `America/Lima` y su objeto; la escritura usa `save_home_flyer` con versión y validación de archivo. Angular lee la fila del día en `/` y ofrece edición en `/configuracion/panfletos` a gestores. Si no hay imagen publicada, sigue visible la portada informativa. El modelo y la migración son locales; no se ha comprobado ni modificado Supabase remoto. Ver [validación](features/inicio-publico-panfletos-semanales/validation.md).
+
+## Indicadores mensuales 5.1 — 2026-10-29
+
+La migración local `20261029120000_dashboard_kpis.sql` añade `analytics.read` a OWNER/ADMIN y `dashboard_kpis(p_month date)`. La RPC agrega `payments` `PAID` tipo BALANCE/DEPOSIT y `sale_payments` `PAID` por `paid_at`, y cuenta citas `COMPLETED` por `starts_at`, dentro del mes de `America/Lima`. Exige rol OWNER/ADMIN activo y permiso nominal; devuelve importes `numeric` como texto y no expone datos personales. No lee `cash_movements`, que podría duplicar cobros. No hay cambios de tablas ni de Angular: `/panel` sigue mostrando la plantilla hasta 5.2. La migración se aplicó solo en Supabase local y pasó la suite SQL; ver [validación](features/actividad-5-kpis/validation.md).

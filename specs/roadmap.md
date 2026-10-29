@@ -163,3 +163,7 @@ Plan COM-D01–COM-D05 aprobado mediante «Vamos con eso». Cobros manuales de p
 ## Inicio público: panfletos semanales — 2026-10-23
 
 Requisitos PS-01–PS-07 y plan aprobados. Implementados localmente siete espacios (uno por día de Lima), lectura pública limitada por RLS/Storage, editor para OWNER/ADMIN, respaldo de portada y vista ampliada. La prueba visual usó una imagen local temporal que se retiró. Para mostrar panfletos reales faltan la migración al entorno de destino mediante un proceso aprobado y la carga por el negocio de siete imágenes autorizadas; ninguna se publicó aquí. Evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md).
+
+## Actividad 5.1: consultas SQL para indicadores — 2026-10-29
+
+El usuario aprobó el [plan](features/actividad-5-kpis/plan.md) y confirmó Trujillo (`America/Lima`). Se aplicó en Supabase local una migración incremental para cobros `PAID` de servicios/productos y citas `COMPLETED` por mes, con acceso OWNER/ADMIN y sin duplicar movimientos de caja. Pasaron 17/17 pruebas específicas y 289/289 de la suite SQL. El dashboard visual conserva datos de plantilla hasta 5.2; la migración de contexto de roles del 2026-10-28 sigue pendiente y no se alteró. Ver [validación](features/actividad-5-kpis/validation.md).

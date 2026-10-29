@@ -8,7 +8,7 @@ import { AuthorizationService } from '../../services/authorization.service';
 class EmptyPage {}
 describe('Menú de agenda por permiso',()=>{
  let allowed:Set<string>;
- beforeEach(()=>{allowed=new Set(['panel.access']);TestBed.configureTestingModule({imports:[AppSidebarComponent],providers:[provideRouter([{path:'calendario',component:EmptyPage},{path:'clientes',component:EmptyPage}]),{provide:SalesService,useValue:{search:async()=>({rows:[],total:0})}},{provide:AuthorizationService,useValue:{has:(p:string)=>allowed.has(p)}}]});});
+ beforeEach(()=>{allowed=new Set(['panel.access']);TestBed.configureTestingModule({imports:[AppSidebarComponent],providers:[provideRouter([{path:'calendario',component:EmptyPage},{path:'clientes',component:EmptyPage}]),{provide:SalesService,useValue:{search:async()=>({rows:[],total:0})}},{provide:AuthorizationService,useValue:{has:(p:string)=>allowed.has(p),hasInSelectedRole:(p:string)=>allowed.has(p)}}]});});
  it('oculta Calendario y el grupo vacío Citas si falta appointments.read',()=>{
   const c=TestBed.createComponent(AppSidebarComponent).componentInstance;
   expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/calendario'))).toBeFalse();

@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
 import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
 import { UserDropdownComponent } from '../../components/header/user-dropdown/user-dropdown.component';
+import { CustomSelectComponent } from '../../components/form/custom-select/custom-select.component';
+import { AuthorizationService } from '../../services/authorization.service';
 
 @Component({
   selector: 'app-header',
@@ -14,6 +16,7 @@ import { UserDropdownComponent } from '../../components/header/user-dropdown/use
     ThemeToggleButtonComponent,
     NotificationDropdownComponent,
     UserDropdownComponent,
+    CustomSelectComponent,
   ],
   templateUrl: './app-header.component.html',
 })
@@ -23,7 +26,7 @@ export class AppHeaderComponent {
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
-  constructor(public sidebarService: SidebarService) {
+  constructor(public sidebarService: SidebarService, public authorization: AuthorizationService) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
 

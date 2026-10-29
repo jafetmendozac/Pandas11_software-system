@@ -35,7 +35,7 @@ export class AppSidebarComponent {
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
     const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read'};
-    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.has(permission[path]));
+    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
     const order = ['/panel', '/calendario', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
     return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0).sort((a,b) => {
       const position = (item: NavItem) => {

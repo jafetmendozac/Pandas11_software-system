@@ -61,7 +61,7 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 
 | ID | Actividad | Semana prevista | Estado al corte | Avance y evidencia | Pendiente para cerrar |
 |---|---|---|---|---|---|
-| 5.1 | Iniciar Dashboard: consultas SQL para KPIs | S10 | Pendiente | Hay datos operativos de citas/pagos aprovechables, pero no consultas de KPIs conectadas al dashboard acreditadas [E09, E11, E18]. | Definir cada indicador, fórmula, periodo, zona horaria y permisos; distinguir ventas de dinero recibido. |
+| 5.1 | Iniciar Dashboard: consultas SQL para KPIs | S10 | Validado localmente (2026-10-29) | Fórmulas, periodo Lima y permisos aprobados; RPC aplicada y 17/17 pruebas específicas, 289/289 SQL completas [E22]. | Aceptación operativa y despliegue remoto pendientes; 5.2 conectará la interfaz. |
 | 5.2 | Dashboard: gráficos de ingresos, servicios y productos | S11 | Pendiente | Dashboard de plantilla; monthly-sales-chart contiene una serie numérica fija [E11, E18]. | Conectar indicadores reales de ingresos/servicios/productos; validar agregaciones y ausencia de doble conteo. Los productos dependen de la Actividad 4. |
 | 5.3 | Implementar recordatorios y lista por contactar | S11 | Pendiente | notifications aparece en el SQL previsto; dropdown actual de notificaciones es interfaz de plantilla [E02, E11, E18]. | Acordar destinatarios, consentimiento, canal, frecuencia, lista de seguimiento y registro de contactos. |
 | 5.4 | Reportes exportables y analítica de retención | S12 | Pendiente | Sin exportación operativa de reportes ni retención acreditada en fuentes revisadas; el botón Export de facturas de plantilla no tiene acción [E10, E11, E18]. | Definir formatos, filtros, protección de datos y fórmula/cohortes de retención; probar resultados contra datos sintéticos conocidos. |
@@ -102,6 +102,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E18 | [Anexo de analítica y fidelización](actividad-5-analitica-fidelizacion.md): puntos 5.1–5.5, fuentes disponibles, componentes de demostración, dependencias y criterios por definir. Preparado para revisión. |
 | E19 | [Anexo de calidad y transferencia](actividad-6-calidad-transferencia.md): puntos 6.1–6.4, evidencia de pruebas locales, paquete de aceptación, manuales y registro pendiente de capacitación/entrega. Preparado para revisión. |
 | E21 | [Cobros, caja y mínimos](features/actividad-4-cobros-caja-alertas/validation.md): migraciones locales, RLS, suite SQL, API y Angular. |
+| E22 | [Indicadores 5.1](features/actividad-5-kpis/validation.md): requisitos y plan aprobados, migración local, permisos y 289/289 pruebas SQL correctas. |
 
 ## Reservas online y diferencias de alcance
 

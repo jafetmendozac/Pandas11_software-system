@@ -31,3 +31,7 @@ El modelo de [clientes](../Pandas11.sql) contiene `whatsapp_opt_in`, pero su pre
 5. Realizar la revisión integral de interfaz cuando los módulos finales estén presentes y documentar observaciones/aceptación.
 
 Esta secuencia orienta el seguimiento; no constituye requisitos ni un plan SDD aprobado. Ninguna nueva funcionalidad, migración o integración externa se inició para preparar el anexo.
+
+## Actualización de 5.1 — 2026-10-29
+
+El usuario aprobó [requisitos y plan](features/actividad-5-kpis/plan.md) para cuatro indicadores mensuales en `America/Lima`: cobros confirmados de servicios, cobros confirmados de productos, total cobrado y citas completadas por inicio programado. Se aplicó localmente una migración con RPC protegida para OWNER/ADMIN y pasaron [17/17 pruebas específicas y 289/289 SQL completas](features/actividad-5-kpis/validation.md). Los diagnósticos de 5.1 anteriores describen el corte 2026-10-20; el panel visual aún usa plantilla y corresponde a 5.2.

@@ -3,13 +3,16 @@ import { AuthorizationService } from './authorization.service';
 import { SupabaseService } from './supabase.service';
 
 describe('AuthorizationService', () => {
+  type RpcResult = { data: unknown; error: null };
   let event: (name: string, session?: { user: { id: string } }) => void;
   let profile: { data: { active: boolean } | null; error: unknown };
   let rpc: jasmine.Spy;
   let service: AuthorizationService;
   beforeEach(() => {
     profile = { data: { active: true }, error: null };
-    rpc = jasmine.createSpy().and.resolveTo({ data: ['panel.access'], error: null });
+    rpc = jasmine.createSpy().and.callFake((name: string) => name === 'my_roles'
+      ? Promise.resolve({ data: [{ role_id: 'role-1', code: 'STAFF', name: 'Personal', permissions: ['panel.access'] }], error: null })
+      : Promise.resolve({ data: ['panel.access'], error: null }));
     const client = {
       auth: {
         onAuthStateChange: (callback: (name: string, session?: { user: { id: string } }) => void) => { event = callback; },
@@ -44,24 +47,22 @@ describe('AuthorizationService', () => {
     expect(service.permissions()).toEqual([]);
   });
   it('descarta una respuesta que llega después del cierre de sesión', async () => {
-    let resolve!: (value: { data: string[]; error: null }) => void;
-    rpc.and.callFake(() => new Promise(r => { resolve = r; }));
     const pending = service.refresh();
-    await new Promise(r => setTimeout(r, 0));
     event('SIGNED_OUT');
-    resolve({ data: ['panel.access'], error: null });
     expect(await pending).toBeFalse();
     expect(service.permissions()).toEqual([]);
   });
   it('mantiene montado Roles mientras comprueba permisos de nuevo', async () => {
     await service.refresh();
-    let resolve!: (value: { data: string[]; error: null }) => void;
-    rpc.and.callFake(() => new Promise(r => { resolve = r; }));
+    const resolves: ((value: RpcResult) => void)[] = [];
+    rpc.and.callFake(() => new Promise(r => { resolves.push(r); }));
     const pending = service.refresh();
     expect(service.has('panel.access')).toBeTrue();
     await new Promise(r => setTimeout(r, 0));
     expect(service.has('panel.access')).toBeTrue();
-    resolve({ data: ['panel.access', 'security.read'], error: null });
+    resolves[0]({ data: ['panel.access', 'security.read'], error: null });
+    await new Promise(r => setTimeout(r, 0));
+    resolves[1]({ data: [{ role_id: 'role-1', code: 'STAFF', name: 'Personal', permissions: ['panel.access', 'security.read'] }], error: null });
     expect(await pending).toBeTrue();
     expect(service.has('security.read')).toBeTrue();
   });
@@ -71,7 +72,7 @@ describe('AuthorizationService', () => {
     expect(first).toBe(second);
     expect(await first).toBeTrue();
     expect(await second).toBeTrue();
-    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledTimes(2);
   });
   it('renovar el token de la misma cuenta no vacía el menú', async () => {
     await service.refresh();

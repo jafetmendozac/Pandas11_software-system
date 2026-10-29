@@ -199,3 +199,14 @@ RN-21/RN-25 siguen exigiendo OWNER y disposición explícita para anular product
 | RN-31 | La portada muestra un panfleto configurable por día de lunes a domingo, calculado en `America/Lima`; OWNER y ADMIN pueden reemplazarlo desde el panel. Una posición sin imagen publicada conserva la portada informativa existente. | Plan aprobado e implementado localmente; evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md). Despliegue remoto pendiente. |
 
 El panfleto dominical no significa apertura el domingo ni modifica RN-01. Las imágenes y sus afirmaciones comerciales requieren material autorizado del negocio; la implementación no publica automáticamente los carteles de referencia anteriores.
+
+## Indicadores del panel 5.1 — aprobación 2026-10-29
+
+El usuario confirmó que está en Trujillo y aprobó el [plan de indicadores](features/actividad-5-kpis/plan.md). Se conserva la zona `America/Lima` de RN-01.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-32 | Para cada mes calendario de Lima, «total cobrado» suma cobros `PAID` de citas (tipo BALANCE/DEPOSIT) y productos por `paid_at`, cada uno una sola vez, incluso cuando la venta está ligada a una cita o fue anulada y su pago quedó conservado. No suma asientos de caja, devoluciones ni pagos pendientes/fallidos. Los importes se calculan con decimal exacto. |
+| RN-33 | «Citas completadas» cuenta citas con estado `COMPLETED` por mes de su inicio programado (`starts_at`), no por fecha real de finalización, que el modelo no registra. Las cifras del panel 5.1 se reservan a OWNER/ADMIN activos con permiso `analytics.read`. |
+
+La consulta SQL de 5.1 está aplicada y validada en Supabase local; resultados en [validation.md](features/actividad-5-kpis/validation.md). Estas reglas no definen metas, rentabilidad, facturación, retención ni envíos de recordatorios.
