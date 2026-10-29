@@ -167,3 +167,7 @@ Requisitos PS-01–PS-07 y plan aprobados. Implementados localmente siete espaci
 ## Actividad 5.1: consultas SQL para indicadores — 2026-10-29
 
 El usuario aprobó el [plan](features/actividad-5-kpis/plan.md) y confirmó Trujillo (`America/Lima`). Se aplicó en Supabase local una migración incremental para cobros `PAID` de servicios/productos y citas `COMPLETED` por mes, con acceso OWNER/ADMIN y sin duplicar movimientos de caja. Pasaron 17/17 pruebas específicas y 289/289 de la suite SQL. El dashboard visual conserva datos de plantilla hasta 5.2; la migración de contexto de roles del 2026-10-28 sigue pendiente y no se alteró. Ver [validación](features/actividad-5-kpis/validation.md).
+
+## Actividad 5.2: gráficos de cobros, servicios y productos — 2026-10-29
+
+Plan aprobado mediante «Vamos con eso» e implementado localmente. `/panel` dejó de renderizar cifras y componentes TailAdmin de demostración. OWNER/ADMIN ven cuatro tarjetas, doce meses de cobros separados y rankings de hasta cinco servicios/productos; STAFF conserva enlaces operativos sin analítica. La RPC agregada aplica periodo Lima y permisos en servidor. La migración de contexto de roles pendiente al cierre de 5.1 se aplicó localmente como dependencia de la selección de rol de 5.2, sin modificar su alcance. Pruebas y límites en [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). El siguiente punto del cronograma es 5.3, recordatorios y lista por contactar; requiere requisitos y plan propios.

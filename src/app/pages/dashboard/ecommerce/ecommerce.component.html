@@ -1,23 +1,123 @@
-<div class="grid grid-cols-12 gap-4 md:gap-6">
-  <div class="col-span-12 space-y-6 xl:col-span-7">
-    <div><app-ecommerce-metrics /></div>
+<section class="space-y-6" aria-labelledby="dashboard-title">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-medium text-brand-600 dark:text-brand-400">Spa Boutique Pandas 11</p>
+      <h1 id="dashboard-title" class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Resumen del negocio</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Información de la operación en Trujillo.</p>
+    </div>
+    @if (canViewAnalytics()) {
+      <div>
+        <label for="dashboard-month" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Mes a consultar</label>
+        <input id="dashboard-month" type="month" lang="es-PE" [value]="selectedMonth()" [max]="maxMonth"
+          (change)="setMonth($event)"
+          class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-theme-xs focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+      </div>
+    }
+  </header>
 
-    <div><app-monthly-sales-chart /></div>
-  </div>
+  @if (!canViewAnalytics()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Accesos de trabajo</h2>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Selecciona una tarea disponible para tu rol.</p>
+      @if (operationalLinks().length) {
+        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          @for (link of operationalLinks(); track link.path) {
+            <a [routerLink]="link.path" class="rounded-xl border border-gray-200 p-4 transition hover:border-brand-400 hover:bg-brand-25 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:hover:bg-gray-800">
+              <span class="font-semibold text-gray-900 dark:text-white">{{ link.label }}</span>
+              <span class="mt-1 block text-sm text-gray-600 dark:text-gray-400">{{ link.description }}</span>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="mt-5 text-sm text-gray-600 dark:text-gray-400">No hay módulos disponibles para el rol seleccionado.</p>
+      }
+    </div>
+  } @else if (loading()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300" role="status" aria-live="polite">
+      Cargando indicadores del mes…
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-error-200 bg-error-50 p-6 dark:border-error-500/30 dark:bg-error-500/10" role="alert">
+      <h2 class="font-semibold text-error-700 dark:text-error-400">No pudimos cargar los indicadores</h2>
+      <p class="mt-1 text-sm text-error-700 dark:text-error-300">Comprueba la conexión e inténtalo nuevamente.</p>
+      <button type="button" (click)="retry()" class="mt-4 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-700">Reintentar</button>
+    </div>
+  } @else if (report(); as dashboard) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      @for (card of cards(); track card.label) {
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-sm text-gray-600 dark:text-gray-400">{{ card.label }}</p>
+          <p class="mt-3 text-2xl font-semibold tabular-nums text-gray-900 dark:text-white">{{ card.value }}</p>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ card.note }}</p>
+        </div>
+      }
+    </div>
 
-  <div class="col-span-12 xl:col-span-5">
-    <app-monthly-target />
-  </div>
+    @if (monthIsEmpty()) {
+      <p class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300" role="status">
+        No hay actividad registrada en el mes seleccionado.
+      </p>
+    }
 
-  <div class="col-span-12">
-    <app-statics-chart />
-  </div>
+    <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Cobros confirmados · últimos 12 meses</h2>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Servicios y productos por fecha de pago, en soles. Los meses sin cobros se muestran en cero.</p>
+      @if (trendHasCollections()) {
+        <div class="mt-5" role="img" aria-label="Gráfico de cobros confirmados de servicios y productos por mes; la tabla siguiente contiene los importes exactos">
+          <apx-chart [series]="trendSeries()" [chart]="trendChart" [xaxis]="trendXAxis()" [plotOptions]="trendPlot" [dataLabels]="dataLabels" [legend]="legend" [tooltip]="trendTooltip" [colors]="trendColors"></apx-chart>
+        </div>
+      } @else {
+        <p class="mt-5 text-sm text-gray-600 dark:text-gray-400">No hay cobros confirmados en estos 12 meses.</p>
+      }
+      <details class="mt-3 text-sm text-gray-700 dark:text-gray-300">
+        <summary class="cursor-pointer font-medium text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400">Ver importes mensuales exactos</summary>
+        <div class="mt-3 overflow-x-auto">
+          <table class="w-full min-w-[420px] text-start">
+            <thead><tr class="border-b border-gray-200 dark:border-gray-700"><th scope="col" class="py-2 text-start">Mes</th><th scope="col" class="py-2 text-end">Servicios</th><th scope="col" class="py-2 text-end">Productos</th></tr></thead>
+            <tbody>
+              @for (point of dashboard.trend; track point.month) {
+                <tr class="border-b border-gray-100 dark:border-gray-800"><th scope="row" class="py-2 text-start font-normal">{{ monthLabel(point.month) }}</th><td class="py-2 text-end tabular-nums">{{ money(point.service_collections) }}</td><td class="py-2 text-end tabular-nums">{{ money(point.product_collections) }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </article>
 
-  <div class="col-span-12 xl:col-span-5">
-    <app-demographic-card />
-  </div>
+    <div class="grid gap-4 xl:grid-cols-2">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">5 servicios más frecuentes</h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Servicios por mascota en citas completadas; inicio programado en {{ monthLabel(dashboard.month) }}.</p>
+        @if (dashboard.services.length) {
+          <div class="mt-4" role="img" aria-label="Gráfico de los cinco servicios más frecuentes; la lista siguiente contiene las cantidades">
+            <apx-chart [series]="servicesSeries()" [chart]="rankChart" [xaxis]="servicesXAxis()" [plotOptions]="rankPlot" [dataLabels]="dataLabels" [tooltip]="serviceTooltip" [colors]="serviceColors"></apx-chart>
+          </div>
+          <ol class="mt-3 divide-y divide-gray-100 text-sm dark:divide-gray-800">
+            @for (item of dashboard.services; track item.service_id) {
+              <li class="flex justify-between gap-3 py-2 text-gray-700 dark:text-gray-300"><span>{{ item.name }}</span><strong class="tabular-nums text-gray-900 dark:text-white">{{ item.quantity }}</strong></li>
+            }
+          </ol>
+        } @else {
+          <p class="mt-5 text-sm text-gray-600 dark:text-gray-400">No hay servicios completados en este mes.</p>
+        }
+      </article>
 
-  <div class="col-span-12 xl:col-span-7">
-    <app-recent-orders/>
-  </div>
-</div>
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">5 productos más vendidos</h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Unidades de ventas que siguen confirmadas; mes de salida de inventario.</p>
+        @if (dashboard.products.length) {
+          <div class="mt-4" role="img" aria-label="Gráfico de los cinco productos más vendidos; la lista siguiente contiene las cantidades">
+            <apx-chart [series]="productsSeries()" [chart]="rankChart" [xaxis]="productsXAxis()" [plotOptions]="rankPlot" [dataLabels]="dataLabels" [tooltip]="productTooltip" [colors]="productColors"></apx-chart>
+          </div>
+          <ol class="mt-3 divide-y divide-gray-100 text-sm dark:divide-gray-800">
+            @for (item of dashboard.products; track item.product_id) {
+              <li class="flex justify-between gap-3 py-2 text-gray-700 dark:text-gray-300"><span>{{ item.name }}</span><strong class="tabular-nums text-gray-900 dark:text-white">{{ item.quantity }}</strong></li>
+            }
+          </ol>
+        } @else {
+          <p class="mt-5 text-sm text-gray-600 dark:text-gray-400">No hay productos de ventas confirmadas en este mes.</p>
+        }
+      </article>
+    </div>
+  }
+</section>

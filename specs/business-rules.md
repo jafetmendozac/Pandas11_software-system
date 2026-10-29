@@ -210,3 +210,15 @@ El usuario confirmó que está en Trujillo y aprobó el [plan de indicadores](fe
 | RN-33 | «Citas completadas» cuenta citas con estado `COMPLETED` por mes de su inicio programado (`starts_at`), no por fecha real de finalización, que el modelo no registra. Las cifras del panel 5.1 se reservan a OWNER/ADMIN activos con permiso `analytics.read`. |
 
 La consulta SQL de 5.1 está aplicada y validada en Supabase local; resultados en [validation.md](features/actividad-5-kpis/validation.md). Estas reglas no definen metas, rentabilidad, facturación, retención ni envíos de recordatorios.
+
+## Gráficos del panel 5.2 — aprobación 2026-10-29
+
+El usuario aprobó el [plan de gráficos](features/actividad-5-dashboard-graficos/plan.md) mediante «Vamos con eso». Se mantiene el mes calendario de `America/Lima` y la distinción entre cobros y actividad de RN-32/RN-33.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Varias mascotas/items cuentan por separado; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID, con nombre actual del catálogo. |
+| RN-35 | «Productos vendidos» cuenta unidades de movimientos `SALE` por mes de `created_at` cuando la venta sigue `CONFIRMED`. Una venta anulada sale del ranking con RESTOCK o NO_RESTOCK, mientras su cobro `PAID` sigue en RN-32 si no hubo devolución. El ranking muestra hasta cinco productos por cantidad descendente, desempate por ID, con nombre actual. |
+| RN-36 | El panel muestra 12 meses de cobros confirmados separados entre servicios y productos, incluidos meses vacíos en cero. Las cifras y rankings se reservan a OWNER/ADMIN activos con `analytics.read`; STAFF puede usar `/panel` para enlaces operativos permitidos, sin analítica financiera. |
+
+La consulta y el panel se implementaron en Supabase local y Angular. Ver [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). No se definen ingresos devengados, rentabilidad, metas ni retención.

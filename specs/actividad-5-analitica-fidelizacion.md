@@ -35,3 +35,7 @@ Esta secuencia orienta el seguimiento; no constituye requisitos ni un plan SDD a
 ## Actualización de 5.1 — 2026-10-29
 
 El usuario aprobó [requisitos y plan](features/actividad-5-kpis/plan.md) para cuatro indicadores mensuales en `America/Lima`: cobros confirmados de servicios, cobros confirmados de productos, total cobrado y citas completadas por inicio programado. Se aplicó localmente una migración con RPC protegida para OWNER/ADMIN y pasaron [17/17 pruebas específicas y 289/289 SQL completas](features/actividad-5-kpis/validation.md). Los diagnósticos de 5.1 anteriores describen el corte 2026-10-20; el panel visual aún usa plantilla y corresponde a 5.2.
+
+## Actualización de 5.2 — 2026-10-29
+
+El usuario aprobó [requisitos y plan de gráficos](features/actividad-5-dashboard-graficos/plan.md). Una nueva RPC local agrega la serie de doce meses y los rankings de servicios completados y unidades de productos de ventas vigentes. El panel Angular muestra tarjetas, gráficos y equivalentes textuales con estados de carga, vacío y error; STAFF solo ve accesos permitidos. La implementación sustituye el renderizado de plantilla descrito en el diagnóstico del 2026-10-20. La evidencia y los límites están en [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). Siguen pendientes 5.3–5.5 y el despliegue remoto.

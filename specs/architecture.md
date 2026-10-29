@@ -205,3 +205,9 @@ La migración local `20261023135240_weekly_home_flyers.sql` añade siete filas r
 ## Indicadores mensuales 5.1 — 2026-10-29
 
 La migración local `20261029120000_dashboard_kpis.sql` añade `analytics.read` a OWNER/ADMIN y `dashboard_kpis(p_month date)`. La RPC agrega `payments` `PAID` tipo BALANCE/DEPOSIT y `sale_payments` `PAID` por `paid_at`, y cuenta citas `COMPLETED` por `starts_at`, dentro del mes de `America/Lima`. Exige rol OWNER/ADMIN activo y permiso nominal; devuelve importes `numeric` como texto y no expone datos personales. No lee `cash_movements`, que podría duplicar cobros. No hay cambios de tablas ni de Angular: `/panel` sigue mostrando la plantilla hasta 5.2. La migración se aplicó solo en Supabase local y pasó la suite SQL; ver [validación](features/actividad-5-kpis/validation.md).
+
+## Dashboard de gráficos 5.2 — 2026-10-29
+
+`dashboard_analytics(p_month date)` amplía la agregación local sin alterar `dashboard_kpis`: devuelve las cuatro cifras de 5.1, doce meses de cobros `PAID` separados y dos rankings de hasta cinco entradas. Los servicios proceden de `appointment_items` de citas `COMPLETED` por `starts_at`; los productos, de movimientos `SALE` de ventas aún `CONFIRMED` por `created_at`. Todos los límites mensuales usan `America/Lima`. La RPC `SECURITY DEFINER` exige OWNER/ADMIN activo y `analytics.read`, restringe `EXECUTE` a `authenticated` y devuelve agregados sin datos personales.
+
+`DashboardAnalyticsService` valida el contrato JSON y conserva importes como cadenas decimales. `/panel` usa el rol seleccionado para mostrar gráficos ApexCharts, tarjetas y equivalentes textuales a OWNER/ADMIN; STAFF recibe enlaces operativos según permisos. Las respuestas antiguas se descartan al cambiar periodo o rol. Los componentes de demostración permanecen en el repositorio, pero no se renderizan en `/panel`. La migración se aplicó solo en Supabase local; ver [validación 5.2](features/actividad-5-dashboard-graficos/validation.md).
