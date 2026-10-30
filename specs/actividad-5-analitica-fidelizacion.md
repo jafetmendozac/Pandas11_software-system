@@ -39,3 +39,7 @@ El usuario aprobó [requisitos y plan](features/actividad-5-kpis/plan.md) para c
 ## Actualización de 5.2 — 2026-10-29
 
 El usuario aprobó [requisitos y plan de gráficos](features/actividad-5-dashboard-graficos/plan.md). Una nueva RPC local agrega la serie de doce meses y los rankings de servicios completados y unidades de productos de ventas vigentes. El panel Angular muestra tarjetas, gráficos y equivalentes textuales con estados de carga, vacío y error; STAFF solo ve accesos permitidos. La implementación sustituye el renderizado de plantilla descrito en el diagnóstico del 2026-10-20. La evidencia y los límites están en [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). Siguen pendientes 5.3–5.5 y el despliegue remoto.
+
+## Actualización de 5.3 — 2026-10-29
+
+El usuario aprobó [requisitos y plan de contactos](features/actividad-5-recordatorios-contactos/plan.md) mediante «Dale sigue». La lista manual usa citas confirmadas de mañana y seguimiento después de 30 días desde la última completada, en hora Lima. La migración local añade consentimiento con fuente y registro de intentos con actor/resultado; RLS separa OWNER/ADMIN/STAFF de CLIENT/anon. `whatsapp_opt_in=true` histórico no habilita WhatsApp sin evento de consentimiento. `/por-contactar` reemplaza el acceso a notificaciones ficticias del encabezado. Ver [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). Siguen pendientes 5.4–5.5, revisión visual/aceptación y despliegue remoto.

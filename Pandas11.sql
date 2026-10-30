@@ -635,6 +635,33 @@ CREATE TABLE "notifications" (
   "error" text
 );
 
+-- Actividad 5.3: contactos manuales. RLS y RPC en migración 20261029130000.
+-- notifications conserva su significado de mensajes emitidos y no registra intentos manuales.
+create table public.client_contact_consents (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ channel text not null default 'WHATSAPP' check(channel='WHATSAPP'),
+ granted boolean not null,
+ source text not null check(source in ('VERBAL','WRITTEN')),
+ recorded_by uuid not null references public.profiles(id),
+ recorded_at timestamptz not null default clock_timestamp()
+);
+create index client_contact_consents_latest on public.client_contact_consents(client_id,recorded_at desc,id desc);
+create table public.contact_attempts (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ kind text not null check(kind in ('APPOINTMENT_REMINDER','FOLLOW_UP')),
+ appointment_id uuid not null references public.appointments(id),
+ channel text not null check(channel in ('WHATSAPP','PHONE')),
+ result text not null check(result in ('CONTACTED','NO_ANSWER','SKIPPED')),
+ note text check(note is null or length(note)<=500),
+ request_id uuid not null unique,
+ recorded_by uuid not null references public.profiles(id),
+ recorded_at timestamptz not null default clock_timestamp()
+);
+create index contact_attempts_opportunity on public.contact_attempts(kind,appointment_id,recorded_at desc);
+create index contact_attempts_client on public.contact_attempts(client_id,recorded_at desc);
+
 CREATE TABLE "audit_log" (
   "id" uuid PRIMARY KEY,
   "actor_id" uuid,

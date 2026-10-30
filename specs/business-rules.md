@@ -222,3 +222,15 @@ El usuario aprobó el [plan de gráficos](features/actividad-5-dashboard-grafico
 | RN-36 | El panel muestra 12 meses de cobros confirmados separados entre servicios y productos, incluidos meses vacíos en cero. Las cifras y rankings se reservan a OWNER/ADMIN activos con `analytics.read`; STAFF puede usar `/panel` para enlaces operativos permitidos, sin analítica financiera. |
 
 La consulta y el panel se implementaron en Supabase local y Angular. Ver [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). No se definen ingresos devengados, rentabilidad, metas ni retención.
+
+## Recordatorios y lista por contactar 5.3 — aprobación 2026-10-29
+
+El usuario aprobó el [plan 5.3](features/actividad-5-recordatorios-contactos/plan.md) mediante «Dale sigue» tras confirmar la propuesta manual de recordatorio para mañana y seguimiento a 30 días. Las reglas siguientes describen una lista de trabajo, no envíos automáticos.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-37 | Recordatorio: cita `CONFIRMED` que comienza mañana según fecha de `America/Lima`. Seguimiento: cliente activo con última cita `COMPLETED` iniciada hace 30 días calendario o más, sin cita futura confirmada/en atención. Una oportunidad por cita o por ciclo de última cita completada; cambios de cita y bajas se recalculan. |
+| RN-38 | WhatsApp manual solo con número, `clients.whatsapp_opt_in=true` y último consentimiento registrado como concedido con fuente verbal o escrita. Un `true` legado sin procedencia no basta. OWNER/ADMIN registran o revocan consentimiento; STAFF no lo concede. |
+| RN-39 | OWNER/ADMIN/STAFF activos con permisos consultan y registran intentos manuales por WhatsApp o teléfono. `CONTACTED` y `SKIPPED` cierran la oportunidad; `NO_ANSWER` la deja visible. Actor/fecha se sellan en servidor, los reintentos usan identificador idempotente y el historial es inmutable para la API. CLIENT/anon no acceden. |
+
+La implementación y sus límites locales constan en [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). Un intento registrado no acredita entrega de un mensaje.

@@ -1,0 +1,89 @@
+<app-page-breadcrumb pageTitle="Por contactar" />
+<app-component-card title="Recordatorios y seguimiento">
+  <div class="space-y-5 text-gray-800 dark:text-gray-100">
+    <p>Lista de trabajo manual. Los recordatorios son para citas de mañana; el seguimiento aparece 30 días después de la última cita completada. Fechas de Trujillo.</p>
+    <form (ngSubmit)="load(1)" class="flex flex-wrap items-end gap-3">
+      <label class="min-w-48 flex-1">Buscar cliente o mascota
+        <input name="search" [(ngModel)]="search" [class]="field" autocomplete="off" />
+      </label>
+      <label class="min-w-48">Tipo
+        <select name="kind" [(ngModel)]="kind" [class]="field">
+          <option value="">Todos</option>
+          <option value="APPOINTMENT_REMINDER">Recordatorios de cita</option>
+          <option value="FOLLOW_UP">Seguimiento</option>
+        </select>
+      </label>
+      <button [class]="button" type="submit" [disabled]="loading()">Buscar</button>
+    </form>
+    @if (error()) { <p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p> }
+    @if (success()) { <p role="status" class="text-success-700 dark:text-success-400">{{success()}}</p> }
+    @if (loading()) { <p role="status">Cargando contactos…</p> }
+    @else {
+      <p class="text-sm text-gray-500 dark:text-gray-400">Fecha local: {{today}} · {{total}} pendientes</p>
+      <div class="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+        @for (row of rows(); track key(row)) {
+          <div class="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div>
+              <strong>{{row.client_name}}</strong>
+              <p>{{kindLabel(row.kind)}} · {{date(row.due_at)}} · {{row.pet_names || 'Sin mascota indicada'}}</p>
+              <p class="text-sm">{{row.attempted ? 'Ya se intentó contactar' : 'Pendiente de contacto'}} · {{row.whatsapp_allowed ? 'WhatsApp autorizado' : 'WhatsApp no habilitado'}}</p>
+            </div>
+            <button type="button" [class]="button" (click)="choose(row)" [disabled]="busy()">Gestionar contacto</button>
+          </div>
+        } @empty { <p class="p-4">No hay contactos pendientes con estos filtros.</p> }
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button>
+        <span>Página {{page}}</span>
+        <button type="button" [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button>
+      </div>
+    }
+    @if (selected; as row) {
+      <section class="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700" aria-label="Gestionar contacto">
+        <div class="flex items-start justify-between gap-2">
+          <div><h2 class="font-semibold">{{row.client_name}}</h2><p>{{kindLabel(row.kind)}} · {{date(row.due_at)}}</p></div>
+          <button type="button" [class]="button" (click)="selected=null" [disabled]="busy() || !!pendingRequest">Cerrar</button>
+        </div>
+        <p>Teléfono: {{row.phone || 'Sin número'}} · WhatsApp: {{row.whatsapp_allowed ? row.whatsapp : 'No habilitado'}}</p>
+        @if (whatsappUrl(row); as link) {
+          <a [href]="link" target="_blank" rel="noopener noreferrer" class="inline-block rounded-lg bg-brand-500 px-4 py-2 text-white focus-visible:outline-2 focus-visible:outline-brand-700">Abrir WhatsApp</a>
+          <p class="text-sm">Abrir WhatsApp no registra ni confirma el envío. Anota el resultado después.</p>
+        }
+        @if (auth.hasInSelectedRole('contacts.consent')) {
+          <div class="space-y-2 border-t border-gray-200 pt-3 dark:border-gray-700">
+            <h3 class="font-medium">Consentimiento de WhatsApp</h3>
+            <label class="block max-w-xs">Cómo se obtuvo
+              <select name="source" [(ngModel)]="source" [class]="field" [disabled]="busy()">
+                <option value="VERBAL">Declaración verbal</option><option value="WRITTEN">Declaración escrita</option>
+              </select>
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" [class]="button" (click)="saveConsent(true)" [disabled]="busy() || !!pendingRequest || !row.whatsapp">Registrar consentimiento</button>
+              <button type="button" [class]="button" (click)="saveConsent(false)" [disabled]="busy() || !!pendingRequest">Revocar consentimiento</button>
+            </div>
+          </div>
+        }
+        @if (auth.hasInSelectedRole('contacts.record')) {
+          <form (ngSubmit)="saveAttempt()" class="space-y-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+            <h3 class="font-medium">Registrar intento manual</h3>
+            <label class="block max-w-xs">Canal
+              <select name="channel" [(ngModel)]="channel" [class]="field" [disabled]="busy() || !!pendingRequest">
+                <option value="PHONE">Llamada telefónica</option><option value="WHATSAPP" [disabled]="!row.whatsapp_allowed">WhatsApp</option>
+              </select>
+            </label>
+            <label class="block max-w-xs">Resultado
+              <select name="result" [(ngModel)]="result" [class]="field" [disabled]="busy() || !!pendingRequest">
+                <option value="CONTACTED">Contactado</option><option value="NO_ANSWER">Sin respuesta</option><option value="SKIPPED">Omitir este contacto</option>
+              </select>
+            </label>
+            <label class="block">Nota opcional
+              <textarea name="note" [(ngModel)]="note" [class]="field" maxlength="500" rows="2" [disabled]="busy() || !!pendingRequest"></textarea>
+            </label>
+            @if (pendingRequest) { <p role="status">Resultado anterior sin confirmar. Reintenta este registro o recarga la lista para comprobarlo.</p> }
+            <button type="submit" [class]="button" [disabled]="busy()">{{pendingRequest ? 'Reintentar registro' : 'Registrar intento'}}</button>
+          </form>
+        }
+      </section>
+    }
+  </div>
+</app-component-card>
