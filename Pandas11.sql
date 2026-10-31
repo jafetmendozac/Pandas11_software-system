@@ -6,6 +6,8 @@
 -- Pagos: políticas y RPC en supabase/migrations/20261018225928_payments_advances.sql.
 -- Panfletos semanales: tabla, Storage, RLS y RPC en
 -- supabase/migrations/20261023135240_weekly_home_flyers.sql.
+-- Reportes 5.4: RPC agregada sin tablas nuevas en
+-- supabase/migrations/20261030100000_monthly_business_reports.sql.
 -- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
 -- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
 -- Clientes/mascotas: políticas y RPC versionados en

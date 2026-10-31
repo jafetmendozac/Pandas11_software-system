@@ -34,9 +34,11 @@ export class AppSidebarComponent {
 
   get visibleNavItems(): NavItem[] {
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read'};
-    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess()) && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
-    const order = ['/panel', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
+    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess())
+      && (path !== '/reportes' || ['OWNER', 'ADMIN'].includes(this.authorization.selectedRole()?.code ?? ''))
+      && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
+    const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
     return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0).sort((a,b) => {
       const position = (item: NavItem) => {
         const index = order.indexOf(item.path ?? item.subItems?.[0]?.path ?? '');
@@ -47,6 +49,7 @@ export class AppSidebarComponent {
   }
   // Main nav items
   navItems: NavItem[] = [
+    { name: 'Reportes', path: '/reportes', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V4h16v16H4Z M8 16v-4m4 4V8m4 8v-6"/></svg>' },
     { name: 'Ventas', path: '/ventas', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h4"/></svg>' },
     { name: 'Productos', path: '/productos', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><path d="M3 6h18v15H3zM3 6l9-4 9 4M12 6v15"/></svg>' },
     { name: 'Caja', path: '/caja', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4M17 14v3"/></svg>' },

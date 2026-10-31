@@ -99,6 +99,7 @@ export const routes: Routes = [
       { path: 'pagos', loadComponent: () => import('./pages/pagos/pagos.component').then(m => m.PagosComponent), data: { permission: 'payments.read' }, title: 'Pagos y saldos | Spa Boutique Pandas 11' },
       { path: 'caja', loadComponent: () => import('./pages/caja/caja.component').then(m => m.CajaComponent), canActivate: [salesGuard], data: { permission: 'cash.read' }, title: 'Caja | Pandas 11' },
       { path: 'por-contactar', loadComponent: () => import('./pages/contactos/contactos.component').then(m => m.ContactosComponent), data: { permission: 'contacts.read' }, title: 'Por contactar | Pandas 11' },
+      { path: 'reportes', loadComponent: () => import('./pages/reportes/reportes.component').then(m => m.ReportesComponent), data: { permission: 'analytics.read' }, title: 'Reportes | Pandas 11' },
       {
         path:'calendario',
         data: { permission: 'appointments.read' },

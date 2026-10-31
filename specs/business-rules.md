@@ -234,3 +234,15 @@ El usuario aprobó el [plan 5.3](features/actividad-5-recordatorios-contactos/pl
 | RN-39 | OWNER/ADMIN/STAFF activos con permisos consultan y registran intentos manuales por WhatsApp o teléfono. `CONTACTED` y `SKIPPED` cierran la oportunidad; `NO_ANSWER` la deja visible. Actor/fecha se sellan en servidor, los reintentos usan identificador idempotente y el historial es inmutable para la API. CLIENT/anon no acceden. |
 
 La implementación y sus límites locales constan en [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). Un intento registrado no acredita entrega de un mensaje.
+
+## Reportes y retención 5.4 — aprobación 2026-10-30
+
+El usuario aprobó el [plan 5.4](features/actividad-5-reportes-retencion/plan.md) mediante «Vamos». Los reportes están implementados solo en Supabase local y Angular; ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md).
+
+| ID | Regla aprobada |
+|---|---|
+| RN-40 | Dos reportes mensuales agregados, cobros y citas y retención, visibles en pantalla y exportables como CSV UTF-8. Rango inclusivo de 1 a 12 meses calendario de `America/Lima`, hasta el mes actual. El mes actual se indica provisional. No contienen filas individuales ni datos personales. |
+| RN-41 | Retención mensual = clientes distintos con cita `COMPLETED` programada el mes anterior que también tienen cita `COMPLETED` programada en el mes medido, dividido entre clientes distintos con cita `COMPLETED` programada el mes anterior. Cada cliente cuenta una vez por mes, incluso si luego fue dado de baja. Si no hay base, la tasa es nula; se muestra «Sin base» y se exporta celda vacía. |
+| RN-42 | Solo OWNER/ADMIN activos con `analytics.read` consultan y exportan reportes. STAFF, CLIENT, anon y roles personalizados con permiso delegado no acceden. Los cobros y citas por mes conservan las fórmulas RN-32/RN-33. |
+
+La retención mide repetición entre meses consecutivos; no representa cohortes de primera visita, seguimiento a 30 días ni causa de abandono. Un mes histórico puede cambiar si cambian registros operativos; la etiqueta «Histórico» no significa cierre contable.

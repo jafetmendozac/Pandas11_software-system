@@ -1,0 +1,70 @@
+<section class="space-y-6" aria-labelledby="reports-title">
+  <header>
+    <p class="text-sm font-medium text-brand-600 dark:text-brand-400">Analítica</p>
+    <h1 id="reports-title" class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Reportes del negocio</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Cobros confirmados, citas completadas y repetición mensual de clientes en Trujillo.</p>
+  </header>
+
+  @if (!canView()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300" role="status">
+      Tu rol seleccionado no tiene acceso a reportes.
+    </div>
+  } @else {
+    <form (submit)="$event.preventDefault(); load()" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex flex-wrap items-end gap-4">
+        <div>
+          <label for="report-from" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Desde</label>
+          <input id="report-from" type="month" lang="es-PE" [value]="fromMonth()" [max]="currentMonth" (change)="setFrom($event)"
+            class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <div>
+          <label for="report-to" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Hasta</label>
+          <input id="report-to" type="month" lang="es-PE" [value]="toMonth()" [max]="currentMonth" (change)="setTo($event)"
+            class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button type="submit" [disabled]="loading()" class="h-11 rounded-lg bg-brand-500 px-5 text-sm font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-brand-700 disabled:opacity-50">Consultar</button>
+      </div>
+      @if (rangeError()) { <p class="mt-3 text-sm text-error-700 dark:text-error-400" role="alert">{{ rangeError() }}</p> }
+      <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Máximo 12 meses. El mes actual es provisional y puede cambiar.</p>
+    </form>
+
+    @if (loading()) {
+      <p class="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300" role="status">Cargando reportes…</p>
+    } @else if (error()) {
+      <div class="rounded-2xl border border-error-200 bg-error-50 p-6 dark:border-error-500/30 dark:bg-error-500/10" role="alert">
+        <p class="text-error-700 dark:text-error-400">{{ error() }}</p>
+        <button type="button" (click)="load()" class="mt-3 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white">Reintentar</button>
+      </div>
+    } @else if (report(); as data) {
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 class="text-lg font-semibold text-gray-900 dark:text-white">Cobros y citas</h2><p class="text-sm text-gray-600 dark:text-gray-400">Cobros verificados por fecha de pago; citas completadas por inicio programado.</p></div>
+          <button type="button" (click)="export('collections')" class="rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-25 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400">Descargar CSV</button>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[760px] text-sm text-gray-700 dark:text-gray-300">
+            <thead><tr class="border-b border-gray-200 dark:border-gray-700"><th scope="col" class="py-2 text-start">Mes</th><th scope="col" class="py-2 text-end">Servicios</th><th scope="col" class="py-2 text-end">Productos</th><th scope="col" class="py-2 text-end">Total cobrado</th><th scope="col" class="py-2 text-end">Citas completadas</th><th scope="col" class="py-2 text-end">Estado</th></tr></thead>
+            <tbody>@for (row of data.rows; track row.month) {
+              <tr class="border-b border-gray-100 dark:border-gray-800"><th scope="row" class="py-3 text-start font-medium">{{ row.month }}</th><td class="text-end tabular-nums">{{ money(row.service_collections) }}</td><td class="text-end tabular-nums">{{ money(row.product_collections) }}</td><td class="text-end tabular-nums">{{ money(row.total_collections) }}</td><td class="text-end tabular-nums">{{ row.completed_appointments }}</td><td class="text-end">{{ row.month === currentMonth ? 'Provisional' : 'Histórico' }}</td></tr>
+            }</tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 class="text-lg font-semibold text-gray-900 dark:text-white">Retención mensual</h2><p class="text-sm text-gray-600 dark:text-gray-400">Porcentaje de clientes con cita completada el mes anterior que también tuvieron una cita completada en este mes. Cada cliente cuenta una vez por mes.</p></div>
+          <button type="button" (click)="export('retention')" class="rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-25 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400">Descargar CSV</button>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[600px] text-sm text-gray-700 dark:text-gray-300">
+            <thead><tr class="border-b border-gray-200 dark:border-gray-700"><th scope="col" class="py-2 text-start">Mes</th><th scope="col" class="py-2 text-end">Clientes mes anterior</th><th scope="col" class="py-2 text-end">Repitieron</th><th scope="col" class="py-2 text-end">Retención</th><th scope="col" class="py-2 text-end">Estado</th></tr></thead>
+            <tbody>@for (row of data.rows; track row.month) {
+              <tr class="border-b border-gray-100 dark:border-gray-800"><th scope="row" class="py-3 text-start font-medium">{{ row.month }}</th><td class="text-end tabular-nums">{{ row.previous_clients }}</td><td class="text-end tabular-nums">{{ row.returning_clients }}</td><td class="text-end tabular-nums">{{ row.retention_rate === null ? 'Sin base' : row.retention_rate + ' %' }}</td><td class="text-end">{{ row.month === currentMonth ? 'Provisional' : 'Histórico' }}</td></tr>
+            }</tbody>
+          </table>
+        </div>
+      </article>
+    }
+  }
+</section>

@@ -43,3 +43,7 @@ El usuario aprobó [requisitos y plan de gráficos](features/actividad-5-dashboa
 ## Actualización de 5.3 — 2026-10-29
 
 El usuario aprobó [requisitos y plan de contactos](features/actividad-5-recordatorios-contactos/plan.md) mediante «Dale sigue». La lista manual usa citas confirmadas de mañana y seguimiento después de 30 días desde la última completada, en hora Lima. La migración local añade consentimiento con fuente y registro de intentos con actor/resultado; RLS separa OWNER/ADMIN/STAFF de CLIENT/anon. `whatsapp_opt_in=true` histórico no habilita WhatsApp sin evento de consentimiento. `/por-contactar` reemplaza el acceso a notificaciones ficticias del encabezado. Ver [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). Siguen pendientes 5.4–5.5, revisión visual/aceptación y despliegue remoto.
+
+## Actualización de 5.4 — 2026-10-31
+
+El usuario aprobó el [plan de reportes](features/actividad-5-reportes-retencion/plan.md) mediante «Vamos». Una RPC local devuelve cobros/citas con las fórmulas aprobadas en 5.1 y repetición mensual de clientes con citas completadas. `/reportes` ofrece dos tablas y dos CSV agregados sin datos personales, con rango máximo de 12 meses y acceso OWNER/ADMIN. Ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md). El diagnóstico de 5.4 del corte 2026-10-20 es histórico; siguen pendientes 5.5, aceptación operativa y despliegue remoto.

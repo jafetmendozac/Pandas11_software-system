@@ -175,3 +175,7 @@ Plan aprobado mediante «Vamos con eso» e implementado localmente. `/panel` dej
 ## Actividad 5.3: recordatorios y lista por contactar — 2026-10-29
 
 Plan aprobado mediante «Dale sigue» e implementado en Supabase local y Angular. `/por-contactar` calcula citas de mañana y seguimiento desde la última cita completada hace 30 días en Lima; permite registrar intentos manuales con responsable y resultado. WhatsApp exige consentimiento con procedencia, número y opt-in vigente; el valor legado no basta. OWNER/ADMIN registran consentimiento; STAFF puede consultar y registrar intentos. Dos tablas nuevas preservan historial y la migración añade RLS/RPC. Se retiró del encabezado el desplegable con notificaciones ficticias. Evidencia y límites en [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). No hay envíos automáticos ni adopción remota. El siguiente punto del cronograma es 5.4, reportes y retención.
+
+## Actividad 5.4: reportes exportables y retención — 2026-10-31
+
+Plan y decisiones R54-D01–D04 aprobados mediante «Vamos». `/reportes` muestra cobros/citas y retención mensual en intervalos de hasta 12 meses de Lima y descarga dos CSV agregados, sin datos personales. La RPC local reutiliza `dashboard_kpis` y restringe acceso a OWNER/ADMIN activos con `analytics.read`; las pruebas de roles, exactitud y límites constan en [validación 5.4](features/actividad-5-reportes-retencion/validation.md). No hay despliegue remoto ni aceptación operativa. El siguiente punto del cronograma es 5.5, ajustes finales de interfaz y usabilidad.
