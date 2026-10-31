@@ -28,7 +28,7 @@ describe('Inventario en productos', () => {
   it('conserva UUID, versión y payload ante fallo de red ambiguo',async()=>{
     inventory.record.and.rejectWith(new Error('network'));await component.recordStock();
     const first=inventory.record.calls.mostRecent().args[0];
-    component.delta=5;inventory.record.and.resolveTo({id:'movement'} as InventoryMovement);
+    component.delta=5;component.kind='ADJUSTMENT';component.adjustDirection='OUT';inventory.record.and.resolveTo({id:'movement'} as InventoryMovement);
     await component.recordStock();expect(inventory.record.calls.mostRecent().args[0]).toEqual(first);
     expect(component.pendingMovement).toBeNull();
   });
@@ -40,9 +40,14 @@ describe('Inventario en productos', () => {
     component.kind='ADJUSTMENT';await component.recordStock();expect(inventory.record).not.toHaveBeenCalled();
   });
   it('permite ajuste negativo con capacidad y conserva motivo',async()=>{
-    component.canAdjust.set(true);component.kind='ADJUSTMENT';component.delta=-2;
+    component.canAdjust.set(true);component.kind='ADJUSTMENT';component.adjustDirection='OUT';component.delta=2;
     inventory.record.and.resolveTo({id:'movement'} as InventoryMovement);
     await component.recordStock();expect(inventory.record.calls.mostRecent().args[0].delta).toBe(-2);
+  });
+  it('aumentar stock por ajuste conserva unidades positivas',async()=>{
+    component.canAdjust.set(true);component.kind='ADJUSTMENT';component.adjustDirection='IN';component.delta=3;
+    inventory.record.and.resolveTo({id:'movement'} as InventoryMovement);
+    await component.recordStock();expect(inventory.record.calls.mostRecent().args[0].delta).toBe(3);
   });
   it('conflicto libera el formulario para recargar, sin reintento automático',async()=>{
     inventory.record.and.rejectWith({code:'40001',message:'Recarga'});await component.recordStock();

@@ -48,6 +48,7 @@ export class ProductosComponent implements OnDestroy {
  readonly date = limaDateTime;
  kind: InventoryInput['kind'] = 'RECEIPT';
  delta: number | null = null;
+ adjustDirection: 'IN' | 'OUT' = 'IN';
  stockReason = '';
  pendingMovement: InventoryInput | null = null;
  historyQuery: InventoryHistoryQuery = {productId:null,kind:'',from:'',until:'',saleId:'',page:1};
@@ -65,8 +66,9 @@ export class ProductosComponent implements OnDestroy {
    if (this.busy() || !this.auth.has('inventory.read')) return;
    this.opener = document.activeElement as HTMLElement;
    this.stockProduct.set(p);
-   this.kind = this.balances()[p.id]?.version === 1 ? 'INITIAL' : 'RECEIPT';
-   this.delta = null; this.stockReason = ''; this.pendingMovement = null; this.stockError.set('');
+   this.kind = !this.auth.has('inventory.receive') && this.canAdjust() ? 'ADJUSTMENT'
+     : this.balances()[p.id]?.version === 1 ? 'INITIAL' : 'RECEIPT';
+   this.delta = null; this.adjustDirection = 'IN'; this.stockReason = ''; this.pendingMovement = null; this.stockError.set('');
    this.historyQuery = {productId:p.id,kind:'',from:'',until:'',saleId:'',page:1};
    void this.loadHistory();
  }
@@ -95,17 +97,18 @@ export class ProductosComponent implements OnDestroy {
      const balance = this.balances()[p.id];
      const permitted = this.kind === 'ADJUSTMENT' ? this.canAdjust() : this.auth.has('inventory.receive');
      if (!p.active || !permitted || !balance) return;
-     if (this.delta === null || !Number.isInteger(this.delta) || this.delta === 0 || Math.abs(this.delta)>2147483647 ||
-       (this.kind !== 'ADJUSTMENT' && this.delta<1) || !this.stockReason.trim() || this.stockReason.trim().length>500) {
-       this.stockError.set('Indica unidades enteras y un motivo; solo los ajustes pueden ser negativos.'); return;
+     if (this.delta === null || !Number.isInteger(this.delta) || this.delta < 1 || this.delta > 2147483647 ||
+       !this.stockReason.trim() || this.stockReason.trim().length>500) {
+       this.stockError.set('Indica una cantidad entera positiva y un motivo de hasta 500 caracteres.'); return;
      }
-     this.pendingMovement = {product_id:p.id,kind:this.kind,delta:this.delta,reason:this.stockReason.trim(),
+     const signedDelta = this.kind === 'ADJUSTMENT' && this.adjustDirection === 'OUT' ? -this.delta : this.delta;
+     this.pendingMovement = {product_id:p.id,kind:this.kind,delta:signedDelta,reason:this.stockReason.trim(),
        expected_version:balance.version,request_id:crypto.randomUUID()};
    }
    this.busy.set(true); this.stockError.set('');
    try {
      await this.inventory.record(this.pendingMovement);
-     this.pendingMovement = null; this.delta = null; this.stockReason = '';
+     this.pendingMovement = null; this.delta = null; this.adjustDirection = 'IN'; this.stockReason = '';
      if (this.lowOnly) { await this.load(this.page); if (!this.rows().some(row=>row.id===p.id)) this.stockProduct.set(null); }
      else await this.loadStock();
      this.kind = 'RECEIPT'; if(this.stockProduct()) await this.loadHistory();

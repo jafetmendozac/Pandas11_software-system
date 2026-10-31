@@ -179,3 +179,7 @@ Plan aprobado mediante «Dale sigue» e implementado en Supabase local y Angular
 ## Actividad 5.4: reportes exportables y retención — 2026-10-31
 
 Plan y decisiones R54-D01–D04 aprobados mediante «Vamos». `/reportes` muestra cobros/citas y retención mensual en intervalos de hasta 12 meses de Lima y descarga dos CSV agregados, sin datos personales. La RPC local reutiliza `dashboard_kpis` y restringe acceso a OWNER/ADMIN activos con `analytics.read`; las pruebas de roles, exactitud y límites constan en [validación 5.4](features/actividad-5-reportes-retencion/validation.md). No hay despliegue remoto ni aceptación operativa. El siguiente punto del cronograma es 5.5, ajustes finales de interfaz y usabilidad.
+
+## Actividad 5.5: ajustes finales de interfaz y usabilidad — 2026-10-31
+
+Plan aprobado mediante «Vamos». El menú del panel oculta ejemplos, el encabezado ofrece cambio de rol en móvil y deja de mostrar búsqueda sin función, el diálogo de stock separa registro e historial y Reportes explica los intervalos vacíos. Se revisaron 14 rutas operativas con datos sintéticos en móvil y pantallas clave en oscuro/RTL; pruebas Angular, tipos y build correctos. Véase [validación 5.5](features/actividad-5-usabilidad-final/validation.md) para evidencia y hallazgos pendientes. No hay aceptación operativa ni despliegue remoto. El siguiente punto del cronograma es 6.1, pruebas integrales y corrección de errores.

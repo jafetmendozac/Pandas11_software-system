@@ -39,7 +39,10 @@ export class AppSidebarComponent {
       && (path !== '/reportes' || ['OWNER', 'ADMIN'].includes(this.authorization.selectedRole()?.code ?? ''))
       && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
     const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
-    return this.navItems.filter(item=>visible(item.path)).map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>visible(sub.path))}:item).filter(item=>!item.subItems || item.subItems.length>0).sort((a,b) => {
+    return this.navItems.filter(item=>item.path ? order.includes(item.path) : !!item.subItems?.some(sub=>order.includes(sub.path)))
+      .filter(item=>visible(item.path))
+      .map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>order.includes(sub.path) && visible(sub.path))}:item)
+      .filter(item=>!item.subItems || item.subItems.length>0).sort((a,b) => {
       const position = (item: NavItem) => {
         const index = order.indexOf(item.path ?? item.subItems?.[0]?.path ?? '');
         return index < 0 ? order.length : index;
@@ -277,7 +280,6 @@ export class AppSidebarComponent {
     this.openSubmenu = null;
     const menuGroups = [
       { items: this.visibleNavItems, prefix: 'main' },
-      { items: this.othersItems, prefix: 'others' },
     ];
 
     menuGroups.forEach(group => {

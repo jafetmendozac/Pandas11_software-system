@@ -21,26 +21,30 @@
 <section role="dialog" aria-modal="true" aria-labelledby="inventory-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="closeStock()" class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
 <button cdkFocusInitial [class]="button" (click)="closeStock()" [attr.aria-disabled]="busy() || !!pendingMovement">Cerrar</button>
 <h2 id="inventory-title" class="my-4 text-xl font-semibold">{{p.name}} · Stock e historial</h2>
-@if(balances()[p.id];as b){<p>Disponible: <strong>{{b.quantity}}</strong> unidades · versión {{b.version}}</p>}
+@if(balances()[p.id];as b){<p>Disponible: <strong>{{b.quantity}}</strong> {{b.quantity===1?'unidad':'unidades'}}.</p>}
 @if(stockError()){<p role="alert" class="my-3 text-error-600 dark:text-error-400">{{stockError()}}</p>}
+@if(pendingMovement){<p role="status" class="my-3 text-sm text-warning-700 dark:text-warning-400">El resultado anterior no se confirmó. Reintenta el mismo movimiento para comprobarlo; los datos quedan bloqueados hasta resolverlo.</p>}
 <button [class]="button" (click)="refreshStock()" [disabled]="busy() || !!pendingMovement">Recargar stock</button>
 @if(p.active && (auth.has('inventory.receive') || canAdjust())){
+<h3 class="mt-5 text-lg font-semibold">Registrar movimiento</h3>
 <form (ngSubmit)="recordStock()" class="my-4 space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
 <fieldset [disabled]="busy() || !!pendingMovement" class="space-y-3">
 <label class="block">Movimiento<select name="kind" [(ngModel)]="kind" [class]="field">
 @if(auth.has('inventory.receive')){
 @if(balances()[p.id]?.version===1){<option value="INITIAL">Carga inicial</option>}
 <option value="RECEIPT">Reposición</option>}
-@if(canAdjust()){<option value="ADJUSTMENT">Ajuste (solo OWNER)</option>}
+@if(canAdjust()){<option value="ADJUSTMENT">Ajuste de existencias</option>}
 </select></label>
-<label class="block">Unidades {{kind === 'ADJUSTMENT' ? '(delta positivo o negativo)' : '(cantidad positiva)'}}<input type="number" name="delta" [(ngModel)]="delta" [class]="field" step="1" required></label>
+@if(kind==='ADJUSTMENT'){<label class="block">Dirección del ajuste<select name="adjustDirection" [(ngModel)]="adjustDirection" [class]="field"><option value="IN">Aumentar stock</option><option value="OUT">Disminuir stock</option></select></label>}
+<label class="block">Unidades que {{kind==='ADJUSTMENT' && adjustDirection==='OUT' ? 'se retiran' : 'ingresan'}}<input type="number" name="delta" [(ngModel)]="delta" [class]="field" min="1" max="2147483647" step="1" required></label>
 <label class="block">Motivo<textarea name="stockReason" [(ngModel)]="stockReason" [class]="field" maxlength="500" required></textarea></label>
 </fieldset><button [class]="button" [disabled]="busy()">{{pendingMovement ? 'Reintentar mismo movimiento' : 'Registrar movimiento'}}</button>
 </form>}@else{<p class="my-3">Consulta de movimientos. No se registran entradas manuales sobre productos inactivos.</p>}
-<h3 class="my-3 font-semibold">Historial de movimientos</h3>
+<details class="my-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+<summary class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-brand-500">Historial de movimientos</summary>
 <form (ngSubmit)="loadHistory()" class="grid gap-3 sm:grid-cols-2">
 <label>Tipo<select name="historyKind" [(ngModel)]="historyQuery.kind" [class]="field"><option value="">Todos</option>@for(k of kinds;track k[0]){<option [value]="k[0]">{{k[1]}}</option>}</select></label>
-<label>Venta (UUID opcional)<input name="saleId" [(ngModel)]="historyQuery.saleId" [class]="field"></label>
+<label>ID de venta (filtro avanzado opcional)<input name="saleId" [(ngModel)]="historyQuery.saleId" [class]="field" placeholder="Si tienes la referencia técnica"></label>
 <label>Desde (Lima)<input type="date" name="from" [(ngModel)]="historyQuery.from" [class]="field"></label>
 <label>Hasta (sin incluir, Lima)<input type="date" name="until" [(ngModel)]="historyQuery.until" [class]="field"></label>
 <button [class]="button">Filtrar historial</button>
@@ -52,4 +56,5 @@
 @if(m.sale_id){<p class="break-all text-sm">Venta: {{m.sale_id}}</p>}
 </article>}@empty{<p class="my-3">No hay movimientos para estos filtros.</p>}}
 <div class="flex flex-wrap gap-3"><button [class]="button" (click)="loadHistory(historyQuery.page-1)" [disabled]="historyLoading() || historyQuery.page===1">Anterior</button><span>Página {{historyQuery.page}} · {{historyTotal}} movimientos</span><button [class]="button" (click)="loadHistory(historyQuery.page+1)" [disabled]="historyLoading() || historyQuery.page*10>=historyTotal">Siguiente</button></div>
+</details>
 </section></div>}

@@ -47,3 +47,7 @@ El usuario aprobó [requisitos y plan de contactos](features/actividad-5-recorda
 ## Actualización de 5.4 — 2026-10-31
 
 El usuario aprobó el [plan de reportes](features/actividad-5-reportes-retencion/plan.md) mediante «Vamos». Una RPC local devuelve cobros/citas con las fórmulas aprobadas en 5.1 y repetición mensual de clientes con citas completadas. `/reportes` ofrece dos tablas y dos CSV agregados sin datos personales, con rango máximo de 12 meses y acceso OWNER/ADMIN. Ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md). El diagnóstico de 5.4 del corte 2026-10-20 es histórico; siguen pendientes 5.5, aceptación operativa y despliegue remoto.
+
+## Actualización de 5.5 — 2026-10-31
+
+El usuario aprobó el [plan de usabilidad](features/actividad-5-usabilidad-final/plan.md) mediante «Vamos». Se quitaron ejemplos del menú, se habilitó el selector de rol móvil, se aclaró el registro de stock y el estado vacío de Reportes. El recorrido sintético de 14 rutas móviles y la revisión de pantallas clave en oscuro/RTL no encontraron desbordamiento horizontal; pruebas Angular y build correctos. La [validación 5.5](features/actividad-5-usabilidad-final/validation.md) distingue estos resultados de la aceptación humana y registra los hallazgos del rol inicial y el filtro de calendario. El diagnóstico de 5.5 del corte 2026-10-20 es histórico; sigue 6.1 del cronograma, además de aceptación y despliegue remoto.

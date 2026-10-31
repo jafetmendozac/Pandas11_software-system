@@ -23,6 +23,10 @@ export class ReportesComponent {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly rangeError = signal('');
+  readonly noActivity = computed(() => {
+    const rows = this.report()?.rows ?? [];
+    return rows.length > 0 && rows.every(row => row.total_collections === '0.00' && row.completed_appointments === 0);
+  });
   readonly canView = computed(() => {
     const role = this.authorization.selectedRole();
     return !!role && (role.code === 'OWNER' || role.code === 'ADMIN')

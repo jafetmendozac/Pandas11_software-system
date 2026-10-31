@@ -65,7 +65,7 @@ La [guía de evidencias para actividades 1–3](evidencias-actividades-1-3.md) o
 | 5.2 | Dashboard: gráficos de ingresos, servicios y productos | S11 | Implementado y validado localmente (2026-10-29) | `/panel` conectado a RPC agregada: cobros de 12 meses y rankings de servicios/productos, con permisos y alternativas textuales [E23]. | Revisión visual manual, aceptación operativa y despliegue remoto pendientes; 5.3 requiere plan propio. |
 | 5.3 | Implementar recordatorios y lista por contactar | S11 | Implementado y validado localmente (2026-10-29) | Lista manual `/por-contactar`, citas de mañana, seguimiento a 30 días, consentimiento con procedencia e intentos trazables; RPC/RLS y pruebas [E24]. | Revisión visual y aceptación operativa, prueba concurrente específica y despliegue remoto pendientes; sin envíos automáticos. |
 | 5.4 | Reportes exportables y analítica de retención | S12 | Implementado y validado localmente (2026-10-31) | `/reportes` muestra dos reportes agregados y CSV, con retención mensual, permisos y pruebas sintéticas [E25]. | Revisión visual manual, aceptación operativa y despliegue remoto pendientes. La retención es mensual entre meses consecutivos, no cohortes de primera visita. |
-| 5.5 | Ajustes finales de interfaz y usabilidad | S12 | Parcial | Portada pública, configuración en español, mejoras de agenda y tema turquesa implementados [E08, E12, E18]. | Revisar consistencia de todos los módulos finales, accesibilidad, móvil/oscuro/RTL y aceptación con usuarios. Tema turquesa tiene revisión visual manual pendiente. |
+| 5.5 | Ajustes finales de interfaz y usabilidad | S12 | Implementado y validado localmente (2026-10-31) | Menú operativo sin ejemplos, selector de rol móvil, stock y reportes más claros; recorrido sintético de 14 rutas en móvil, oscuro/RTL en pantallas clave y pruebas Angular [E26]. | Aceptación con usuarios y despliegue remoto pendientes; atender hallazgos de rol inicial y filtro de calendario. Sin auditoría formal con lector de pantalla. |
 
 ## Actividad 6 — Despliegue, calidad y transferencia
 
@@ -106,6 +106,7 @@ Los códigos de las tablas remiten a los siguientes archivos. Las referencias a 
 | E23 | [Dashboard 5.2](features/actividad-5-dashboard-graficos/validation.md): RPC local, panel por rol, series y rankings, pruebas SQL y Angular. |
 | E24 | [Recordatorios y contactos 5.3](features/actividad-5-recordatorios-contactos/validation.md): requisitos, migración local, RLS, UI manual, pruebas SQL y Angular. |
 | E25 | [Reportes y retención 5.4](features/actividad-5-reportes-retencion/validation.md): plan aprobado, RPC local, CSV agregados y pruebas de permisos, exactitud y límites. |
+| E26 | [Usabilidad final 5.5](features/actividad-5-usabilidad-final/validation.md): plan aprobado, cambios de interfaz, recorrido local sintético y pruebas Angular/build. |
 
 ## Reservas online y diferencias de alcance
 

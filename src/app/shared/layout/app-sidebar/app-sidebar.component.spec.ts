@@ -20,19 +20,21 @@ describe('Menú de agenda por permiso',()=>{
  it('oculta Calendario y el grupo vacío Citas si falta appointments.read',()=>{
   const c=TestBed.createComponent(AppSidebarComponent).componentInstance;
   expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/calendario'))).toBeFalse();
-  expect(c.visibleNavItems.some(item=>item.name==='Citas')).toBeFalse();expect(c.visibleNavItems.some(item=>item.path==='/calendar')).toBeTrue();
+  expect(c.visibleNavItems.some(item=>item.name==='Citas')).toBeFalse();
+  expect(c.visibleNavItems.some(item=>item.path==='/calendar')).toBeFalse();
  });
  it('STAFF con lectura ve Citas y conserva otros subitems autorizados',()=>{
   allowed.add('appointments.read');const c=TestBed.createComponent(AppSidebarComponent).componentInstance;
   expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/calendario'))).toBeTrue();
   expect(c.visibleNavItems.some(item=>item.subItems?.some(s=>s.path==='/panel'))).toBeTrue();
  });
- it('ordena las páginas de trabajo antes de los ejemplos',()=>{
+ it('ordena las páginas de trabajo y oculta ejemplos',()=>{
   allowed.add('appointments.read'); allowed.add('clients.read');
   const names=TestBed.createComponent(AppSidebarComponent).componentInstance.visibleNavItems.map(item=>item.name);
   expect(names.indexOf('Inicio')).toBeLessThan(names.indexOf('Citas'));
   expect(names.indexOf('Citas')).toBeLessThan(names.indexOf('Clientes'));
-  expect(names.indexOf('Clientes')).toBeLessThan(names.indexOf('Forms'));
+  expect(names).not.toContain('Forms');
+  expect(names).not.toContain('Charts');
  });
  it('solo resalta el grupo de la ruta actual y cierra el anterior al navegar',async()=>{
   allowed.add('appointments.read'); allowed.add('clients.read');

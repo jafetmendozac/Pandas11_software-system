@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -22,7 +22,7 @@ export class AppHeaderComponent {
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
 
-  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+  readonly isDesktop = signal(window.innerWidth >= 1280);
 
   constructor(public sidebarService: SidebarService, public authorization: AuthorizationService) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
@@ -40,18 +40,6 @@ export class AppHeaderComponent {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
   }
 
-  ngAfterViewInit() {
-    document.addEventListener('keydown', this.handleKeyDown);
-  }
-
-  ngOnDestroy() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = (event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault();
-      this.searchInput?.nativeElement.focus();
-    }
-  };
+  @HostListener('window:resize')
+  onResize(): void { this.isDesktop.set(window.innerWidth >= 1280); }
 }
