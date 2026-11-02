@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { SupabaseService } from '../../../services/supabase.service';
@@ -22,14 +22,12 @@ export class UserDropdownComponent implements OnInit {
   isOpen = false;
   subDropdownOpen = false;
   currentLocale = 'en';
-  firstName = '';
-  lastName = '';
-  email = '';
-
-  get displayName(): string {
-    const name = `${this.firstName} ${this.lastName}`.trim();
-    return name || this.email || 'Mi cuenta';
-  }
+  readonly firstName = signal('');
+  readonly lastName = signal('');
+  readonly email = signal('');
+  readonly displayName = computed(() =>
+    `${this.firstName()} ${this.lastName()}`.trim() || this.email() || 'Mi cuenta'
+  );
 
   languages: Language[] = [
     {
@@ -82,9 +80,9 @@ export class UserDropdownComponent implements OnInit {
   private async loadAccount(): Promise<void> {
     try {
       const account = await this.profilesService.getCurrent();
-      this.email = account.email;
-      this.firstName = account.profile?.first_name ?? '';
-      this.lastName = account.profile?.last_name ?? '';
+      this.email.set(account.email);
+      this.firstName.set(account.profile?.first_name?.trim() || account.metadata.first_name?.trim() || '');
+      this.lastName.set(account.profile?.last_name?.trim() || account.metadata.last_name?.trim() || '');
     } catch (error) {
       console.error('No se pudo cargar la cuenta.', error);
     }

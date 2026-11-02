@@ -1,5 +1,11 @@
 # Validación — Fase 0
 
+## Nombre de usuario en el encabezado — 2026-11-02
+
+Reporte: después de iniciar sesión, el menú del encabezado permanecía en «Mi cuenta» aunque el perfil tuviera nombres. `UserDropdownComponent` ya consultaba `profiles`, pero mantenía el resultado asíncrono en propiedades ordinarias. Ahora publica nombre, apellido y correo mediante señales Angular; el rótulo se actualiza al terminar la consulta. Prioriza los nombres del perfil y usa metadatos Auth solo si faltan. No cambia el modelo, las consultas, RLS ni permisos; corresponde a la presentación de identidad de F0-02/F0-07 y no modifica reglas RN de negocio.
+
+Validación: prueba del encabezado 1/1 con consulta fuera de la zona Angular y aserción del DOM; suite Angular 154/154; TypeScript de pruebas correcto; build de producción correcto con advertencia preexistente de presupuesto CSS en `inicio.component.css`. La primera ejecución Karma dentro del aislamiento se bloqueó en esbuild antes de las pruebas; fuera del aislamiento pasó. Queda pendiente comprobación visual manual tras inicio de sesión con la instancia local.
+
 ## Corrección de inicio de sesión — 2026-11-02
 
 Reporte: al rechazar Supabase una contraseña incorrecta, el formulario mostraba `Invalid login credentials` y seguía mostrando «Iniciando sesión...» hasta otra interacción. El formulario ahora traduce el código Auth `invalid_credentials` a «Correo electrónico o contraseña incorrectos.» y usa señales Angular para publicar el error y el fin de la carga al resolver la petición. Se conserva la navegación y la comprobación de permisos existentes. No hay cambio de esquema, RLS ni consultas nuevas; las reglas RN de negocio no se ven afectadas.
