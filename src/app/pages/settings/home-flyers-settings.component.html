@@ -1,4 +1,7 @@
 <app-page-breadcrumb pageTitle="Panfletos semanales" />
+@if (!auth.hasInSelectedRole('home_flyers.manage')) {
+  <p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-4 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">La vista de trabajo seleccionada no puede administrar panfletos. Elige un rol autorizado para continuar.</p>
+} @else {
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
   <div>
     <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">Panfletos de la portada</h1>
@@ -84,4 +87,5 @@
       </section>
     </app-modal>
   }
+}
 }

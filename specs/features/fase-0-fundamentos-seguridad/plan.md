@@ -54,3 +54,9 @@ Sin impacto de datos en profiles, roles, permissions, user_roles o role_permissi
 Ajuste de presentación solicitado sobre el formulario existente. Reutilizar ModalComponent sin modificarlo para otros consumidores; importar A11yModule de Angular CDK ya instalado para capturar/devolver foco y mantener Tab dentro del diálogo. Mover el formulario al modal, con cabecera y cierre propio etiquetado, conservando sus validaciones y guardado. Encaminar los cierres a closeRoleForm, que respeta busy; resetRole conserva su uso interno tras un guardado exitoso. Mostrar fallos dentro del modal y limpiar avisos antiguos al abrir.
 
 Alcance: únicamente RoleSettingsComponent y estos documentos. Sin cambios de contratos, reglas de negocio, Pandas11.sql, servicios, permisos, migraciones o datos; no instalar paquetes. Verificar compilación, suite Angular existente y diff. La interacción visual y de teclado requiere revisión manual y no se acredita solo con la suite existente.
+
+## Corrección de la vista de trabajo en Configuración — 2026-11-02
+
+El reporte y la aclaración del usuario identificaron una cuenta OWNER que cambia el selector de «Vista de trabajo» a CLIENT o STAFF. Corregir F0-07 con los permisos del rol seleccionado para las tarjetas de Configuración, la navegación lateral y la ruta de panfletos; conservar las comprobaciones de permisos efectivos del usuario y las políticas RLS existentes. Proteger también carga y guardado del editor si la vista cambia mientras está abierto. Mostrar un texto acorde a las opciones visibles.
+
+Añadir pruebas de DOM, menú, ruta y editor para el cambio de vista; repetir suite Angular y build. Documentar que el selector afecta la presentación, mientras que la autorización real corresponde a los roles asignados y a Supabase. Sin migraciones ni consultas nuevas.

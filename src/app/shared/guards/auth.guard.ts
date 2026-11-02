@@ -16,3 +16,13 @@ export const profileGuard: CanActivateFn = async () => {
   const router = inject(Router);
   return await authorization.refresh() ? true : router.createUrlTree(['/signin']);
 };
+
+// La vista de rol limita la navegación visible; el permiso real sigue validándose en authGuard y RLS.
+export const selectedRoleGuard: CanActivateFn = (route, state) => {
+  const authorization = inject(AuthorizationService);
+  const router = inject(Router);
+  const permission = route.data?.['permission'] as string | undefined;
+  return permission && authorization.has(permission) && authorization.hasInSelectedRole(permission)
+    ? true
+    : router.createUrlTree(['/access-denied'], { queryParams: { redirect: state.url } });
+};

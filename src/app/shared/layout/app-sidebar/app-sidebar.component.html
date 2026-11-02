@@ -21,7 +21,7 @@
       'justify-start': (isExpanded$ | async) || (isHovered$ | async)
     }"
   >
-    <a routerLink="/panel">
+    <a [routerLink]="mode === 'client' ? '/mi-perfil' : '/panel'">
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
       <img
         class="dark:hidden"
@@ -216,6 +216,7 @@
                 @if (nav.path) {
                 <a
                   [routerLink]="nav.path"
+                  (click)="onSubmenuClick()"
                   [attr.aria-label]="nav.name"
                   [class.menu-item-active]="isActive(nav.path)"
                   class="menu-item group"

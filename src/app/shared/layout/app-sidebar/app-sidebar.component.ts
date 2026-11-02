@@ -1,7 +1,7 @@
 import { SalesService } from '../../services/sales.service';
 import { AuthorizationService } from '../../services/authorization.service';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, inject, signal, effect } from '@angular/core';
+import { Component, ElementRef, Input, QueryList, ViewChildren, ChangeDetectorRef, inject, signal, effect } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
@@ -27,15 +27,18 @@ type NavItem = {
   templateUrl: './app-sidebar.component.html',
 })
 export class AppSidebarComponent {
+  @Input() mode: 'internal' | 'client' = 'internal';
   private readonly sales = inject(SalesService);
   readonly commercialAccess = signal(false);
   private commercialRevision = 0;
 
 
   get visibleNavItems(): NavItem[] {
+    if (this.mode === 'client') return this.clientNavItems;
     if (!this.authorization.has('panel.access')) return [];
     const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
-    const visible = (path?:string):boolean => (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess())
+    const visible = (path?:string):boolean => (path !== '/configuracion' || this.authorization.hasInSelectedRole('panel.access'))
+      && (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess())
       && (path !== '/reportes' || ['OWNER', 'ADMIN'].includes(this.authorization.selectedRole()?.code ?? ''))
       && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
     const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
@@ -50,6 +53,11 @@ export class AppSidebarComponent {
       return position(a) - position(b);
     });
   }
+  private readonly clientNavItems: NavItem[] = [
+    { name: 'Mi perfil', path: '/mi-perfil', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke-linecap="round"/></svg>' },
+    { name: 'Mis datos y mascotas', path: '/mis-datos', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5.5h16v14H4zM8 9h8M8 13h5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+    { name: 'Servicios y precios', path: '/catalogo', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round"/></svg>' },
+  ];
   // Main nav items
   navItems: NavItem[] = [
     { name: 'Reportes', path: '/reportes', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V4h16v16H4Z M8 16v-4m4 4V8m4 8v-6"/></svg>' },

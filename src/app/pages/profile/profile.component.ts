@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, Optional, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 // import { UserAddressCardComponent } from '../../shared/components/user-profile/user-address-card/user-address-card.component';
 import { UserMetaCardComponent } from '../../shared/components/user-profile/user-meta-card/user-meta-card.component';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../../shared/services/supabase.service';
 import { A11yModule } from '@angular/cdk/a11y';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
@@ -16,7 +16,7 @@ import { ModalComponent } from '../../shared/components/ui/modal/modal.component
     PageBreadcrumbComponent,
     UserMetaCardComponent,
     // UserAddressCardComponent,
-    FormsModule, RouterLink, A11yModule, ModalComponent,
+    FormsModule, A11yModule, ModalComponent,
   ],
   templateUrl: './profile.component.html',
   styles: ``
@@ -32,6 +32,7 @@ export class ProfileComponent {
 
   constructor(
     private readonly supabase: SupabaseService,
+    @Optional() readonly router: Router | null = null,
   ) {}
 
   openPassword(): void {

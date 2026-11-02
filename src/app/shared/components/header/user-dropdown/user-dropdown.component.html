@@ -9,7 +9,7 @@
       <img src="/images/user/owner.png" alt="User" class="object-cover w-full h-full" />
     </span>
 
-    <span class="block font-medium ltr:mr-1 rtl:ml-1 text-theme-sm">{{ displayName() }}</span>
+    <span class="block max-w-24 truncate font-medium text-theme-sm sm:max-w-none ltr:mr-1 rtl:ml-1">{{ displayName() }}</span>
 
     <!-- Chevron Icon -->
     <svg
@@ -50,7 +50,7 @@
       <ul class="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
         <li>
           <a
-            routerLink="/profile"
+            [routerLink]="profileLink"
             (click)="closeDropdown()"
             class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
           >

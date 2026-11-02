@@ -27,7 +27,7 @@
         }
       </button>
       <!-- Logo (placeholder) -->
-      <a routerLink="/panel" class="xl:hidden">
+      <a [routerLink]="homePath" class="xl:hidden">
         <img width='150' height='40' class="dark:hidden" src="/images/logo/Logo-sidebar.png" alt="Pandas 11, ir al resumen" />
         <img width='150' height='40' class="hidden dark:block" src="/images/logo/Logo-sidebar-dark.png" alt="Pandas 11, ir al resumen" />
       </a>
@@ -55,7 +55,7 @@
         <app-theme-toggle-button />
       </div>
       <!-- UserDropdown placeholder -->
-      <app-user-dropdown />
+      <app-user-dropdown [profileLink]="profileLink" />
     </div>
   </div>
 </header>

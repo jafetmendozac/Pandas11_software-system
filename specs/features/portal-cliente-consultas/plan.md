@@ -10,3 +10,13 @@ Estado: alcance funcional aprobado el 2026-11-02; plan concretado para esta impl
 No hay cambio de esquema o RLS. `Pandas11.sql` y las migraciones coinciden en las relaciones `profiles` → `clients` → `pets` y `services` → `service_prices` aplicables. No ejecutar migraciones ni conectar a un entorno remoto.
 
 El ajuste de visibilidad de las tarjetas fue solicitado después de que el usuario probara la primera implementación. No amplía el acceso a datos: la ruta de ficha propia mantiene sesión, consulta `profile_id` y RLS.
+
+## Layout de cliente aprobado — 2026-11-02
+
+El usuario aprobó en conversación la propuesta concreta de encabezado y sidebar para `/mi-perfil`, `/mis-datos` y `/catalogo`, con ancho de lectura controlado y menú móvil, manteniendo el panel de OWNER/ADMIN/STAFF. Crear un `ClientLayoutComponent` que reutilice `AppHeaderComponent`, `AppSidebarComponent` y `BackdropComponent`, con la misma estructura y clases de `AppLayoutComponent`; agrupar las tres rutas bajo `profileGuard`. Dar a los componentes compartidos entradas de ruta inicial, enlace de perfil y modo de menú cliente, sin cambiar las opciones del panel. Retirar la barra de enlaces repetida y el ancho/padding de página que duplican el marco. Conservar `/profile` y su guard en el layout administrativo. Probar rutas, navegación y apertura/cierre móvil; compilar y ejecutar pruebas Angular. No hay cambio SQL ni permisos.
+
+La primera implementación creó un sidebar visual separado. El usuario la rechazó expresamente y pidió usar el sidebar existente. La corrección sustituye ese marcado propio por los componentes compartidos y conserva el filtro de tres rutas para CLIENT.
+
+## Retirar accesos duplicados de Perfil — 2026-11-02
+
+Solicitud explícita posterior del usuario: eliminar el bloque de dos tarjetas al inicio de `profile.component.html`, retirar `RouterLink` si queda sin uso y su prueba obsoleta. Las rutas y el sidebar de cliente siguen disponibles. Actualizar PC-01 y validar compilación, pruebas Angular y diff. No afecta datos, RLS ni esquema.

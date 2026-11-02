@@ -1,5 +1,4 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
 import { MascotasService, Pet } from '../../shared/services/mascotas.service';
 import { RecordsService, Vaccination } from '../../shared/services/records.service';
@@ -7,7 +6,7 @@ import { RecordsService, Vaccination } from '../../shared/services/records.servi
 @Component({
   selector: 'app-my-records',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './my-records.component.html',
 })
 export class MyRecordsComponent implements OnInit {

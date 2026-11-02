@@ -12,7 +12,7 @@ describe('Editor semanal de panfletos', () => {
     published:index===0,version:1,updated_at:null,
   }));
   let api: {list:jasmine.Spy;signedUrl:jasmine.Spy;preparePath:jasmine.Spy;upload:jasmine.Spy;exists:jasmine.Spy;save:jasmine.Spy;removeOrphan:jasmine.Spy};
-  let auth: {has:jasmine.Spy};
+  let auth: {has:jasmine.Spy;hasInSelectedRole:jasmine.Spy};
 
   beforeEach(() => {
     api={
@@ -24,7 +24,7 @@ describe('Editor semanal de panfletos', () => {
       save:jasmine.createSpy().and.resolveTo({...rows[0],object_path:'1/00000000-0000-4000-8000-000000000001.png',alt_text:'Nuevo panfleto de baño del lunes',version:2}),
       removeOrphan:jasmine.createSpy().and.resolveTo(),
     };
-    auth={has:jasmine.createSpy().and.returnValue(true)};
+    auth={has:jasmine.createSpy().and.returnValue(true),hasInSelectedRole:jasmine.createSpy().and.returnValue(true)};
     TestBed.configureTestingModule({providers:[
       provideRouter([]),
       {provide:HomeFlyersService,useValue:api},
@@ -56,6 +56,16 @@ describe('Editor semanal de panfletos', () => {
     fixture.detectChanges();await fixture.whenStable();
     expect(api.list).not.toHaveBeenCalled();
     expect(fixture.componentInstance.error()).toContain('No tienes permiso');
+  });
+
+  it('no muestra ni guarda panfletos en la vista Cliente de una cuenta OWNER', async () => {
+    auth.hasInSelectedRole.and.returnValue(false);
+    const fixture=TestBed.createComponent(HomeFlyersSettingsComponent);
+    fixture.detectChanges();await fixture.whenStable();
+    expect(api.list).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('vista de trabajo seleccionada no puede administrar panfletos');
+    await fixture.componentInstance.save();
+    expect(api.save).not.toHaveBeenCalled();
   });
 
   it('permite corregir una carga fallida sin perder el archivo elegido', async () => {

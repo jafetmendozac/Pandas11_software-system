@@ -65,6 +65,11 @@ El usuario aprobó explícitamente el plan y sus condiciones. Solo OWNER adminis
 - F0-R02: consumidores simultáneos comparten la consulta de autorización y no invalidan entre sí sus resultados.
 - F0-R03: pruebas SQL/API funcionan con cuentas preexistentes sin contarlas como fixtures, borrar sus datos ni reconstruir la base.
 
+## Configuración según la vista de trabajo — 2026-11-02
+
+- F0-R04 (F0-07, RN-31): al seleccionar CLIENT o STAFF en «Vista de trabajo» desde una cuenta con varios roles, Configuración muestra únicamente las secciones que permite el rol seleccionado. «Panfletos de cada día» requiere `home_flyers.manage` en ese rol y «Acceso del equipo» requiere `security.read`; la opción de panfletos tampoco se abre por URL directa en una vista no autorizada. CLIENT no ve Configuración en el menú lateral; STAFF conserva las preferencias y el perfil propios.
+- La selección de vista no cambia los permisos efectivos de la cuenta ni sustituye RLS. Una cuenta CLIENT o STAFF real sigue su matriz de permisos en Supabase. No se modifican roles, asignaciones, esquema ni políticas.
+
 ## Ajuste de presentación solicitado — 2026-10-18
 
 - «Usuarios y roles» tiene su propia pestaña junto a «Administrar roles» y «Asignar permisos»; cada selección muestra únicamente su contenido.

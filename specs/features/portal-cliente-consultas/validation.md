@@ -4,7 +4,7 @@ Estado: implementación local completada el 2026-11-02 (America/Lima); sin cambi
 
 | Criterio | Resultado |
 |---|---|
-| PC-01 | Perfil presenta tarjetas directas a `/mis-datos` y `/catalogo` arriba de la ficha para toda cuenta autenticada, tanto en `/profile` como en `/mi-perfil` porque usan el mismo componente. Se retiró la condición `panel.access` que las ocultaba al personal; no cambió el acceso a los datos de cada ruta. |
+| PC-01 | Estado final: el sidebar del portal CLIENT ofrece `/mis-datos` y `/catalogo`; Perfil muestra la cuenta y seguridad sin las dos tarjetas duplicadas. Ambas rutas de Perfil comparten el componente. La consulta propia sigue limitada por `profile_id` y RLS. |
 | PC-02 | `/mis-datos` consulta `ClientesService.own` y usa el ID de esa ficha para obtener mascotas mediante `search_pets` sujeto a RLS. Presenta ficha, tarjetas de mascotas, antecedentes visibles y vacunas; no llama a notas internas ni ofrece edición. Estados de carga, error, sin ficha y sin mascotas. |
 | PC-03 | `/catalogo` muestra solo servicios activos/visibles; selecciona mascota propia para completar tamaño/pelaje y permite modificarlos. `TarifasService.quote` calcula en servidor. Descarta resultados anteriores al cambiar entradas y aclara que no reserva ni incluye transporte. |
 | PC-04 | Navegación de texto entre las tres rutas, tarjetas adaptables, controles con etiquetas/foco visible y variantes claro/oscuro. Compilación de plantillas y pruebas DOM correctas. Inspección visual manual pendiente. |
@@ -19,3 +19,15 @@ Estado: implementación local completada el 2026-11-02 (America/Lima); sin cambi
 - `git diff --check`: correcto.
 
 Karma terminó con código 134 dentro del aislamiento antes de mostrar diagnósticos; las ejecuciones fuera del aislamiento pasaron. Un intento de suite completa perdió ChromeHeadless por inactividad, luego pasó al repetirlo. No hay herramienta de navegador disponible para revisar visualmente móvil, oscuro o teclado con sesión real; tampoco se ejecutaron pruebas SQL/API, porque no se cambió el contrato de base ni RLS. La experiencia debe comprobarse manualmente con una cuenta CLIENT sintética vinculada y otra sin vínculo.
+
+## Marco de navegación del cliente — 2026-11-02
+
+PC-06 implementado localmente tras la aprobación explícita del usuario. `/mi-perfil`, `/mis-datos` y `/catalogo` son hijas de `ClientLayoutComponent` y `profileGuard` comprueba la cuenta activa. Tras la corrección solicitada, el marco usa los mismos `AppHeaderComponent`, `AppSidebarComponent` y `BackdropComponent` del panel, con sus clases y comportamiento de colapso. CLIENT ve solo sus tres consultas; el menú de cuenta y el logo llevan a `/mi-perfil`. En móvil el menú se cierra al navegar, tocar el fondo o pulsar Escape. El contenido queda limitado a `max-w-5xl`; las páginas de consulta ya no agregan otra barra de enlaces ni un segundo contenedor de ancho/padding. `/profile` y el panel conservan sus rutas y guard actuales.
+
+Validación final de la corrección: 11/11 pruebas focalizadas del layout, sidebar y encabezado compartidos; suite Angular completa **167/167**; `npm run build` correcto con la advertencia preexistente de presupuesto CSS en `inicio.component.css` (1,46 kB sobre el límite); TypeScript de app y pruebas correcto; `git diff --check` correcto. No se cambiaron migraciones, RLS, permisos ni datos. Queda pendiente inspección visual manual del layout con sesión CLIENT en escritorio/móvil, modo oscuro y RTL; los tests DOM no sustituyen esa revisión.
+
+## Tarjetas retiradas de Mi perfil — 2026-11-02
+
+Se retiraron «Mis datos y mascotas» y «Servicios y precios» del componente compartido de Perfil, por solicitud expresa del usuario. CLIENT mantiene esas rutas en el sidebar; no cambiaron los servicios ni las políticas RLS. La prueba que exigía esas tarjetas se eliminó porque ya no describe el comportamiento requerido.
+
+Comprobación final: tipos de aplicación y pruebas correctos; suite Angular **166/166**; `npm run build` correcto con la advertencia CSS preexistente de `inicio.component.css` (1,46 kB sobre el límite); `git diff --check` correcto. La cifra histórica 167/167 del ajuste anterior incluía la prueba de tarjetas ahora obsoleta.

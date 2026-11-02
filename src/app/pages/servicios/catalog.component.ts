@@ -1,5 +1,4 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
 import { MascotasService, Pet, PetCoatType, PetSize } from '../../shared/services/mascotas.service';
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
@@ -9,7 +8,7 @@ import { decimalLabel } from '../../shared/services/service-pricing.models';
 @Component({
   selector: 'app-service-catalog',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './catalog.component.html',
 })
 export class ServiceCatalogComponent implements OnInit {

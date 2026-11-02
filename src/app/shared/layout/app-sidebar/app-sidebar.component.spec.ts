@@ -4,6 +4,8 @@ import { provideRouter, Router } from '@angular/router';
 import { AppSidebarComponent } from './app-sidebar.component';
 import { SalesService } from '../../services/sales.service';
 import { AuthorizationService } from '../../services/authorization.service';
+import { SidebarService } from '../../services/sidebar.service';
+import { firstValueFrom } from 'rxjs';
 @Component({template: ''})
 class EmptyPage {}
 describe('Menú de agenda por permiso',()=>{
@@ -35,6 +37,27 @@ describe('Menú de agenda por permiso',()=>{
   expect(names.indexOf('Citas')).toBeLessThan(names.indexOf('Clientes'));
   expect(names).not.toContain('Forms');
   expect(names).not.toContain('Charts');
+ });
+ it('oculta Configuración en la vista Cliente aunque la cuenta tenga acceso al panel',()=>{
+  const auth=TestBed.inject(AuthorizationService);
+  spyOn(auth,'hasInSelectedRole').and.callFake((permission:string)=>permission!=='panel.access');
+  const c=TestBed.createComponent(AppSidebarComponent).componentInstance;
+  expect(auth.has('panel.access')).toBeTrue();
+  expect(c.visibleNavItems.some(item=>item.path==='/configuracion')).toBeFalse();
+ });
+ it('reutiliza el sidebar para CLIENT con solo sus tres rutas',async()=>{
+  allowed.clear();
+  const fixture=TestBed.createComponent(AppSidebarComponent);
+  fixture.componentInstance.mode='client';
+  fixture.detectChanges();
+  const root=fixture.nativeElement as HTMLElement;
+  const links=Array.from(root.querySelectorAll<HTMLAnchorElement>('nav a'));
+  expect(links.map(link=>link.getAttribute('href'))).toEqual(['/mi-perfil','/mis-datos','/catalogo']);
+  expect(root.querySelector('aside > div a')?.getAttribute('href')).toBe('/mi-perfil');
+  const sidebar=TestBed.inject(SidebarService);
+  sidebar.setMobileOpen(true); fixture.detectChanges();
+  links[0].click();
+  expect(await firstValueFrom(sidebar.isMobileOpen$)).toBeFalse();
  });
  it('solo resalta el grupo de la ruta actual y cierra el anterior al navegar',async()=>{
   allowed.add('appointments.read'); allowed.add('clients.read');

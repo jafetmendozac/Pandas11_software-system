@@ -55,7 +55,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   }
 
   async load(): Promise<void> {
-    if (!this.auth.has('home_flyers.manage')) {
+    if (!this.auth.has('home_flyers.manage') || !this.auth.hasInSelectedRole('home_flyers.manage')) {
       this.loading.set(false);
       this.error.set('No tienes permiso para administrar panfletos.');
       return;
@@ -122,7 +122,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
 
   async save(): Promise<void> {
     const row = this.selected();
-    if (!row || this.busy() || !this.auth.has('home_flyers.manage')) return;
+    if (!row || this.busy() || !this.auth.has('home_flyers.manage') || !this.auth.hasInSelectedRole('home_flyers.manage')) return;
     if (!this.pending) {
       const alt = this.alt.trim();
       if ((this.file || row.object_path) && (alt.length < 5 || alt.length > 200)) {

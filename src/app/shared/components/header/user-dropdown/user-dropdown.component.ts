@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, OnInit, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { SupabaseService } from '../../../services/supabase.service';
@@ -19,6 +19,7 @@ export interface Language {
   imports: [CommonModule, RouterModule]
 })
 export class UserDropdownComponent implements OnInit {
+  @Input() profileLink = '/profile';
   isOpen = false;
   subDropdownOpen = false;
   currentLocale = 'en';

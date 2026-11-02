@@ -1,4 +1,4 @@
-import { Component, HostListener, signal } from '@angular/core';
+import { Component, HostListener, Input, signal } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -19,6 +19,8 @@ import { AuthorizationService } from '../../services/authorization.service';
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent {
+  @Input() homePath = '/panel';
+  @Input() profileLink = '/profile';
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
 
@@ -38,6 +40,12 @@ export class AppHeaderComponent {
 
   toggleApplicationMenu() {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.sidebarService.setMobileOpen(false);
+    this.isApplicationMenuOpen = false;
   }
 
   @HostListener('window:resize')

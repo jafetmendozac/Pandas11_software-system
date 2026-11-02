@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthorizationService } from '../services/authorization.service';
-import { authGuard } from './auth.guard';
+import { authGuard, selectedRoleGuard } from './auth.guard';
 
 describe('authGuard', () => {
   const route = {} as ActivatedRouteSnapshot;
   const state = { url: '/configuracion' } as RouterStateSnapshot;
   const denied = { denied: true };
-  let authorization: { refresh: jasmine.Spy; has: jasmine.Spy };
+  let authorization: { refresh: jasmine.Spy; has: jasmine.Spy; hasInSelectedRole: jasmine.Spy };
 
   beforeEach(() => {
-    authorization = { refresh: jasmine.createSpy().and.resolveTo(true), has: jasmine.createSpy().and.returnValue(true) };
+    authorization = { refresh: jasmine.createSpy().and.resolveTo(true), has: jasmine.createSpy().and.returnValue(true), hasInSelectedRole: jasmine.createSpy().and.returnValue(true) };
     TestBed.configureTestingModule({ providers: [
       { provide: AuthorizationService, useValue: authorization },
       { provide: Router, useValue: { createUrlTree: () => denied } },
@@ -49,6 +49,14 @@ describe('authGuard', () => {
     authorization.has.and.callFake((permission: string) => permission === 'panel.access');
     const protectedRoute = { data: { permission: 'payments.read' } } as unknown as ActivatedRouteSnapshot;
     expect(await TestBed.runInInjectionContext(() => authGuard(protectedRoute, state))).toBe(denied as never);
+  });
+
+  it('bloquea la ruta de panfletos si la vista elegida carece del permiso', () => {
+    authorization.hasInSelectedRole.and.returnValue(false);
+    const protectedRoute = { data: { permission: 'home_flyers.manage' } } as unknown as ActivatedRouteSnapshot;
+    const target = { url: '/configuracion/panfletos' } as RouterStateSnapshot;
+    expect(TestBed.runInInjectionContext(() => selectedRoleGuard(protectedRoute, target))).toBe(denied as never);
+    expect(authorization.has).toHaveBeenCalledWith('home_flyers.manage');
   });
 
 });
