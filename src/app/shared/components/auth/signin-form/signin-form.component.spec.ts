@@ -1,3 +1,4 @@
+import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SigninFormComponent } from './signin-form.component';
@@ -54,14 +55,31 @@ describe('Destino después de iniciar sesión desde la portada', () => {
     authorization.refresh.and.resolveTo(false);
     const c = component(); await c.onSignIn();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
-    expect(c.errorMessage).toContain('No se pudo habilitar el acceso');
-    expect(c.isLoading).toBeFalse();
+    expect(c.errorMessage()).toContain('No se pudo habilitar el acceso');
+    expect(c.isLoading()).toBeFalse();
   });
   it('no inicia consulta de permisos ni navega cuando Auth rechaza el login', async () => {
     signIn.and.rejectWith(new Error('Credenciales inválidas'));
     const c = component(); await c.onSignIn();
     expect(authorization.refresh).not.toHaveBeenCalled();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
-    expect(c.errorMessage).toBe('Credenciales inválidas');
+    expect(c.errorMessage()).toBe('Credenciales inválidas');
+    expect(c.isLoading()).toBeFalse();
+  });
+  it('muestra inmediatamente el error de credenciales y restablece el botón', async () => {
+    const fixture = TestBed.createComponent(SigninFormComponent);
+    fixture.componentInstance.email = 'persona@example.test';
+    fixture.componentInstance.password = 'Ficticia-123!';
+    fixture.autoDetectChanges();
+    signIn.and.rejectWith(Object.assign(new Error('Invalid login credentials'), { code: 'invalid_credentials' }));
+
+    await TestBed.inject(NgZone).runOutsideAngular(() => fixture.componentInstance.onSignIn());
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent.trim())
+      .toBe('Correo electrónico o contraseña incorrectos.');
+    expect(fixture.nativeElement.textContent).toContain('Iniciar sesión');
+    expect(fixture.nativeElement.textContent).not.toContain('Iniciando sesión...');
+    expect(fixture.componentInstance.isLoading()).toBeFalse();
   });
 });

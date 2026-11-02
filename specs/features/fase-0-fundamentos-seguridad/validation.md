@@ -1,5 +1,11 @@
 # Validación — Fase 0
 
+## Corrección de inicio de sesión — 2026-11-02
+
+Reporte: al rechazar Supabase una contraseña incorrecta, el formulario mostraba `Invalid login credentials` y seguía mostrando «Iniciando sesión...» hasta otra interacción. El formulario ahora traduce el código Auth `invalid_credentials` a «Correo electrónico o contraseña incorrectos.» y usa señales Angular para publicar el error y el fin de la carga al resolver la petición. Se conserva la navegación y la comprobación de permisos existentes. No hay cambio de esquema, RLS ni consultas nuevas; las reglas RN de negocio no se ven afectadas.
+
+Validación: prueba focalizada 7/7, incluida respuesta asíncrona fuera de la zona Angular con comprobación del mensaje y botón en el DOM; suite Angular completa 153/153; TypeScript de pruebas correcto; build de producción correcto con advertencia de presupuesto CSS preexistente en `inicio.component.css`; `git diff --check` correcto. Build y Karma terminaron con código 134 antes de dar diagnósticos dentro del aislamiento y pasaron fuera de él. No se probó manualmente con una cuenta local ni se conectó a una instancia remota.
+
 Fecha: 2026-10-17. Estado: implementación local y validaciones completadas; sin despliegue remoto.
 
 ## Alcance entregado

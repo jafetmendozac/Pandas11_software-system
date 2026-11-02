@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
@@ -30,8 +30,8 @@ export class SigninFormComponent {
 
   email = '';
   password = '';
-  errorMessage = '';
-  isLoading = false;
+  errorMessage = signal('');
+  isLoading = signal(false);
 
   constructor(
     private readonly supabase: SupabaseService,
@@ -45,13 +45,13 @@ export class SigninFormComponent {
   }
 
   async onSignIn() {
-    if (!this.email || !this.password || this.isLoading) {
-      this.errorMessage = 'Ingresa tu correo y contraseña.';
+    if (!this.email || !this.password || this.isLoading()) {
+      this.errorMessage.set('Ingresa tu correo y contraseña.');
       return;
     }
 
-    this.errorMessage = '';
-    this.isLoading = true;
+    this.errorMessage.set('');
+    this.isLoading.set(true);
 
     try {
       await this.supabase.signInWithEmail(this.email, this.password);
@@ -64,11 +64,11 @@ export class SigninFormComponent {
       const redirect = internalRedirect || (this.authorization.has('panel.access') ? '/panel' : '/mi-perfil');
       await this.router.navigateByUrl(redirect);
     } catch (error) {
-      this.errorMessage = error instanceof Error
-        ? error.message
-        : 'No se pudo iniciar sesión.';
+      this.errorMessage.set(error instanceof Error && 'code' in error && error.code === 'invalid_credentials'
+        ? 'Correo electrónico o contraseña incorrectos.'
+        : error instanceof Error ? error.message : 'No se pudo iniciar sesión.');
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }
