@@ -74,6 +74,11 @@ describe('AuthorizationService', () => {
     expect(await second).toBeTrue();
     expect(rpc).toHaveBeenCalledTimes(2);
   });
+  it('expone la validación vigente para los guards', async () => {
+    expect(service.isSessionValidated()).toBeFalse();
+    await service.refresh();
+    expect(service.isSessionValidated()).toBeTrue();
+  });
   it('renovar el token de la misma cuenta no vacía el menú', async () => {
     await service.refresh();
     event('TOKEN_REFRESHED', { user: { id: 'test-user' } });

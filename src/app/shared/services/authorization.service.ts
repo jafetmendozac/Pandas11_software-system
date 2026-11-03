@@ -14,6 +14,7 @@ export class AuthorizationService {
   private revision = 0;
   private userId: string | null = null;
   private pending: Promise<boolean> | null = null;
+  private validatedRevision = -1;
   readonly permissions = signal<readonly string[]>([]);
   readonly roles = signal<readonly UserRoleContext[]>([]);
   readonly selectedRoleId = signal<string | null>(null);
@@ -31,6 +32,7 @@ export class AuthorizationService {
         this.revision++;
         this.pending = null;
         this.userId = nextUserId;
+        this.validatedRevision = -1;
         this.permissions.set([]);
         this.roles.set([]);
         this.selectedRoleId.set(null);
@@ -41,6 +43,10 @@ export class AuthorizationService {
   }
 
   has(permission: string): boolean { return this.permissions().includes(permission); }
+
+  isSessionValidated(): boolean {
+    return this.validatedRevision === this.revision && this.userId !== null;
+  }
 
   hasInSelectedRole(permission: string): boolean {
     const role = this.selectedRole();
@@ -97,6 +103,7 @@ export class AuthorizationService {
       const savedRoleId = localStorage.getItem('activeRoleId');
       const initialRole = roles.find(role => role.role_id === savedRoleId) ?? roles[0];
       this.selectedRoleId.set(initialRole?.role_id ?? null);
+      this.validatedRevision = revision;
       return true;
     } catch { return deny(); }
   }
