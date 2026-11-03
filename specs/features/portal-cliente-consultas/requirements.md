@@ -33,3 +33,7 @@ El usuario aprobó un marco para las tres rutas de consulta, con encabezado, men
 ## Eliminación de tarjetas de Perfil — 2026-11-02
 
 El usuario pidió quitar las tarjetas «Mis datos y mascotas» y «Servicios y precios» de Mi perfil. Esta decisión sustituye el acceso desde Perfil descrito en el ajuste histórico anterior: el portal CLIENT conserva las dos rutas en el sidebar compartido. El mismo componente Perfil se usa en `/profile` y `/mi-perfil`, por lo que las tarjetas desaparecen en ambas vistas. Sin cambios de consultas ni permisos.
+
+## Corrección visual del sidebar compartido — 2026-11-02
+
+PC-07 (F0-07, PC-04): al contraer el sidebar de escritorio no se muestra el icono genérico de TailAdmin, sino la marca existente de Pandas 11. En anchos menores que `xl`, el sidebar abierto no deja asomar su logo por debajo del encabezado, que ya muestra la marca; las opciones del menú empiezan debajo de este. Aplica a panel y portal porque comparten el componente, sin alterar rutas o permisos.

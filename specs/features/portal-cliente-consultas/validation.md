@@ -31,3 +31,9 @@ Validación final de la corrección: 11/11 pruebas focalizadas del layout, sideb
 Se retiraron «Mis datos y mascotas» y «Servicios y precios» del componente compartido de Perfil, por solicitud expresa del usuario. CLIENT mantiene esas rutas en el sidebar; no cambiaron los servicios ni las políticas RLS. La prueba que exigía esas tarjetas se eliminó porque ya no describe el comportamiento requerido.
 
 Comprobación final: tipos de aplicación y pruebas correctos; suite Angular **166/166**; `npm run build` correcto con la advertencia CSS preexistente de `inicio.component.css` (1,46 kB sobre el límite); `git diff --check` correcto. La cifra histórica 167/167 del ajuste anterior incluía la prueba de tarjetas ahora obsoleta.
+
+## Icono y solapamiento del sidebar — 2026-11-02
+
+PC-07: en el estado contraído de escritorio se usa `Logo.png`, la marca existente de Pandas 11, en lugar del icono genérico `logo-icon.svg`. Por debajo de `xl`, el bloque de logo del sidebar se oculta porque el encabezado ya contiene la marca; el menú comienza con espacio superior suficiente para no asomar bajo ese encabezado. El ajuste afecta al panel y al portal CLIENT por usar el mismo componente. No cambia opciones, rutas o permisos.
+
+Validación: `npx ngc -p tsconfig.app.json --noEmit` correcto, suite Angular **166/166** y `npm run build` correcto con la advertencia CSS preexistente de `inicio.component.css` (1,46 kB sobre el límite). `git diff --check` correcto. No se pudo verificar visualmente en una sesión local: no había servidor Angular ni Supabase en ejecución; los tests y la compilación no prueban el recorte visual exacto a cada ancho de pantalla.

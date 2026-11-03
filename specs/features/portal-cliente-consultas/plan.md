@@ -20,3 +20,7 @@ La primera implementación creó un sidebar visual separado. El usuario la recha
 ## Retirar accesos duplicados de Perfil — 2026-11-02
 
 Solicitud explícita posterior del usuario: eliminar el bloque de dos tarjetas al inicio de `profile.component.html`, retirar `RouterLink` si queda sin uso y su prueba obsoleta. Las rutas y el sidebar de cliente siguen disponibles. Actualizar PC-01 y validar compilación, pruebas Angular y diff. No afecta datos, RLS ni esquema.
+
+## Ajuste visual del sidebar existente — 2026-11-02
+
+El reporte con capturas identifica `logo-icon.svg` como icono ajeno al negocio en el estado contraído y la parte inferior del logo del sidebar visible bajo el encabezado móvil. En `AppSidebarComponent` usar el logo cuadrado existente de Pandas 11 para el estado contraído de escritorio; ocultar el bloque de logo del sidebar por debajo de `xl` y desplazar el inicio de sus opciones hasta debajo del encabezado. Conservar el mismo componente, su filtro de rutas y su comportamiento de colapso. Comprobar plantillas, pruebas pertinentes y build; documentar los límites de revisión visual.
