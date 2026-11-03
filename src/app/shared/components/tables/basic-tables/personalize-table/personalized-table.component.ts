@@ -50,7 +50,7 @@ export class PersonalizedTable {
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;
-  @Input() itemsPerPageOptions: number[] = [5, 10, 15];
+  @Input() itemsPerPageOptions: number[] = [10, 15, 20];
   @Input() columns: TableColumn[] = [];
   @Input() tableData: TableRow[] = [];
   @Input() searchKey = '';
@@ -63,7 +63,7 @@ export class PersonalizedTable {
   @Output() rowDetails = new EventEmitter<TableRow>();
 
   currentPage = 1;
-  itemsPerPage = 5;
+  itemsPerPage = 10;
   searchTerm = '';
   isFormOpen = false;
   editingIndex: number | null = null;
