@@ -3,9 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { Service, ServiciosService } from '../../../services/servicios.service';
 import { TarifasService, ServiceQuote, PetSize, PetCoatType } from '../../../services/tarifas.service';
 import { decimalLabel } from '../../../services/service-pricing.models';
+import { CustomSelectComponent, CustomSelectOption } from '../../form/custom-select/custom-select.component';
 
 @Component({
-  selector: 'app-service-simulator', standalone: true, imports: [FormsModule],
+  selector: 'app-service-simulator', standalone: true, imports: [FormsModule, CustomSelectComponent],
   template: `
   <section class="space-y-4 rounded-xl border border-gray-200 bg-white p-5 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
     <h2 class="text-lg font-semibold">Comprueba una tarifa</h2>
@@ -14,21 +15,14 @@ import { decimalLabel } from '../../../services/service-pricing.models';
     @if (loading()) { <p role="status">Cargando catálogo…</p> }
     <form (ngSubmit)="calculate()" class="space-y-4">
       <label class="block">Servicio
-        <select name="service" [(ngModel)]="serviceId" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-800">
-          <option value="">Selecciona un servicio</option>
-          @for (service of services(); track service.id) { <option [value]="service.id">{{ service.name }}</option> }
-        </select>
+        <app-custom-select [options]="serviceOptions()" [value]="serviceId" (valueChange)="setService($event)" placeholder="Selecciona un servicio" ariaLabel="Seleccionar servicio" className="mt-2 w-full dark:bg-gray-800" />
       </label>
       <div class="grid gap-4 sm:grid-cols-2">
         <label>Tamaño
-          <select name="size" [(ngModel)]="size" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-800">
-            <option value="">No indicado</option><option value="TOY">Miniatura</option><option value="SMALL">Pequeño</option><option value="MEDIUM">Mediano</option><option value="LARGE">Grande</option><option value="EXTRA_LARGE">Extra grande</option>
-          </select>
+          <app-custom-select [options]="sizeOptions" [value]="size" (valueChange)="setSize($event)" placeholder="No indicado" ariaLabel="Seleccionar tamaño" className="mt-2 w-full dark:bg-gray-800" />
         </label>
         <label>Pelaje
-          <select name="coat" [(ngModel)]="coat" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-800">
-            <option value="">No indicado</option><option value="SHORT">Corto</option><option value="MEDIUM">Medio</option><option value="LONG">Largo</option><option value="WIRE">Cerda</option><option value="CURLY">Rizado</option><option value="HAIRLESS">Sin pelo</option>
-          </select>
+          <app-custom-select [options]="coatOptions" [value]="coat" (valueChange)="setCoat($event)" placeholder="No indicado" ariaLabel="Seleccionar pelaje" className="mt-2 w-full dark:bg-gray-800" />
         </label>
       </div>
       <button type="submit" [disabled]="!serviceId || calculating() || loading()" class="rounded-lg bg-brand-500 px-5 py-3 text-white disabled:opacity-50">{{ calculating() ? 'Calculando…' : 'Calcular' }}</button>
@@ -53,6 +47,21 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
   readonly error = signal('');
   readonly quote = signal<ServiceQuote | null>(null);
   serviceId = ''; size: PetSize | '' = ''; coat: PetCoatType | '' = '';
+  readonly sizeOptions: CustomSelectOption[] = [
+    { value: '', label: 'No indicado' }, { value: 'TOY', label: 'Miniatura' },
+    { value: 'SMALL', label: 'Pequeño' }, { value: 'MEDIUM', label: 'Mediano' },
+    { value: 'LARGE', label: 'Grande' }, { value: 'EXTRA_LARGE', label: 'Extra grande' },
+  ];
+  readonly coatOptions: CustomSelectOption[] = [
+    { value: '', label: 'No indicado' }, { value: 'SHORT', label: 'Corto' },
+    { value: 'MEDIUM', label: 'Medio' }, { value: 'LONG', label: 'Largo' },
+    { value: 'WIRE', label: 'Cerda' }, { value: 'CURLY', label: 'Rizado' },
+    { value: 'HAIRLESS', label: 'Sin pelo' },
+  ];
+  readonly serviceOptions = () => [
+    { value: '', label: 'Selecciona un servicio' },
+    ...this.services().map(service => ({ value: service.id, label: service.name })),
+  ];
   readonly label = decimalLabel;
   async ngOnInit(): Promise<void> {
     try { const data = await this.catalogue.getAll(true); this.services.set(this.publicOnly ? data.filter(s => s.visible_to_clients) : data); }
@@ -61,6 +70,9 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void { this.revision++; }
   invalidate(): void { this.revision++; this.quote.set(null); this.calculating.set(false); this.error.set(''); }
+  setService(value: string | number | null): void { this.serviceId = value?.toString() ?? ''; this.invalidate(); }
+  setSize(value: string | number | null): void { this.size = (value?.toString() ?? '') as PetSize | ''; this.invalidate(); }
+  setCoat(value: string | number | null): void { this.coat = (value?.toString() ?? '') as PetCoatType | ''; this.invalidate(); }
   async calculate(): Promise<void> {
     if (!this.serviceId || this.calculating()) return;
     const revision = ++this.revision;

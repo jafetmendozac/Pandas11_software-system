@@ -16,6 +16,8 @@ export interface TableColumn {
   placeholder?: string;
   helpText?: string;
   type?: 'text' | 'number' | 'date' | 'time' | 'datetime-local';
+  control?: 'radio';
+  display?: 'status-indicator' | 'visibility-indicator';
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }
@@ -136,6 +138,10 @@ export class PersonalizedTable {
 
   getFormValue(key: string): string {
     return String(this.formData[key] ?? '');
+  }
+
+  isTruthy(value: unknown): boolean {
+    return value === true || value === 'true';
   }
 
   goToPage(page: number): void {

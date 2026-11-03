@@ -13,6 +13,8 @@ describe('Simulador de precios',()=>{
   });
   it('muestra precio cero, duración y origen devueltos por SQL',async()=>{
     const f=TestBed.createComponent(ServiceSimulatorComponent);f.detectChanges();await f.whenStable();
+    expect(f.nativeElement.querySelectorAll('app-custom-select').length).toBe(3);
+    expect(f.nativeElement.querySelectorAll('select').length).toBe(0);
     f.componentInstance.serviceId='service';f.componentInstance.size='TOY';f.componentInstance.coat='LONG';
     await f.componentInstance.calculate();f.detectChanges();
     expect(pricing.quote).toHaveBeenCalledWith('service','TOY','LONG');
