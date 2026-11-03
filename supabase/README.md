@@ -9,11 +9,13 @@ npm run start:local
 
 `start:local` genera un archivo ignorado `environment.local.ts` con URL y clave pública locales. No modifica los entornos existentes ni imprime secretos. El registro exige confirmar correo en el buzón local. Un CLIENT puede usar `/mi-perfil`; no entra al panel.
 
-## Seed optativo para probar Fases 0–4
+## Seed optativo para probar agenda y flujo comercial
 
 ```sh
 supabase migration up --local
 npm run seed:local
+npm run seed:commercial
+node scripts/test-commercial-seed.mjs
 npm run start:local
 ```
 
@@ -21,7 +23,9 @@ Carga únicamente en la instancia local cuentas confirmadas OWNER/ADMIN/STAFF/CL
 
 Cuentas `demo.fases.owner@example.test`, `demo.fases.admin@example.test`, `demo.fases.staff@example.test` y `demo.fases.client@example.test`. Contraseña inicial pública de demostración: `Pandas11-Demo-2026!`. No son credenciales reales ni deben usarse fuera del entorno local.
 
-Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
+Las fichas muestran nombres ficticios de personas y mascotas sin prefijos técnicos. El segundo comando añade una cita completada, productos, stock, venta mixta, venta de mostrador, cobros separados y caja cerrada. La cita histórica se inserta como fixture SQL local con validación transaccional; sus cambios de estado usan RPC. Solo se ejecuta contra los puertos locales 55321/55322; se detiene si hay una caja abierta ajena. No modifica las citas anteriores ni datos remotos.
+
+Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md) y [validación comercial](../specs/features/seed-flujo-comercial/validation.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
 
 ## Primer owner
 
@@ -53,6 +57,10 @@ El script API rechaza URLs distintas a la instancia 55321, utiliza secretos excl
 La migración extrae las cinco tablas de Pandas11.sql y añade políticas, funciones y catálogo. Tras Fases 1–4 también instala clientes, mascotas, vacunas/notas internas, catálogo de servicios/tarifas, las cuatro tablas laborales y las cuatro tablas de citas con RLS por dominio. Fase 5 añade payments; autorreservas, devoluciones y otras ampliaciones siguen pendientes. `panel.access` habilita el panel; cada dominio exige además sus permisos específicos.
 
 No desplegar estos cambios Angular contra una base remota sin las migraciones y un plan de adopción revisado. Los archivos SQL raíz son referencias de diseño, no comandos de despliegue.
+
+## Actividad 4.1 — Base local de ventas
+
+`20261021090000_sales_foundation.sql`, `20261021093000_sales_product_queries.sql` y `20261021100000_sales_role_guard.sql` añaden catálogo simple de artículos por unidad, ventas y detalle con RLS/RPC. OWNER/ADMIN registran y consultan; un permiso delegado a otro rol no basta para acceder. Una venta vinculada importa los servicios de una cita interna completada y consulta sus cobros existentes sin crear pagos nuevos. Los artículos solo pueden permanecer en borrador hasta implementar stock; no hay aún pantalla de ventas ni cobros de mostrador. Validación y límites en [Actividad 4.1](../specs/features/actividad-4-ventas-mixtas/validation.md).
 
 ## Si Roles muestra falta de permiso y desaparece el menú
 

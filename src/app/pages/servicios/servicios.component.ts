@@ -51,6 +51,8 @@ export class ServiciosComponent implements OnInit {
     {
       key: 'active',
       label: 'Estado',
+      control: 'radio',
+      display: 'status-indicator',
       options: [
         { label: 'Activo', value: 'true' },
         { label: 'Inactivo', value: 'false' },
@@ -59,6 +61,8 @@ export class ServiciosComponent implements OnInit {
     {
       key: 'visible_to_clients',
       label: 'Visible para clientes',
+      control: 'radio',
+      display: 'visibility-indicator',
       options: [
         { label: 'Sí', value: 'true' },
         { label: 'No', value: 'false' },

@@ -8,3 +8,6 @@ a mi aplicación Angular + Supabase.
 
 Primero analiza y planifica.
 No programes hasta que apruebe el plan.
+
+$pandas-ui-ux
+Quiero añadir una mejora en el modulo de roles

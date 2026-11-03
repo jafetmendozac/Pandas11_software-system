@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface CustomSelectOption {
@@ -18,6 +18,9 @@ export class CustomSelectComponent implements OnInit, OnChanges {
   @Input() className: string = '';
   @Input() defaultValue: string | number | null = null;
   @Input() value: string | number | null = null;
+  @Input() disabled = false;
+  @Input() ariaLabel = 'Seleccionar una opción';
+  @ViewChild('trigger') private trigger?: ElementRef<HTMLButtonElement>;
 
   @Output() valueChange = new EventEmitter<string | number | null>();
 
@@ -34,6 +37,7 @@ export class CustomSelectComponent implements OnInit, OnChanges {
     if (changes['value'] || changes['options'] || changes['defaultValue']) {
       this.updateSelectedLabel();
     }
+    if (changes['disabled'] && this.disabled) this.isOpen = false;
   }
 
   updateSelectedLabel() {
@@ -54,14 +58,24 @@ export class CustomSelectComponent implements OnInit, OnChanges {
   }
 
   toggleDropdown() {
+    if (this.disabled) return;
     this.isOpen = !this.isOpen;
   }
 
   selectOption(option: CustomSelectOption) {
+    if (this.disabled) return;
     this.value = option.value;
     this.selectedLabel = option.label;
     this.valueChange.emit(option.value);
     this.isOpen = false;
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: Event): void {
+    if (!this.isOpen) return;
+    this.isOpen = false;
+    event.stopPropagation();
+    this.trigger?.nativeElement.focus();
   }
 
   @HostListener('document:click', ['$event'])

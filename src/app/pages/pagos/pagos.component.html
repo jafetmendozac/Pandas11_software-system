@@ -3,6 +3,7 @@
   <div class="space-y-5 text-gray-800 dark:text-gray-200">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <p class="text-sm text-gray-500 dark:text-gray-400">Cobro al finalizar. Comprobantes por operación y referencia; sin archivos adjuntos.</p>
+      @if(authorization.has('cash.read')){<a routerLink="/caja" class="text-sm text-brand-500 underline">Ver caja</a>}
       @if(authorization.has('payments.create')){<button type="button" (click)="openCreate()" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600">Registrar cobro</button>}
     </div>
     <form (ngSubmit)="load()" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -69,7 +70,7 @@
           @if(p.rejection_reason){<p>Motivo de rechazo: {{p.rejection_reason}}</p>}
           <button type="button" [disabled]="busy() || detailLoading()" (click)="reloadReview()" [class]="buttonClass">Recargar ficha</button>
           @if(p.status==='PENDING' && authorization.has('payments.verify')){
-            <div class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"><p class="text-sm">Confirma solo después de comprobar que el dinero fue recibido. Esta acción no se puede deshacer en este módulo.</p><button type="button" [disabled]="busy() || detailLoading() || !modalSummary() || modalSummary()?.status!=='COMPLETED'" (click)="decide(true)" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white disabled:opacity-50">Confirmar recepción del dinero</button><label class="block text-sm">Motivo si se rechaza<textarea name="reason" [(ngModel)]="reason" maxlength="500" [disabled]="busy()" class="mt-1 min-h-20 w-full rounded-lg border border-gray-300 bg-transparent p-3 dark:border-gray-700 dark:bg-gray-900"></textarea></label><button type="button" [disabled]="busy() || detailLoading()" (click)="decide(false)" [class]="buttonClass">Rechazar pago pendiente</button></div>
+            <div class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"><p class="text-sm">Confirma solo después de comprobar que el dinero fue recibido y con caja abierta. Esta acción registra el ingreso en caja y no se puede deshacer en este módulo.</p><button type="button" [disabled]="busy() || detailLoading() || !modalSummary() || modalSummary()?.status!=='COMPLETED'" (click)="decide(true)" class="rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white disabled:opacity-50">Confirmar recepción del dinero</button><label class="block text-sm">Motivo si se rechaza<textarea name="reason" [(ngModel)]="reason" maxlength="500" [disabled]="busy()" class="mt-1 min-h-20 w-full rounded-lg border border-gray-300 bg-transparent p-3 dark:border-gray-700 dark:bg-gray-900"></textarea></label><button type="button" [disabled]="busy() || detailLoading()" (click)="decide(false)" [class]="buttonClass">Rechazar pago pendiente</button></div>
           }
         }
       }

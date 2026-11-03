@@ -1,10 +1,11 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, inject, signal } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
-import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
 import { UserDropdownComponent } from '../../components/header/user-dropdown/user-dropdown.component';
+import { CustomSelectComponent } from '../../components/form/custom-select/custom-select.component';
+import { AuthorizationService } from '../../services/authorization.service';
 
 @Component({
   selector: 'app-header',
@@ -12,18 +13,21 @@ import { UserDropdownComponent } from '../../components/header/user-dropdown/use
     CommonModule,
     RouterModule,
     ThemeToggleButtonComponent,
-    NotificationDropdownComponent,
     UserDropdownComponent,
+    CustomSelectComponent,
   ],
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent {
+  private readonly router = inject(Router);
+  @Input() homePath = '/panel';
+  @Input() profileLink = '/profile';
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
 
-  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+  readonly isDesktop = signal(window.innerWidth >= 1280);
 
-  constructor(public sidebarService: SidebarService) {
+  constructor(public sidebarService: SidebarService, public authorization: AuthorizationService) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
 
@@ -39,18 +43,25 @@ export class AppHeaderComponent {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
   }
 
-  ngAfterViewInit() {
-    document.addEventListener('keydown', this.handleKeyDown);
+  selectRole(roleId: string): void {
+    this.authorization.selectRole(roleId);
+    const role = this.authorization.roles().find(item => item.role_id === roleId);
+    if (role) void this.router.navigateByUrl(role.code === 'CLIENT' ? '/mi-perfil' : '/panel');
   }
 
-  ngOnDestroy() {
-    document.removeEventListener('keydown', this.handleKeyDown);
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.sidebarService.setMobileOpen(false);
+    this.isApplicationMenuOpen = false;
   }
 
-  handleKeyDown = (event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault();
-      this.searchInput?.nativeElement.focus();
+  @HostListener('window:resize')
+  onResize(): void {
+    const isDesktop = window.innerWidth >= 1280;
+    this.isDesktop.set(isDesktop);
+    if (isDesktop) {
+      this.sidebarService.setMobileOpen(false);
+      this.isApplicationMenuOpen = false;
     }
-  };
+  }
 }

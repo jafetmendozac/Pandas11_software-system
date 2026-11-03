@@ -19,9 +19,9 @@ export class ThemeService {
     this.setTheme(newTheme);
   }
 
-  setTheme(theme: Theme) {
+  setTheme(theme: Theme, persist = true) {
     this.themeSubject.next(theme);
-    localStorage.setItem('theme', theme);
+    if (persist) localStorage.setItem('theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-color-scheme', 'dark');
@@ -31,5 +31,9 @@ export class ThemeService {
       document.documentElement.setAttribute('data-color-scheme', 'light');
       document.body.classList.remove('dark:bg-gray-900');
     }
+  }
+
+  previewTheme(theme: Theme): void {
+    this.setTheme(theme, false);
   }
 }

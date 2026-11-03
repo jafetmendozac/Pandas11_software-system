@@ -39,7 +39,7 @@ La mayoría de las rutas importa directamente sus componentes. Configuración us
 
 No se identificó gestión centralizada mediante `onAuthStateChange`. El guard no verifica rol, permisos o `profiles.active`; no hay guards de permiso ni `canActivateChild` identificados. La autorización efectiva debe comprobarse mediante RLS.
 
-Google, recuperación de contraseña, reenvío de confirmación y doble factor no tienen un flujo funcional completo identificado. El control visual de doble factor modifica estado local.
+Google, recuperación de contraseña, reenvío de confirmación y doble factor no tienen un flujo funcional completo identificado. El control visual de doble factor, que solo modificaba estado local, se retiró de Mi perfil en la corrección de experiencia del 2026-10-28; el cambio de contraseña de una sesión autenticada usa Supabase Auth.
 
 ## Capas de servicios y dependencias
 
@@ -182,3 +182,42 @@ Dos migraciones incrementales locales añaden payments y consultas: registro PEN
 PostgreSQL numeric calcula confirmado, pendiente de verificar y saldo; importes en texto decimal hacia Angular. PENDING/FAILED no descuentan deuda. Trigger de agenda impide bajar total bajo lo recibido sin cambiar su RPC. Comprobantes solo operación/referencia, sin Storage. Cobros internos solo BALANCE después de COMPLETED, sin pasarelas, devoluciones ni adelantos internos. Adelanto de autorreserva S/20 conserva RN-08 para una fase futura.
 
 Evidencia y límites: [validación Fase 5](features/fase-5-pagos-adelantos/validation.md). No acredita adopción remota.
+
+## Inventario — 2026-10-22
+
+Productos y ventas conservan sus rutas/componentes. InventoryService conecta search_inventory, search_inventory_movements y record_inventory_movement; InventoryBalance/Movement/Input tipan cantidades enteras y filtros. Página de productos consulta saldos e historial, recibe/carga existencias y habilita ajustes según capacidad OWNER verificada en servidor. Modales CDK con foco/reintento y protección de respuestas antiguas.
+
+inventory_balances mantiene saldo/version por producto; inventory_movements conserva deltas y saldo anterior/posterior. Trigger de alta crea balance cero y la migración inicializa productos existentes sin movimientos ficticios. RLS de lectura exige rol OWNER/ADMIN, sales.read e inventory.read; escrituras exclusivamente por RPC. inventory.receive habilita ingresos, inventory.adjust exige además OWNER activo. Historial sin permisos de edición/borrado para authenticated.
+
+Confirmación y cancelación usan mutex930003, productos ordenados por UUID y bloqueo de saldo, con revalidación de permisos tras esperas. Confirmar productos inserta salida única por línea y actualiza venta/saldo atómicamente; se valida subtotal de servicios separado del total mixto. Cancelar conserva la salida original; solo RESTOCK añade entrada compensatoria. NO_RESTOCK conserva la reducción y queda trazado en sales.inventory_disposition; cancelled_by/at/reason identifican responsable/fecha/motivo. Se conserva firma pública con argumento opcional para ventas sin productos confirmados, sin vía para omitir disposición cuando aplica. Reintentos de entrada/confirmación/anulación no duplican efectos.
+
+Dos migraciones locales: 20261022140000_inventory_movements y 20261022143000_inventory_permission_recheck. Pandas11.sql y contratos reflejan el modelo; no se inspeccionó ni migró el esquema remoto. Sin modificación de payments: saldo mixto/cobro de productos sigue fuera del sistema. Evidencia en [validación](features/actividad-4-inventario/validation.md).
+## Cobros comerciales y caja — 2026-10-22
+
+La arquitectura local añade `sale_payments` para el subtotal PRODUCT de ventas confirmadas; `payments` conserva la FK obligatoria a cita y su saldo de servicios. `private.sale_json` expone ambos importes por separado. La verificación OWNER de cualquiera de los dos tipos de cobro dispara una entrada única en `cash_movements`, exige una `cash_sessions` OPEN y se confirma en la misma transacción. Una sesión única registra fondo inicial, ingresos por medio, movimientos manuales de efectivo y cierre con diferencia. `products.minimum_stock` y `search_low_stock` calculan alertas informativas desde `inventory_balances`.
+
+RLS limita lectura a OWNER/ADMIN con permisos; escrituras solo mediante RPC. Angular incorpora `CommercialService` y `/caja`, amplía `/ventas`, `/pagos` y `/productos`. `Pandas11.sql` mantiene el modelo previsto; migraciones incrementales acreditan únicamente el entorno Supabase local. Ver [validación](features/actividad-4-cobros-caja-alertas/validation.md).
+
+## Panfletos semanales del inicio público — 2026-10-23
+
+La migración local `20261023135240_weekly_home_flyers.sql` añade siete filas recurrentes `home_flyers`, un bucket privado y el permiso `home_flyers.manage` para OWNER/ADMIN. RLS expone al visitante solo la fila publicada del día en `America/Lima` y su objeto; la escritura usa `save_home_flyer` con versión y validación de archivo. Angular lee la fila del día en `/` y ofrece edición en `/configuracion/panfletos` a gestores. Si no hay imagen publicada, sigue visible la portada informativa. El modelo y la migración son locales; no se ha comprobado ni modificado Supabase remoto. Ver [validación](features/inicio-publico-panfletos-semanales/validation.md).
+
+## Indicadores mensuales 5.1 — 2026-10-29
+
+La migración local `20261029120000_dashboard_kpis.sql` añade `analytics.read` a OWNER/ADMIN y `dashboard_kpis(p_month date)`. La RPC agrega `payments` `PAID` tipo BALANCE/DEPOSIT y `sale_payments` `PAID` por `paid_at`, y cuenta citas `COMPLETED` por `starts_at`, dentro del mes de `America/Lima`. Exige rol OWNER/ADMIN activo y permiso nominal; devuelve importes `numeric` como texto y no expone datos personales. No lee `cash_movements`, que podría duplicar cobros. No hay cambios de tablas ni de Angular: `/panel` sigue mostrando la plantilla hasta 5.2. La migración se aplicó solo en Supabase local y pasó la suite SQL; ver [validación](features/actividad-5-kpis/validation.md).
+
+## Dashboard de gráficos 5.2 — 2026-10-29
+
+`dashboard_analytics(p_month date)` amplía la agregación local sin alterar `dashboard_kpis`: devuelve las cuatro cifras de 5.1, doce meses de cobros `PAID` separados y dos rankings de hasta cinco entradas. Los servicios proceden de `appointment_items` de citas `COMPLETED` por `starts_at`; los productos, de movimientos `SALE` de ventas aún `CONFIRMED` por `created_at`. Todos los límites mensuales usan `America/Lima`. La RPC `SECURITY DEFINER` exige OWNER/ADMIN activo y `analytics.read`, restringe `EXECUTE` a `authenticated` y devuelve agregados sin datos personales.
+
+`DashboardAnalyticsService` valida el contrato JSON y conserva importes como cadenas decimales. `/panel` usa el rol seleccionado para mostrar gráficos ApexCharts, tarjetas y equivalentes textuales a OWNER/ADMIN; STAFF recibe enlaces operativos según permisos. Las respuestas antiguas se descartan al cambiar periodo o rol. Los componentes de demostración permanecen en el repositorio, pero no se renderizan en `/panel`. La migración se aplicó solo en Supabase local; ver [validación 5.2](features/actividad-5-dashboard-graficos/validation.md).
+
+## Recordatorios y contactos 5.3 — 2026-10-29
+
+La migración local `20261029130000_contact_queue.sql` añade `client_contact_consents` y `contact_attempts` al modelo de referencia, con RLS de lectura para OWNER/ADMIN/STAFF autorizados y escritura solo por RPC. `contact_queue` deriva candidatos de citas vigentes y última cita completada por cliente, con límites de día en `America/Lima`; no crea trabajos programados. `record_contact_consent` registra fuente/actor y actualiza el opt-in, y `record_contact_attempt` usa mutex y bloqueo de cliente para revalidar oportunidad y consentimiento, con `request_id` idempotente. `notifications` sigue reservado a mensajes enviados/programados y no se instaló para este flujo manual.
+
+`ContactQueueService` conecta `/por-contactar`; el sidebar exige `contacts.read` y la ruta aplica guard. La página permite registrar intentos y consentimiento por permiso del rol seleccionado, muestra estados de carga/error y conserva la identidad de un reintento incierto. El dropdown de notificaciones de plantilla se retiró del encabezado. La migración solo se aplicó a Supabase local; ver [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md).
+
+## Reportes y retención 5.4 — 2026-10-31
+
+`/reportes` es una página Angular independiente que consulta `public.monthly_business_reports(date,date)` mediante `MonthlyReportsService`. La RPC local reutiliza `dashboard_kpis` por mes y calcula retención con clientes distintos de citas completadas. Devuelve solo agregados; Angular valida la estructura y genera dos CSV en el navegador. La función exige OWNER/ADMIN activo y `analytics.read` en servidor. No añade tablas ni altera el modelo de `Pandas11.sql`; el esquema remoto no fue inspeccionado. Ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md).

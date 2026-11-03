@@ -21,3 +21,17 @@ No incluye traducir perfil, header, sidebar o componentes globales compartidos, 
 ## Decisión pendiente
 
 Alcance y plan aprobados explícitamente por el usuario en la conversación.
+
+## Ampliación de experiencia — 2026-10-23
+
+El usuario pidió mejorar la página existente y comenzar por el nombre en español. Esta autorización amplía el alcance anterior solo al enlace «Settings» del menú y a la presentación de `/configuracion`; no agrega funciones ni cambia datos.
+
+- UX-01: el menú lateral muestra «Configuración» y conserva la ruta y su protección.
+- UX-02: las opciones se agrupan por tarea: portada pública, acceso del equipo y espacio personal. Las tarjetas restringidas siguen ocultas según sus permisos; RN-31 aplica al acceso a panfletos.
+- UX-03: las acciones dicen qué abren («Editar panfletos», «Ver roles y permisos», «Cambiar apariencia», «Ir a mi perfil») y la descripción de roles no promete edición a quien solo puede consultar.
+- UX-04: la sección de apariencia explica que sus cambios son locales, usa nombres comunes para el orden visual y distingue descartar de guardar.
+- UX-05: el recorrido funciona con teclado y en móvil, claro, oscuro y RTL, sin desbordamiento horizontal.
+
+## Decisión posterior — 2026-10-28
+
+La aprobación de [Correcciones de experiencia](../configuracion-experiencia/requirements.md) sustituye UX-04 en la parte de dirección: se retira «Dirección de lectura» de Apariencia y se mantiene el tema claro/oscuro con vista previa, guardar y descartar. R-05 conserva el contrato de datos; en «Asignar permisos» se muestran descripciones en español en lugar de códigos técnicos.

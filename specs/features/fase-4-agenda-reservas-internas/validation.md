@@ -100,3 +100,7 @@ Eventos siguen siendo etapas de trabajadores con su cita asociada; conservan nom
 El primer recorrido de vistas detectó que el test comprobaba el select antes de la microtarea de ngModel; se corrigió la espera y se repitió la suite completa con éxito. Build/tests se ejecutaron fuera del sandbox por sus restricciones locales ya comprobadas.
 
 Sin cambios de SQL, modelo, servicios, RLS, dependencias o base de datos. No se repitieron pruebas SQL/API: sus contratos no cambian y esta tarea no se conecta a Supabase. Pendiente revisión visual manual completa de tamaños/temas y recorrido con backend; la comprobación con FullCalendar real acredita interacción y renderizado, no una comparación de píxeles con la plantilla.
+
+## Consulta histórica de Actividad 3.5 — 2026-10-21
+
+Alcance confirmado: consultar citas pasadas y canceladas. Dos nuevas regresiones de FullCalendar y siete comprobaciones API de consulta/persistencia, sin cambios productivos. Suite Angular completa 92/92 y API de agenda 82 comprobaciones correctas; build correcto con advertencia CSS en portada no modificada. Conciliación, comandos, entorno y límites en [validación actual](../revision-modelo-base-datos/validation.md). Falta recorrido humano y aceptación; no se requiere auditoría por modificación.

@@ -1,18 +1,43 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { AuthorizationService } from '../../../shared/services/authorization.service';
 import { SupabaseService } from '../../../shared/services/supabase.service';
 
 @Component({
   selector: 'app-access-denied', standalone: true, imports: [RouterLink],
-  template: `<main class="min-h-screen bg-white p-8 text-gray-800 dark:bg-gray-900 dark:text-white/90">
-    <h1 class="text-2xl font-semibold">Acceso no autorizado</h1>
-    <p class="my-4">Tu cuenta no tiene acceso al panel o no está activa. Contacta al propietario.</p>
-    <a routerLink="/mi-perfil" class="text-brand-500">Mi perfil</a>
-    <button type="button" (click)="signOut()" class="ms-4 text-brand-500">Cerrar sesión</button>
-  </main>`,
+  templateUrl: './access-denied.component.html',
 })
-export class AccessDeniedComponent {
+export class AccessDeniedComponent implements OnInit {
   private readonly supabase = inject(SupabaseService);
+  private readonly authorization = inject(AuthorizationService);
   private readonly router = inject(Router);
-  async signOut(): Promise<void> { await this.supabase.signOut(); await this.router.navigateByUrl('/signin'); }
+
+  readonly checking = signal(true);
+  readonly canViewProfile = signal(false);
+  readonly signingOut = signal(false);
+  readonly signOutError = signal('');
+
+  async ngOnInit(): Promise<void> {
+    try {
+      this.canViewProfile.set(await this.authorization.refresh());
+    } catch {
+      this.canViewProfile.set(false);
+    } finally {
+      this.checking.set(false);
+    }
+  }
+
+  async signOut(): Promise<void> {
+    if (this.signingOut()) return;
+    this.signingOut.set(true);
+    this.signOutError.set('');
+    try {
+      await this.supabase.signOut();
+      await this.router.navigateByUrl('/signin');
+    } catch {
+      this.signOutError.set('No se pudo cerrar la sesión. Inténtalo de nuevo.');
+    } finally {
+      this.signingOut.set(false);
+    }
+  }
 }

@@ -63,3 +63,9 @@ Permisos propuestos: `clients.read`, `clients.manage`, `pets.read`, `pets.manage
 ## Aprobación y concreción
 
 El usuario autorizó proceder con la propuesta: OWNER/ADMIN editan; STAFF consulta; CLIENT consulta su ficha/mascotas sin notas internas. Allergies permanece boolean y detalles narrativos son internos; una nota editable por ficha, sin historial de revisiones ni Storage. Migración incremental local sin reset ni adopción remota.
+
+## Ajuste visual de tablas compartidas — 2026-11-03
+
+El usuario pidió que los encabezados de las tablas resalten y aclaró que no quiere un fondo de color. Criterio UI-01: la fila de títulos de `PersonalizedTable` se distingue de los datos mediante texto con mayor contraste y peso y una línea inferior discreta, sin fondo propio, en tema claro y oscuro. El ajuste se aplica a clientes, mascotas y a las demás pantallas que reutilizan la tabla; no cambia datos, permisos ni comportamiento.
+
+UI-02: en las tarjetas móviles de la tabla compartida, el valor principal aparece una sola vez como título. Si existe columna de nombre, tiene prioridad sobre una primera columna de vínculo como «Perfil relacionado». Los demás campos muestran etiquetas con el mismo peso visual y valores diferenciados; los valores largos pueden ocupar varias líneas. Se conservan los indicadores y acciones disponibles.

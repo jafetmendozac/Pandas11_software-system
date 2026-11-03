@@ -1,0 +1,19 @@
+<div class="min-h-screen overflow-x-hidden xl:flex">
+  <div>
+    <app-sidebar mode="client" />
+    <app-backdrop />
+  </div>
+  <div class="min-w-0 flex-1 overflow-x-hidden transition-all duration-300 ease-in-out"
+    [ngClass]="{
+      'xl:ms-[290px]': (isExpanded$ | async) || (isHovered$ | async),
+      'xl:ms-[90px]': !(isExpanded$ | async) && !(isHovered$ | async),
+      'ms-0': (isMobileOpen$ | async)
+    }">
+    <app-header homePath="/mi-perfil" profileLink="/mi-perfil" />
+    <div class="min-w-0 p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+      <div class="mx-auto w-full max-w-5xl">
+        <router-outlet />
+      </div>
+    </div>
+  </div>
+</div>

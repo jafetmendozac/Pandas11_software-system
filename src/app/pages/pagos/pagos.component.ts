@@ -1,6 +1,7 @@
 import { Component, DestroyRef, ElementRef, Injector, OnDestroy, OnInit, ViewChild, afterNextRender, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { A11yModule } from '@angular/cdk/a11y';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
@@ -12,7 +13,7 @@ import { Payment, PaymentCandidate, PaymentInput, PaymentMethod, PaymentQuery, P
 import { decimalLabel } from '../../shared/services/service-pricing.models';
 import { limaDateTime } from '../../shared/services/work-calendar.service';
 import { STATUS_LABELS } from '../../shared/services/appointment.models';
-@Component({ selector: 'app-pagos', standalone: true, imports: [FormsModule, A11yModule, PageBreadcrumbComponent, ComponentCardComponent, ModalComponent], templateUrl: './pagos.component.html' })
+@Component({ selector: 'app-pagos', standalone: true, imports: [FormsModule, RouterLink, A11yModule, PageBreadcrumbComponent, ComponentCardComponent, ModalComponent], templateUrl: './pagos.component.html' })
 export class PagosComponent implements OnInit, OnDestroy {
   @ViewChild('closeButton') private closeButton?: ElementRef<HTMLButtonElement>;
   private readonly injector = inject(Injector);

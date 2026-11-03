@@ -16,6 +16,8 @@ export interface TableColumn {
   placeholder?: string;
   helpText?: string;
   type?: 'text' | 'number' | 'date' | 'time' | 'datetime-local';
+  control?: 'radio';
+  display?: 'status-indicator' | 'visibility-indicator';
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }
@@ -50,7 +52,7 @@ export class PersonalizedTable {
   @Input() allowCreate = true;
   @Input() allowEdit = true;
   @Input() allowDelete = true;
-  @Input() itemsPerPageOptions: number[] = [5, 10, 15];
+  @Input() itemsPerPageOptions: number[] = [10, 15, 20];
   @Input() columns: TableColumn[] = [];
   @Input() tableData: TableRow[] = [];
   @Input() searchKey = '';
@@ -63,7 +65,7 @@ export class PersonalizedTable {
   @Output() rowDetails = new EventEmitter<TableRow>();
 
   currentPage = 1;
-  itemsPerPage = 5;
+  itemsPerPage = 10;
   searchTerm = '';
   isFormOpen = false;
   editingIndex: number | null = null;
@@ -124,6 +126,10 @@ export class PersonalizedTable {
     return this.columns.some((column) => column.key === 'status');
   }
 
+  get mobileTitleColumn(): TableColumn | undefined {
+    return this.columns.find((column) => column.key === 'name' || column.key === 'first_name') ?? this.columns[0];
+  }
+
   getCellValue(row: TableRow, key: string, column?: TableColumn): string {
     const value = row[key];
     if (column?.options?.length) {
@@ -136,6 +142,10 @@ export class PersonalizedTable {
 
   getFormValue(key: string): string {
     return String(this.formData[key] ?? '');
+  }
+
+  isTruthy(value: unknown): boolean {
+    return value === true || value === 'true';
   }
 
   goToPage(page: number): void {

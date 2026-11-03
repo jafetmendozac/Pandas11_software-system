@@ -24,7 +24,7 @@ export class TarifasComponent implements OnInit {
     {
       key: 'pet_size', required: false,
       label: 'Tamaño',
-      helpText: 'Define el tamaño de la mascota.',
+      helpText: 'Elige un tamaño o «Todos los tamaños» si la regla se aplica a cualquiera.',
       options: [
         { label: 'Todos los tamaños', value: '' },
         { label: 'Miniatura', value: 'TOY' },
@@ -37,7 +37,7 @@ export class TarifasComponent implements OnInit {
     {
       key: 'pet_coat_type', required: false,
       label: 'Tipo de pelo',
-      helpText: 'Define el tipo de pelaje de la mascota.',
+      helpText: 'Elige un tipo de pelo o «Todos los pelajes» si la regla se aplica a cualquiera.',
       options: [
         { label: 'Todos los pelajes', value: '' },
         { label: 'Corto', value: 'SHORT' },
@@ -60,7 +60,7 @@ export class TarifasComponent implements OnInit {
       label: 'Duración (min)',
       type: 'number',
       placeholder: 'Ej. 60',
-      helpText: 'Indica la duración aproximada en minutos.',
+      helpText: 'Minutos enteros mayores que cero. Precio y duración se aplican juntos.',
     },
   ];
 
@@ -73,7 +73,21 @@ export class TarifasComponent implements OnInit {
   }
   async loadTarifas(query=this.query):Promise<void>{
     this.query=query;const revision=++this.revision;this.loading.set(true);this.errorMessage.set('');
-    try{const result=await this.prices.search(query);if(revision===this.revision){this.tableData.set(result.rows);this.total.set(result.total);}}
+    try{const result=await this.prices.search(query);if(revision===this.revision){
+      this.columns=this.columns.map(column=>{
+        if(column.key!=='service_id')return column;
+        const options=[...(column.options??[])];
+        const known=new Set(options.map(option=>option.value));
+        for(const row of result.rows){
+          if(!known.has(row.service_id)){
+            options.push({label:row.service_name,value:row.service_id});
+            known.add(row.service_id);
+          }
+        }
+        return {...column,options};
+      });
+      this.tableData.set(result.rows);this.total.set(result.total);
+    }}
     catch(error){if(revision===this.revision)this.errorMessage.set(error instanceof Error?error.message:'No se pudieron cargar las tarifas.');}
     finally{if(revision===this.revision)this.loading.set(false);}
   }

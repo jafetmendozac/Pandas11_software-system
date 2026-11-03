@@ -1,5 +1,25 @@
 # Validación — Fase 0
 
+## Configuración según la vista de trabajo — 2026-11-02
+
+Hecho comprobado: la cuenta utilizada en el reporte cambió el selector «Vista de trabajo»; no se trató de inicios de sesión independientes de CLIENT y STAFF. `AuthorizationService.has()` reúne permisos efectivos de la cuenta, mientras `hasInSelectedRole()` refleja el rol elegido. Las tarjetas de panfletos y seguridad usaban los primeros y por ello seguían visibles con la cuenta OWNER.
+
+Corrección F0-R04/F0-07 y RN-31: las tarjetas y el editor de panfletos, la sección de seguridad y el enlace lateral a Configuración respetan la vista seleccionada. La URL directa de panfletos pasa por un guard de vista y por el permiso efectivo; el editor vuelve a comprobar ambos antes de cargar o guardar. Las preferencias y el perfil propios continúan disponibles para STAFF. RLS, permisos asignados, SQL y servicios de datos no cambiaron.
+
+Validación: 22/22 pruebas focalizadas y 163/163 pruebas Angular completas en ChromeHeadless; `npm run build` correcto, con advertencia preexistente del presupuesto CSS de `inicio.component.css` (1,46 kB sobre el límite). No se usaron cuentas reales adicionales ni se ejecutaron pruebas SQL/API en esta corrección de interfaz. La vista de trabajo no es suplantación de identidad: para verificar permisos de una cuenta CLIENT o STAFF real hacen falta sesiones de prueba separadas.
+
+## Nombre de usuario en el encabezado — 2026-11-02
+
+Reporte: después de iniciar sesión, el menú del encabezado permanecía en «Mi cuenta» aunque el perfil tuviera nombres. `UserDropdownComponent` ya consultaba `profiles`, pero mantenía el resultado asíncrono en propiedades ordinarias. Ahora publica nombre, apellido y correo mediante señales Angular; el rótulo se actualiza al terminar la consulta. Prioriza los nombres del perfil y usa metadatos Auth solo si faltan. No cambia el modelo, las consultas, RLS ni permisos; corresponde a la presentación de identidad de F0-02/F0-07 y no modifica reglas RN de negocio.
+
+Validación: prueba del encabezado 1/1 con consulta fuera de la zona Angular y aserción del DOM; suite Angular 154/154; TypeScript de pruebas correcto; build de producción correcto con advertencia preexistente de presupuesto CSS en `inicio.component.css`. La primera ejecución Karma dentro del aislamiento se bloqueó en esbuild antes de las pruebas; fuera del aislamiento pasó. Queda pendiente comprobación visual manual tras inicio de sesión con la instancia local.
+
+## Corrección de inicio de sesión — 2026-11-02
+
+Reporte: al rechazar Supabase una contraseña incorrecta, el formulario mostraba `Invalid login credentials` y seguía mostrando «Iniciando sesión...» hasta otra interacción. El formulario ahora traduce el código Auth `invalid_credentials` a «Correo electrónico o contraseña incorrectos.» y usa señales Angular para publicar el error y el fin de la carga al resolver la petición. Se conserva la navegación y la comprobación de permisos existentes. No hay cambio de esquema, RLS ni consultas nuevas; las reglas RN de negocio no se ven afectadas.
+
+Validación: prueba focalizada 7/7, incluida respuesta asíncrona fuera de la zona Angular con comprobación del mensaje y botón en el DOM; suite Angular completa 153/153; TypeScript de pruebas correcto; build de producción correcto con advertencia de presupuesto CSS preexistente en `inicio.component.css`; `git diff --check` correcto. Build y Karma terminaron con código 134 antes de dar diagnósticos dentro del aislamiento y pasaron fuera de él. No se probó manualmente con una cuenta local ni se conectó a una instancia remota.
+
 Fecha: 2026-10-17. Estado: implementación local y validaciones completadas; sin despliegue remoto.
 
 ## Alcance entregado

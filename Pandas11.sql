@@ -1,4 +1,13 @@
+-- Inventario: supabase/migrations/20261022140000_inventory_movements.sql
+-- y revalidación de permisos: supabase/migrations/20261022143000_inventory_permission_recheck.sql
+-- Ventas: modelo, politicas y RPC en supabase/migrations/20261021090000_sales_foundation.sql
+-- y catalogo paginado en supabase/migrations/20261021093000_sales_product_queries.sql;
+-- restriccion OWNER/ADMIN en supabase/migrations/20261021100000_sales_role_guard.sql.
 -- Pagos: políticas y RPC en supabase/migrations/20261018225928_payments_advances.sql.
+-- Panfletos semanales: tabla, Storage, RLS y RPC en
+-- supabase/migrations/20261023135240_weekly_home_flyers.sql.
+-- Reportes 5.4: RPC agregada sin tablas nuevas en
+-- supabase/migrations/20261030100000_monthly_business_reports.sql.
 -- Agenda interna: seguridad, etapas y reservas en supabase/migrations/20261017220427_internal_appointments.sql.
 -- Servicios/precios: seguridad y cálculo en supabase/migrations/20261017210343_services_prices.sql.
 -- Clientes/mascotas: políticas y RPC versionados en
@@ -72,6 +81,10 @@ CREATE TYPE "payment_status" AS ENUM (
   'FAILED',
   'REFUNDED'
 );
+
+CREATE TYPE "sale_status" AS ENUM ('DRAFT', 'CONFIRMED', 'CANCELLED');
+
+CREATE TYPE "sale_item_kind" AS ENUM ('SERVICE', 'PRODUCT');
 
 CREATE TYPE "notification_channel" AS ENUM (
   'WHATSAPP',
@@ -231,6 +244,25 @@ CREATE TABLE "business_settings" (
   "key" text PRIMARY KEY,
   "value" text,
   "updated_at" timestamptz
+);
+
+-- Un panfleto público por día; las imágenes viven en el bucket privado
+-- home-flyers. La lectura y escritura efectivas se definen en la migración.
+CREATE TABLE "home_flyers" (
+  weekday smallint PRIMARY KEY CHECK (weekday BETWEEN 1 AND 7),
+  object_path text UNIQUE,
+  alt_text text,
+  published boolean NOT NULL DEFAULT false,
+  version integer NOT NULL DEFAULT 1 CHECK (version > 0),
+  updated_at timestamptz,
+  updated_by uuid REFERENCES public.profiles(id),
+  CONSTRAINT home_flyer_content CHECK (
+    (object_path IS NULL AND alt_text IS NULL AND NOT published)
+    OR (object_path IS NOT NULL AND length(btrim(alt_text)) BETWEEN 5 AND 200)
+  ),
+  CONSTRAINT home_flyer_path CHECK (
+    object_path IS NULL OR object_path ~ '^[1-7]/[0-9a-f-]{36}\.(jpg|png|webp)$'
+  )
 );
 
 CREATE TABLE "clients" (
@@ -409,6 +441,159 @@ CREATE TABLE "payments" (
   or status='REFUNDED')
 );
 
+CREATE TABLE "products" (
+ id uuid primary key default gen_random_uuid(),
+ name text not null check (length(btrim(name)) between 1 and 120),
+ sku text unique check (sku is null or length(btrim(sku)) between 1 and 60),
+ unit text not null default 'UNIT' check (unit='UNIT'),
+ price numeric not null check (price>=0 and price<'Infinity'::numeric and price=round(price,2)),
+ active boolean not null default true,
+ minimum_stock integer check(minimum_stock>=0),
+ created_at timestamptz not null default clock_timestamp(),
+ updated_at timestamptz not null default clock_timestamp()
+);
+
+CREATE TABLE "sales" (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ appointment_id uuid references public.appointments(id),
+ status sale_status not null default 'DRAFT',
+ currency text not null default 'PEN' check (currency='PEN'),
+ total numeric not null default 0 check (total>=0 and total<'Infinity'::numeric and total=round(total,2)),
+ request_id uuid not null unique,
+ request_payload jsonb not null,
+ created_by uuid not null references public.profiles(id),
+ created_at timestamptz not null default clock_timestamp(),
+ updated_at timestamptz not null default clock_timestamp(),
+ version integer not null default 1 check (version>0),
+ cancelled_by uuid references public.profiles(id),
+ cancelled_at timestamptz,
+ cancel_reason text,
+ inventory_disposition text check(inventory_disposition in ('RESTOCK','NO_RESTOCK')),
+ constraint sale_inventory_disposition check(inventory_disposition is null or status='CANCELLED'),
+ constraint chk_sale_cancel check (
+  (status='CANCELLED' and cancelled_by is not null and cancelled_at is not null and length(btrim(cancel_reason)) between 1 and 500)
+  or (status<>'CANCELLED' and cancelled_by is null and cancelled_at is null and cancel_reason is null))
+);
+CREATE UNIQUE INDEX sales_one_active_appointment ON "sales"(appointment_id)
+ WHERE appointment_id IS NOT NULL AND status<>'CANCELLED';
+CREATE INDEX sales_created_page ON "sales"(created_at DESC,id DESC);
+CREATE INDEX sales_client ON "sales"(client_id);
+
+CREATE TABLE "sale_items" (
+ id uuid primary key default gen_random_uuid(),
+ sale_id uuid not null references public.sales(id),
+ kind sale_item_kind not null,
+ appointment_item_id uuid references public.appointment_items(id),
+ service_id uuid references public.services(id),
+ product_id uuid references public.products(id),
+ description text not null check (length(btrim(description)) between 1 and 200),
+ unit text not null check (unit='UNIT'),
+ quantity integer not null check (quantity between 1 and 1000000),
+ unit_price numeric not null check (unit_price>=0 and unit_price<'Infinity'::numeric and unit_price=round(unit_price,2)),
+ line_total numeric generated always as (quantity*unit_price) stored,
+ created_at timestamptz not null default clock_timestamp(),
+ constraint chk_sale_item_source check (
+  (kind='SERVICE' and appointment_item_id is not null and service_id is not null and product_id is null and quantity=1)
+  or (kind='PRODUCT' and appointment_item_id is null and service_id is null and product_id is not null))
+);
+CREATE UNIQUE INDEX sale_service_once ON "sale_items"(sale_id,appointment_item_id) WHERE appointment_item_id IS NOT NULL;
+CREATE UNIQUE INDEX sale_product_once ON "sale_items"(sale_id,product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX sale_items_sale ON "sale_items"(sale_id);
+
+create table public.inventory_balances (
+ product_id uuid primary key references public.products(id) on delete cascade,
+ quantity integer not null default 0 check(quantity>=0),
+ initial_loaded boolean not null default false,
+ version integer not null default 1 check(version>0)
+);
+create table public.inventory_movements (
+ id uuid primary key default gen_random_uuid(),
+ product_id uuid not null references public.products(id),
+ kind text not null check(kind in ('INITIAL','RECEIPT','ADJUSTMENT','SALE','CANCELLATION')),
+ delta integer not null check(delta<>0),
+ balance_before integer not null check(balance_before>=0),
+ balance_after integer not null check(balance_after>=0),
+ reason text not null check(length(btrim(reason)) between 1 and 500),
+ created_by uuid not null references public.profiles(id),
+ created_at timestamptz not null default clock_timestamp(),
+ sale_id uuid references public.sales(id),
+ sale_item_id uuid references public.sale_items(id),
+ request_id uuid unique,
+ request_payload jsonb,
+ constraint inventory_arithmetic check(balance_after::bigint=balance_before::bigint+delta),
+ constraint inventory_source check(
+  (kind in ('SALE','CANCELLATION') and sale_id is not null and sale_item_id is not null and request_id is null and request_payload is null)
+  or (kind in ('INITIAL','RECEIPT','ADJUSTMENT') and sale_id is null and sale_item_id is null and request_id is not null and request_payload is not null)),
+ constraint inventory_sign check(kind='ADJUSTMENT' or (kind='SALE' and delta<0) or (kind<>'SALE' and delta>0))
+);
+create unique index inventory_sale_once on public.inventory_movements(sale_item_id,kind) where sale_item_id is not null;
+create index inventory_history on public.inventory_movements(product_id,created_at desc,id desc);
+create index inventory_sale on public.inventory_movements(sale_id);
+
+-- Cobros comerciales, caja y mínimos: estructura local de referencia.
+-- RPC, grants, RLS y disparadores están en las migraciones 20261022160000,
+-- 20261022163000, 20261022164000, 20261022165000, 20261022166000 y 20261022167000; no ejecutar este archivo raíz.
+create table public.sale_payments (
+ id uuid primary key default gen_random_uuid(),
+ sale_id uuid not null references public.sales(id),
+ method public.payment_method not null,
+ status public.payment_status not null default 'PENDING',
+ amount numeric not null check(amount>0 and amount<'Infinity'::numeric and amount=round(amount,2)),
+ operation_code text check(operation_code is null or length(btrim(operation_code)) between 1 and 120),
+ external_ref text check(external_ref is null or length(btrim(external_ref)) between 1 and 120),
+ verified_by uuid references public.profiles(id),
+ paid_at timestamptz,
+ created_at timestamptz not null default clock_timestamp(),
+ created_by uuid not null references public.profiles(id),
+ version integer not null default 1 check(version>0),
+ rejection_reason text check(rejection_reason is null or length(btrim(rejection_reason)) between 1 and 500),
+ request_id uuid not null unique,
+ constraint sale_payment_state check (
+  (status='PAID' and verified_by is not null and paid_at is not null and rejection_reason is null)
+  or (status='PENDING' and verified_by is null and paid_at is null and rejection_reason is null)
+  or (status='FAILED' and verified_by is null and paid_at is null and rejection_reason is not null))
+);
+create index sale_payments_sale on public.sale_payments(sale_id,created_at desc,id desc);
+create table public.cash_sessions (
+ id uuid primary key default gen_random_uuid(),
+ status text not null default 'OPEN' check(status in ('OPEN','CLOSED')),
+ opening_cash numeric not null check(opening_cash>=0 and opening_cash<'Infinity'::numeric and opening_cash=round(opening_cash,2)),
+ opened_at timestamptz not null default clock_timestamp(),
+ opened_by uuid not null references public.profiles(id),
+ request_id uuid not null unique,
+ closed_at timestamptz,
+ closed_by uuid references public.profiles(id),
+ counted_cash numeric check(counted_cash>=0 and counted_cash<'Infinity'::numeric and counted_cash=round(counted_cash,2)),
+ expected_cash numeric check(expected_cash>=0 and expected_cash<'Infinity'::numeric and expected_cash=round(expected_cash,2)),
+ difference numeric,
+ version integer not null default 1 check(version>0),
+ constraint cash_session_state check(
+  (status='OPEN' and closed_at is null and closed_by is null and counted_cash is null and expected_cash is null and difference is null)
+  or (status='CLOSED' and closed_at is not null and closed_by is not null and counted_cash is not null and expected_cash is not null and difference=counted_cash-expected_cash))
+);
+create unique index cash_one_open on public.cash_sessions(status) where status='OPEN';
+create table public.cash_movements (
+ id uuid primary key default gen_random_uuid(),
+ session_id uuid not null references public.cash_sessions(id),
+ source text not null check(source in ('APPOINTMENT_PAYMENT','SALE_PAYMENT','MANUAL_IN','MANUAL_OUT')),
+ method public.payment_method not null,
+ amount numeric not null check(amount<>0 and amount<'Infinity'::numeric and amount>'-Infinity'::numeric and amount=round(amount,2)),
+ appointment_payment_id uuid unique references public.payments(id),
+ sale_payment_id uuid unique references public.sale_payments(id),
+ request_id uuid unique,
+ request_payload jsonb,
+ reason text not null check(length(btrim(reason)) between 1 and 500),
+ created_at timestamptz not null default clock_timestamp(),
+ created_by uuid not null references public.profiles(id),
+ constraint cash_movement_source check(
+  (source='APPOINTMENT_PAYMENT' and appointment_payment_id is not null and sale_payment_id is null and request_id is null and request_payload is null and amount>0)
+  or (source='SALE_PAYMENT' and sale_payment_id is not null and appointment_payment_id is null and request_id is null and request_payload is null and amount>0)
+  or (source='MANUAL_IN' and method='CASH' and amount>0 and appointment_payment_id is null and sale_payment_id is null and request_id is not null and request_payload is not null)
+  or (source='MANUAL_OUT' and method='CASH' and amount<0 and appointment_payment_id is null and sale_payment_id is null and request_id is not null and request_payload is not null))
+);
+create index cash_movements_session on public.cash_movements(session_id,created_at desc,id desc);
+
 CREATE TABLE "billing_documents" (
   "id" uuid PRIMARY KEY,
   "appointment_id" uuid,
@@ -451,6 +636,33 @@ CREATE TABLE "notifications" (
   "provider_message_id" text,
   "error" text
 );
+
+-- Actividad 5.3: contactos manuales. RLS y RPC en migración 20261029130000.
+-- notifications conserva su significado de mensajes emitidos y no registra intentos manuales.
+create table public.client_contact_consents (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ channel text not null default 'WHATSAPP' check(channel='WHATSAPP'),
+ granted boolean not null,
+ source text not null check(source in ('VERBAL','WRITTEN')),
+ recorded_by uuid not null references public.profiles(id),
+ recorded_at timestamptz not null default clock_timestamp()
+);
+create index client_contact_consents_latest on public.client_contact_consents(client_id,recorded_at desc,id desc);
+create table public.contact_attempts (
+ id uuid primary key default gen_random_uuid(),
+ client_id uuid not null references public.clients(id),
+ kind text not null check(kind in ('APPOINTMENT_REMINDER','FOLLOW_UP')),
+ appointment_id uuid not null references public.appointments(id),
+ channel text not null check(channel in ('WHATSAPP','PHONE')),
+ result text not null check(result in ('CONTACTED','NO_ANSWER','SKIPPED')),
+ note text check(note is null or length(note)<=500),
+ request_id uuid not null unique,
+ recorded_by uuid not null references public.profiles(id),
+ recorded_at timestamptz not null default clock_timestamp()
+);
+create index contact_attempts_opportunity on public.contact_attempts(kind,appointment_id,recorded_at desc);
+create index contact_attempts_client on public.contact_attempts(client_id,recorded_at desc);
 
 CREATE TABLE "audit_log" (
   "id" uuid PRIMARY KEY,
@@ -533,14 +745,6 @@ CREATE INDEX ON "audit_log" ("entity", "entity_id");
 CREATE INDEX ON "audit_log" ("actor_id", "created_at");
 
 -- ---------- CLAVES FORÁNEAS ----------
-
-ALTER TABLE "role_permissions" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "role_permissions" ADD FOREIGN KEY ("permission_id") REFERENCES "permissions" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "user_roles" ADD FOREIGN KEY ("user_id") REFERENCES "profiles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "user_roles" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "employees" ADD FOREIGN KEY ("profile_id") REFERENCES "profiles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 

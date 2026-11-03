@@ -147,3 +147,102 @@ Respuestas del usuario durante el análisis de reservas online. Definen requisit
 - Adelanto fijoS/20 y verificación exclusiva OWNER se mantienen. No se acuerdan devoluciones automáticas ni se resuelve PN-07 para reprogramación/cancelación posterior al pago.
 
 Los documentos de requisitos y plan de Fase6 no están presentes en el árbol de trabajo actual. Si se retoma esa funcionalidad, habrá que recuperarlos o redactarlos de nuevo antes de solicitar aprobación de implementación.
+
+## Aclaración del cronograma 3.5 — 2026-10-21
+
+El usuario confirmó que «históricos» en 3.5 significa consultar citas pasadas y canceladas. No exige auditoría de cada modificación ni una nueva tabla de historial. Se mantienen RN-13 y la conservación del detalle de RN-14/RN-15. Falta demostrar el recorrido y registrar aceptación; la confirmación de alcance no equivale a aceptación de una prueba no realizada. Ver [Actividad 3](actividad-3-modulos-gestion.md).
+
+## Decisiones comerciales para Actividad 4.1 — 2026-10-21
+
+El usuario aceptó la propuesta de [ventas mixtas](features/actividad-4-ventas-mixtas/requirements.md) mediante «Vamos con eso». Esta aceptación se interpreta dentro del alcance documentado:
+
+| ID | Regla aceptada para 4.1 |
+|---|---|
+| RN-19 | Puede haber ventas con cita y de mostrador; a lo sumo una venta activa por cita. Los servicios de una venta con cita usan el precio guardado en sus items, sin generar otra cita ni duplicar cobros. Un servicio de mostrador sin cita queda fuera de 4.1 por falta de mascota y tarifa resuelta. |
+| RN-20 | Los artículos se catalogan por unidad; una venta que incluya artículos permanece en borrador hasta contar con control de stock de 4.4. No se aplica descuento ni impuesto automático en 4.1. |
+| RN-21 | OWNER y ADMIN pueden gestionar ventas. Si una venta tiene cobro confirmado, solo OWNER puede anularla; anular conserva el dinero y exige resolución separada, sin devolución automática. |
+
+Estas reglas no habilitan cobro de ventas de mostrador, inventario ni facturación. RN-02/RN-09/RN-12/RN-16–RN-18 siguen vigentes.
+
+
+## Inventario 4.4–4.5 — aprobación 2026-10-22
+
+El usuario aprobó el [plan de inventario](features/actividad-4-inventario/plan.md) y las decisiones INV-D01–INV-D05 mediante «Añadelo entonces» con `$sdd-feature`. La restricción histórica de RN-20 queda satisfecha localmente al incorporar stock transaccional, sin habilitar cobro de mostrador.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-22 | Un inventario del local por producto/unidades enteras. Catálogo existente inicia en cero, sin cantidades reales inferidas; sin variantes/lotes/ubicaciones. |
+| RN-23 | OWNER/ADMIN consultan y registran carga inicial/entradas; solo OWNER ajusta. Motivo obligatorio, sin saldo negativo. Carga inicial disponible únicamente antes del primer movimiento, positiva y no repetible; entradas posteriores usan reposición. |
+| RN-24 | Borrador no reserva stock. Confirmar una venta descuenta todas sus unidades atómicamente; insuficiencia revierte todo y no se vende la última unidad dos veces. Confirmación comercial no acredita dinero. |
+| RN-25 | Anular borrador no altera stock. Solo OWNER anula productos confirmados, con decisión explícita RESTOCK (todo recuperado/conservado y apto para venta) o NO_RESTOCK (sin reponer). Sin elección automática ni devoluciones parciales; conservar pagos sin devolver dinero. Actor, fecha y motivo de anulación registran también esa disposición. |
+| RN-26 | Historial inmutable para usuarios de la aplicación: carga inicial, entrada, ajuste, salida por venta y reposición por anulación. Delta, saldo anterior/posterior, actor, fecha y referencias; correcciones mediante otro movimiento. Reintentos no duplican efectos. |
+
+RN-25 amplía RN-21: la anulación de artículos confirmados exige OWNER incluso sin dinero confirmado. RN-12 y RN-16–RN-19 mantienen exactitud monetaria, permisos de cobro, snapshots de cita y pagos por referencia. Inventario no implementa caja, mínimos/alertas, valorización contable ni pagos de productos.
+
+## Cobros comerciales, caja y mínimos — aprobación 2026-10-22
+
+El usuario aprobó el [plan](features/actividad-4-cobros-caja-alertas/plan.md) mediante «Vamos con eso» después de revisar COM-D01–COM-D05. Aplicado solo en Supabase local.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-27 | Cobros de productos vinculados a venta, separados de pagos de cita. Una venta mixta muestra saldos de servicios/cita y productos por separado; no duplica dinero. OWNER/ADMIN registran PENDING con los cinco medios manuales; solo OWNER verifica/rechaza. PAID reduce saldo de productos y no se devuelve automáticamente. |
+| RN-28 | Una caja abierta por local. Cada verificación nueva de cobro de cita o producto exige caja OPEN y crea un ingreso único por medio; PAID históricos anteriores quedan sin sesión asignada. |
+| RN-29 | OWNER/ADMIN abren y cierran caja y consultan; solo OWNER registra ingreso/retiro manual de efectivo con motivo. El retiro no deja efectivo esperado negativo. Cierre conserva contado, esperado, diferencia y resumen por medio; no cambia pagos. |
+| RN-30 | Producto con mínimo entero no negativo o NULL desactivado. Stock menor o igual al mínimo se muestra en `/productos`, sin bloquear ventas ni enviar avisos externos. OWNER/ADMIN configuran; STAFF/CLIENT no consultan inventario. |
+
+RN-21/RN-25 siguen exigiendo OWNER y disposición explícita para anular productos confirmados; los cobros PAID permanecen y la venta anulada exige resolución separada. La verificación de pagos de cita ahora exige caja abierta para cobros nuevos; el registro PENDING continúa permitido sin ella.
+
+## Panfletos semanales del inicio público — 2026-10-23
+
+| ID | Regla propuesta | Estado |
+|---|---|---|
+| RN-31 | La portada muestra un panfleto configurable por día de lunes a domingo, calculado en `America/Lima`; OWNER y ADMIN pueden reemplazarlo desde el panel. Una posición sin imagen publicada conserva la portada informativa existente. | Plan aprobado e implementado localmente; evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md). Despliegue remoto pendiente. |
+
+El panfleto dominical no significa apertura el domingo ni modifica RN-01. Las imágenes y sus afirmaciones comerciales requieren material autorizado del negocio; la implementación no publica automáticamente los carteles de referencia anteriores.
+
+## Indicadores del panel 5.1 — aprobación 2026-10-29
+
+El usuario confirmó que está en Trujillo y aprobó el [plan de indicadores](features/actividad-5-kpis/plan.md). Se conserva la zona `America/Lima` de RN-01.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-32 | Para cada mes calendario de Lima, «total cobrado» suma cobros `PAID` de citas (tipo BALANCE/DEPOSIT) y productos por `paid_at`, cada uno una sola vez, incluso cuando la venta está ligada a una cita o fue anulada y su pago quedó conservado. No suma asientos de caja, devoluciones ni pagos pendientes/fallidos. Los importes se calculan con decimal exacto. |
+| RN-33 | «Citas completadas» cuenta citas con estado `COMPLETED` por mes de su inicio programado (`starts_at`), no por fecha real de finalización, que el modelo no registra. Las cifras del panel 5.1 se reservan a OWNER/ADMIN activos con permiso `analytics.read`. |
+
+La consulta SQL de 5.1 está aplicada y validada en Supabase local; resultados en [validation.md](features/actividad-5-kpis/validation.md). Estas reglas no definen metas, rentabilidad, facturación, retención ni envíos de recordatorios.
+
+## Gráficos del panel 5.2 — aprobación 2026-10-29
+
+El usuario aprobó el [plan de gráficos](features/actividad-5-dashboard-graficos/plan.md) mediante «Vamos con eso». Se mantiene el mes calendario de `America/Lima` y la distinción entre cobros y actividad de RN-32/RN-33.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Varias mascotas/items cuentan por separado; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID, con nombre actual del catálogo. |
+| RN-35 | «Productos vendidos» cuenta unidades de movimientos `SALE` por mes de `created_at` cuando la venta sigue `CONFIRMED`. Una venta anulada sale del ranking con RESTOCK o NO_RESTOCK, mientras su cobro `PAID` sigue en RN-32 si no hubo devolución. El ranking muestra hasta cinco productos por cantidad descendente, desempate por ID, con nombre actual. |
+| RN-36 | El panel muestra 12 meses de cobros confirmados separados entre servicios y productos, incluidos meses vacíos en cero. Las cifras y rankings se reservan a OWNER/ADMIN activos con `analytics.read`; STAFF puede usar `/panel` para enlaces operativos permitidos, sin analítica financiera. |
+
+La consulta y el panel se implementaron en Supabase local y Angular. Ver [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). No se definen ingresos devengados, rentabilidad, metas ni retención.
+
+## Recordatorios y lista por contactar 5.3 — aprobación 2026-10-29
+
+El usuario aprobó el [plan 5.3](features/actividad-5-recordatorios-contactos/plan.md) mediante «Dale sigue» tras confirmar la propuesta manual de recordatorio para mañana y seguimiento a 30 días. Las reglas siguientes describen una lista de trabajo, no envíos automáticos.
+
+| ID | Regla aprobada |
+|---|---|
+| RN-37 | Recordatorio: cita `CONFIRMED` que comienza mañana según fecha de `America/Lima`. Seguimiento: cliente activo con última cita `COMPLETED` iniciada hace 30 días calendario o más, sin cita futura confirmada/en atención. Una oportunidad por cita o por ciclo de última cita completada; cambios de cita y bajas se recalculan. |
+| RN-38 | WhatsApp manual solo con número, `clients.whatsapp_opt_in=true` y último consentimiento registrado como concedido con fuente verbal o escrita. Un `true` legado sin procedencia no basta. OWNER/ADMIN registran o revocan consentimiento; STAFF no lo concede. |
+| RN-39 | OWNER/ADMIN/STAFF activos con permisos consultan y registran intentos manuales por WhatsApp o teléfono. `CONTACTED` y `SKIPPED` cierran la oportunidad; `NO_ANSWER` la deja visible. Actor/fecha se sellan en servidor, los reintentos usan identificador idempotente y el historial es inmutable para la API. CLIENT/anon no acceden. |
+
+La implementación y sus límites locales constan en [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). Un intento registrado no acredita entrega de un mensaje.
+
+## Reportes y retención 5.4 — aprobación 2026-10-30
+
+El usuario aprobó el [plan 5.4](features/actividad-5-reportes-retencion/plan.md) mediante «Vamos». Los reportes están implementados solo en Supabase local y Angular; ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md).
+
+| ID | Regla aprobada |
+|---|---|
+| RN-40 | Dos reportes mensuales agregados, cobros y citas y retención, visibles en pantalla y exportables como CSV UTF-8. Rango inclusivo de 1 a 12 meses calendario de `America/Lima`, hasta el mes actual. El mes actual se indica provisional. No contienen filas individuales ni datos personales. |
+| RN-41 | Retención mensual = clientes distintos con cita `COMPLETED` programada el mes anterior que también tienen cita `COMPLETED` programada en el mes medido, dividido entre clientes distintos con cita `COMPLETED` programada el mes anterior. Cada cliente cuenta una vez por mes, incluso si luego fue dado de baja. Si no hay base, la tasa es nula; se muestra «Sin base» y se exporta celda vacía. |
+| RN-42 | Solo OWNER/ADMIN activos con `analytics.read` consultan y exportan reportes. STAFF, CLIENT, anon y roles personalizados con permiso delegado no acceden. Los cobros y citas por mes conservan las fórmulas RN-32/RN-33. |
+
+La retención mide repetición entre meses consecutivos; no representa cohortes de primera visita, seguimiento a 30 días ni causa de abandono. Un mes histórico puede cambiar si cambian registros operativos; la etiqueta «Histórico» no significa cierre contable.

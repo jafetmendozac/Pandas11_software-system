@@ -141,3 +141,45 @@ Cobro interno al finalizar (INTERNAL/COMPLETED), sin DEPOSIT interno. Adelanto d
 ## Seguimiento del cronograma S1–S14 — 2026-10-20
 
 La [matriz de seguimiento](matriz-seguimiento.md) relaciona las29 actividades proporcionadas por el usuario con semana prevista, estado local, evidencias y pendientes. Distingue las actividades del cronograma de las fases técnicas SDD y conserva los diagnósticos históricos de este documento. Su elaboración es documental: no aprueba ni inicia reservas online, ventas, inventario u otras funcionalidades.
+
+## Avance Actividad 4.1 — 2026-10-21
+
+Tras «Vamos con eso», se implementó localmente el modelo y las RPC de ventas con catálogo simple, detalle mixto en borrador y vínculo a citas internas completadas. Los cobros confirmados de cita se consultan por referencia, sin duplicarse; permisos y rol OWNER/ADMIN se verifican en servidor. Las ventas con artículos siguen en borrador hasta implementar stock. No hay página comercial ni cobro de mostrador, caja, comprobantes o despliegue remoto. Resultados en [validación 4.1](features/actividad-4-ventas-mixtas/validation.md).
+
+## Entrega visual de 4.2 — 2026-10-22
+
+Plan aprobado e interfaz local en `/ventas` y `/productos`: catálogo, borradores con cliente/cita, detalle, confirmación solo de servicios y anulación versionada. Cobros de cita por referencia y enlace al módulo de pagos; productos siguen en borrador. No incluye cobro de mostrador, stock, caja ni despliegue remoto. Resultados y límites en [validación](features/actividad-4-registro-ventas/validation.md).
+
+## Avance 4.4–4.5 — 2026-10-22
+
+Plan y decisiones INV-D01–INV-D05 aprobados mediante «Añadelo entonces» con `$sdd-feature`. Inventario local por producto/unidad, saldo cero inicial, entradas OWNER/ADMIN, ajustes OWNER, historial y descuento de stock al confirmar ventas. Anulación de productos confirmados solo OWNER con elección RESTOCK/NO_RESTOCK; dinero conservado. Se habilita confirmación comercial de productos, sin afirmar cobro de mostrador.
+
+Dos migraciones incrementales locales sin reset ni cambios remotos. Validación y límites en [inventario](features/actividad-4-inventario/validation.md). La restricción histórica de productos solo en borrador se sustituye para este nuevo alcance; caja, pagos de productos, mínimos/alertas y devoluciones parciales siguen pendientes.
+
+## Avance 4.2, 4.3 y 4.6 — 2026-10-22
+
+Plan COM-D01–COM-D05 aprobado mediante «Vamos con eso». Cobros manuales de productos por venta confirmada, saldo separado de citas en ventas mixtas, verificación OWNER, caja única con apertura/cierre y movimientos, y mínimo informativo por producto se implementaron en Supabase local y Angular. Ver [validación comercial](features/actividad-4-cobros-caja-alertas/validation.md). Los diagnósticos anteriores de esta hoja y del anexo comercial son históricos. No se implementaron devolución de dinero, facturación, conciliación bancaria, notificaciones externas ni despliegue remoto.
+
+## Inicio público: panfletos semanales — 2026-10-23
+
+Requisitos PS-01–PS-07 y plan aprobados. Implementados localmente siete espacios (uno por día de Lima), lectura pública limitada por RLS/Storage, editor para OWNER/ADMIN, respaldo de portada y vista ampliada. La prueba visual usó una imagen local temporal que se retiró. Para mostrar panfletos reales faltan la migración al entorno de destino mediante un proceso aprobado y la carga por el negocio de siete imágenes autorizadas; ninguna se publicó aquí. Evidencia en [validación](features/inicio-publico-panfletos-semanales/validation.md).
+
+## Actividad 5.1: consultas SQL para indicadores — 2026-10-29
+
+El usuario aprobó el [plan](features/actividad-5-kpis/plan.md) y confirmó Trujillo (`America/Lima`). Se aplicó en Supabase local una migración incremental para cobros `PAID` de servicios/productos y citas `COMPLETED` por mes, con acceso OWNER/ADMIN y sin duplicar movimientos de caja. Pasaron 17/17 pruebas específicas y 289/289 de la suite SQL. El dashboard visual conserva datos de plantilla hasta 5.2; la migración de contexto de roles del 2026-10-28 sigue pendiente y no se alteró. Ver [validación](features/actividad-5-kpis/validation.md).
+
+## Actividad 5.2: gráficos de cobros, servicios y productos — 2026-10-29
+
+Plan aprobado mediante «Vamos con eso» e implementado localmente. `/panel` dejó de renderizar cifras y componentes TailAdmin de demostración. OWNER/ADMIN ven cuatro tarjetas, doce meses de cobros separados y rankings de hasta cinco servicios/productos; STAFF conserva enlaces operativos sin analítica. La RPC agregada aplica periodo Lima y permisos en servidor. La migración de contexto de roles pendiente al cierre de 5.1 se aplicó localmente como dependencia de la selección de rol de 5.2, sin modificar su alcance. Pruebas y límites en [validación 5.2](features/actividad-5-dashboard-graficos/validation.md). El siguiente punto del cronograma es 5.3, recordatorios y lista por contactar; requiere requisitos y plan propios.
+
+## Actividad 5.3: recordatorios y lista por contactar — 2026-10-29
+
+Plan aprobado mediante «Dale sigue» e implementado en Supabase local y Angular. `/por-contactar` calcula citas de mañana y seguimiento desde la última cita completada hace 30 días en Lima; permite registrar intentos manuales con responsable y resultado. WhatsApp exige consentimiento con procedencia, número y opt-in vigente; el valor legado no basta. OWNER/ADMIN registran consentimiento; STAFF puede consultar y registrar intentos. Dos tablas nuevas preservan historial y la migración añade RLS/RPC. Se retiró del encabezado el desplegable con notificaciones ficticias. Evidencia y límites en [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md). No hay envíos automáticos ni adopción remota. El siguiente punto del cronograma es 5.4, reportes y retención.
+
+## Actividad 5.4: reportes exportables y retención — 2026-10-31
+
+Plan y decisiones R54-D01–D04 aprobados mediante «Vamos». `/reportes` muestra cobros/citas y retención mensual en intervalos de hasta 12 meses de Lima y descarga dos CSV agregados, sin datos personales. La RPC local reutiliza `dashboard_kpis` y restringe acceso a OWNER/ADMIN activos con `analytics.read`; las pruebas de roles, exactitud y límites constan en [validación 5.4](features/actividad-5-reportes-retencion/validation.md). No hay despliegue remoto ni aceptación operativa. El siguiente punto del cronograma es 5.5, ajustes finales de interfaz y usabilidad.
+
+## Actividad 5.5: ajustes finales de interfaz y usabilidad — 2026-10-31
+
+Plan aprobado mediante «Vamos». El menú del panel oculta ejemplos, el encabezado ofrece cambio de rol en móvil y deja de mostrar búsqueda sin función, el diálogo de stock separa registro e historial y Reportes explica los intervalos vacíos. Se revisaron 14 rutas operativas con datos sintéticos en móvil y pantallas clave en oscuro/RTL; pruebas Angular, tipos y build correctos. Véase [validación 5.5](features/actividad-5-usabilidad-final/validation.md) para evidencia y hallazgos pendientes. No hay aceptación operativa ni despliegue remoto. El siguiente punto del cronograma es 6.1, pruebas integrales y corrección de errores.

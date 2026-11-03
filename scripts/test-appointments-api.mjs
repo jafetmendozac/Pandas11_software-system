@@ -126,6 +126,16 @@ try{
  ok(lifecycle.status==='IN_PROGRESS','Transición a atención una vez llegado el inicio');
  lifecycle=await value(owner.rpc('change_appointment_status',{p_id:lifecycle.id,p_expected_version:lifecycle.version,p_target:'COMPLETED'}));
  ok(lifecycle.status==='COMPLETED','Completar después de iniciar');
+ // Actividad 3.5: consulta histórica real con fixtures propios, sin cambiar reloj ni datos ajenos.
+ sql(`update public.appointment_item_staff set starts_at=starts_at-interval '10 years',ends_at=ends_at-interval '10 years' where item_id in(select id from public.appointment_items where appointment_id='${a.id}');update public.appointments set starts_at=starts_at-interval '10 years',ends_at=ends_at-interval '10 years' where id='${a.id}'`);
+ for(const [status,expected] of [['COMPLETED',lifecycle],['CANCELLED',a]]){
+  const page=await value(staff.rpc('search_appointments',{p_from:'2020-07-01T00:00:00-05:00',p_until:'2020-08-01T00:00:00-05:00',p_status:status,p_search:prefix,p_page:1,p_size:100}));
+  ok(page.rows.some(row=>row.id===expected.id&&row.status===status),'STAFF encuentra cita pasada '+status+' por rango y estado');
+  const detail=await value(staff.rpc('get_appointment',{p_id:expected.id}));
+  ok(JSON.stringify(detail.items.map(i=>[i.id,i.price,i.duration_minutes,i.stages.map(s=>s.employee_id)]))===JSON.stringify(expected.items.map(i=>[i.id,i.price,i.duration_minutes,i.stages.map(s=>s.employee_id)])),'Histórico '+status+' conserva detalle, snapshots y asignación');
+  if(status==='CANCELLED')ok(detail.cancel_reason==='Prueba sintética'&&detail.cancelled_by===actors.OWNER.id&&!!detail.cancelled_at,'Cancelada pasada conserva motivo, autor y fecha');
+  ok(JSON.stringify(await value(staff.rpc('get_appointment',{p_id:expected.id})))===JSON.stringify(detail),'Volver a consultar '+status+' conserva el registro persistido');
+ }
  ok(!(await value(owner.rpc('appointment_availability',{p_employee_id:employees[0],p_date:'2020-07-28',p_start:'10:00',p_end:'11:00'}))).interval_covered,'Completada mantiene ocupación histórica');
  let absent=await save(simple(pets[0],employees[0],'16:00','17:00','2030-07-30'));
  sql(`update public.appointment_item_staff set starts_at='2020-07-28 16:00+00',ends_at='2020-07-28 17:00+00' where item_id in(select id from public.appointment_items where appointment_id='${absent.id}');update public.appointments set starts_at='2020-07-28 16:00+00',ends_at='2020-07-28 17:00+00' where id='${absent.id}'`);
