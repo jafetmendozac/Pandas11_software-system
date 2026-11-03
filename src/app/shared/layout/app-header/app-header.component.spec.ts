@@ -2,13 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter, RouterModule } from '@angular/router';
+import { provideRouter, Router, RouterModule } from '@angular/router';
 import { AppHeaderComponent } from './app-header.component';
 import { AuthorizationService } from '../../services/authorization.service';
 import { SidebarService } from '../../services/sidebar.service';
 
 @Component({ selector: 'app-theme-toggle-button', standalone: true, template: '' })
 class ThemeStub {}
+@Component({ selector: 'app-route-stub', standalone: true, template: '' })
+class RouteStub {}
 @Component({ selector: 'app-user-dropdown', standalone: true, template: '' })
 class UserStub { @Input() profileLink = ''; }
 @Component({ selector: 'app-custom-select', standalone: true, template: '' })
@@ -24,11 +26,14 @@ describe('Encabezado operativo', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AppHeaderComponent],
-      providers: [provideRouter([]), SidebarService, {
+      providers: [provideRouter([
+        { path: 'mi-perfil', component: RouteStub },
+        { path: 'panel', component: RouteStub },
+      ]), SidebarService, {
         provide: AuthorizationService,
         useValue: {
-          roles: signal([{ role_id: 'owner' }, { role_id: 'staff' }]),
-          roleOptions: signal([{ value: 'owner', label: 'Propietario' }, { value: 'staff', label: 'Personal' }]),
+          roles: signal([{ role_id: 'owner', code: 'OWNER' }, { role_id: 'staff', code: 'STAFF' }, { role_id: 'client', code: 'CLIENT' }]),
+          roleOptions: signal([{ value: 'owner', label: 'Propietario' }, { value: 'staff', label: 'Personal' }, { value: 'client', label: 'Cliente' }]),
           selectedRoleId: signal('owner'),
           selectRole: jasmine.createSpy('selectRole'),
         },
@@ -62,5 +67,22 @@ describe('Encabezado operativo', () => {
     fixture.componentInstance.sidebarService.setMobileOpen(true);
     fixture.componentInstance.onEscape();
     expect(fixture.componentInstance.isApplicationMenuOpen).toBeFalse();
+  });
+
+  it('lleva al portal cliente al seleccionar CLIENT', async () => {
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    const authorization = TestBed.inject(AuthorizationService);
+    fixture.componentInstance.selectRole('client');
+    await fixture.whenStable();
+    expect(authorization.selectRole as jasmine.Spy).toHaveBeenCalledWith('client');
+    expect(TestBed.inject(Router).url).toBe('/mi-perfil');
+  });
+
+  it('devuelve al panel interno al seleccionar un rol de personal', async () => {
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    await TestBed.inject(Router).navigateByUrl('/mi-perfil');
+    fixture.componentInstance.selectRole('staff');
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/panel');
   });
 });

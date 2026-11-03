@@ -1,7 +1,7 @@
-import { Component, HostListener, Input, signal } from '@angular/core';
+import { Component, HostListener, Input, inject, signal } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
 import { UserDropdownComponent } from '../../components/header/user-dropdown/user-dropdown.component';
 import { CustomSelectComponent } from '../../components/form/custom-select/custom-select.component';
@@ -19,6 +19,7 @@ import { AuthorizationService } from '../../services/authorization.service';
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent {
+  private readonly router = inject(Router);
   @Input() homePath = '/panel';
   @Input() profileLink = '/profile';
   isApplicationMenuOpen = false;
@@ -40,6 +41,12 @@ export class AppHeaderComponent {
 
   toggleApplicationMenu() {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
+  }
+
+  selectRole(roleId: string): void {
+    this.authorization.selectRole(roleId);
+    const role = this.authorization.roles().find(item => item.role_id === roleId);
+    if (role) void this.router.navigateByUrl(role.code === 'CLIENT' ? '/mi-perfil' : '/panel');
   }
 
   @HostListener('document:keydown.escape')

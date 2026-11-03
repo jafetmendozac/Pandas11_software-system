@@ -48,7 +48,7 @@
       <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2 2xsm:gap-3 xl:flex-none">
         @if (authorization.roles().length > 1) {
           <div class="w-full sm:w-52">
-            <app-custom-select [options]="authorization.roleOptions()" [value]="authorization.selectedRoleId()" (valueChange)="authorization.selectRole($event?.toString() ?? '')" ariaLabel="Cambiar vista de rol" placeholder="Vista de trabajo" />
+            <app-custom-select [options]="authorization.roleOptions()" [value]="authorization.selectedRoleId()" (valueChange)="selectRole($event?.toString() ?? '')" ariaLabel="Cambiar vista de rol" placeholder="Vista de trabajo" />
           </div>
         }
         <!-- ThemeToggleButton placeholder -->
