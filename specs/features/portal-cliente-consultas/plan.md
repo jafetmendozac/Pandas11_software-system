@@ -24,3 +24,7 @@ Solicitud explícita posterior del usuario: eliminar el bloque de dos tarjetas a
 ## Ajuste visual del sidebar existente — 2026-11-02
 
 El reporte con capturas identifica `logo-icon.svg` como icono ajeno al negocio en el estado contraído y la parte inferior del logo del sidebar visible bajo el encabezado móvil. En `AppSidebarComponent` usar el logo cuadrado existente de Pandas 11 para el estado contraído de escritorio; ocultar el bloque de logo del sidebar por debajo de `xl` y desplazar el inicio de sus opciones hasta debajo del encabezado. Conservar el mismo componente, su filtro de rutas y su comportamiento de colapso. Comprobar plantillas, pruebas pertinentes y build; documentar los límites de revisión visual.
+
+## Cierre del menú móvil al ampliar la ventana — 2026-11-03
+
+El usuario reportó que al abrir el menú en la vista móvil de DevTools y volver a escritorio, el estado móvil permanece activo y tapa el contenido. En el evento `resize` de `AppHeaderComponent`, cuando el ancho alcance `xl`, cerrar el menú móvil compartido y las opciones móviles del encabezado. Añadir una prueba que abra el menú a 390 px, mantenga ese estado en móvil y compruebe el cierre a 1440 px. Validar TypeScript, prueba del encabezado, suite Angular y build. No hay cambios SQL ni de autorización.

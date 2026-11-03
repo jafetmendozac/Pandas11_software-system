@@ -6,6 +6,7 @@ import { provideRouter, Router, RouterModule } from '@angular/router';
 import { AppHeaderComponent } from './app-header.component';
 import { AuthorizationService } from '../../services/authorization.service';
 import { SidebarService } from '../../services/sidebar.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({ selector: 'app-theme-toggle-button', standalone: true, template: '' })
 class ThemeStub {}
@@ -55,6 +56,26 @@ describe('Encabezado operativo', () => {
     expect(options.getAttribute('aria-expanded')).toBe('true');
     expect(root.querySelector('#application-menu app-custom-select')).not.toBeNull();
     expect(root.querySelector('input[placeholder="Search or type command..."]')).toBeNull();
+  });
+
+  it('cierra el menú móvil cuando la ventana vuelve al ancho de escritorio', async () => {
+    const viewport = spyOnProperty(window, 'innerWidth', 'get').and.returnValue(390);
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    const header = fixture.componentInstance;
+    const sidebar = TestBed.inject(SidebarService);
+    sidebar.setMobileOpen(true);
+    header.isApplicationMenuOpen = true;
+    header.onResize();
+    expect(await firstValueFrom(sidebar.isMobileOpen$)).toBeTrue();
+
+    viewport.and.returnValue(1440);
+    header.onResize();
+    fixture.detectChanges();
+
+    expect(header.isDesktop()).toBeTrue();
+    expect(await firstValueFrom(sidebar.isMobileOpen$)).toBeFalse();
+    expect(header.isApplicationMenuOpen).toBeFalse();
+    expect((fixture.nativeElement as HTMLElement).querySelector('button[aria-controls="app-sidebar"]')?.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 16 12');
   });
   it('usa las rutas de cliente en logo y menú de cuenta cuando el layout las indica', () => {
     const fixture = TestBed.createComponent(AppHeaderComponent);

@@ -37,3 +37,7 @@ El usuario pidió quitar las tarjetas «Mis datos y mascotas» y «Servicios y p
 ## Corrección visual del sidebar compartido — 2026-11-02
 
 PC-07 (F0-07, PC-04): al contraer el sidebar de escritorio no se muestra el icono genérico de TailAdmin, sino la marca existente de Pandas 11. En anchos menores que `xl`, el sidebar abierto no deja asomar su logo por debajo del encabezado, que ya muestra la marca; las opciones del menú empiezan debajo de este. Aplica a panel y portal porque comparten el componente, sin alterar rutas o permisos.
+
+## Cambio de móvil a escritorio — 2026-11-03
+
+PC-08 (PC-04): si el usuario abre el menú lateral en móvil y la ventana pasa a `xl` o más, el menú móvil y el panel de opciones del encabezado se cierran. El contenido recupera su margen de escritorio y el botón vuelve a mostrar su icono normal. Aplica al panel y al portal CLIENT; no afecta reglas de negocio, permisos ni datos.

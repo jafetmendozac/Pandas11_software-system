@@ -56,5 +56,12 @@ export class AppHeaderComponent {
   }
 
   @HostListener('window:resize')
-  onResize(): void { this.isDesktop.set(window.innerWidth >= 1280); }
+  onResize(): void {
+    const isDesktop = window.innerWidth >= 1280;
+    this.isDesktop.set(isDesktop);
+    if (isDesktop) {
+      this.sidebarService.setMobileOpen(false);
+      this.isApplicationMenuOpen = false;
+    }
+  }
 }
