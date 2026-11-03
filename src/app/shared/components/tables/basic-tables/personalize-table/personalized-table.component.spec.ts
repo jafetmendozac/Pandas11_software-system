@@ -1,4 +1,5 @@
 import { PersonalizedTable } from './personalized-table.component';
+import { TestBed } from '@angular/core/testing';
 describe('PersonalizedTable: persistencia confirmada',()=>{
   let table:PersonalizedTable;
   beforeEach(()=>{table=new PersonalizedTable();table.columns=[{key:'name',label:'Nombre'}];table.tableData=[{id:'1',name:'Antes'}];});
@@ -19,5 +20,43 @@ describe('PersonalizedTable: persistencia confirmada',()=>{
   });
   it('emite página y búsqueda al servidor sin filtrar solo filas locales',()=>{
     table.serverTotal=25;table.searchKey='name';const emit=spyOn(table.queryChanged,'emit');table.onSearch("O'Connor");expect(emit).toHaveBeenCalledWith({search:"O'Connor",page:1,size:5});expect(table.currentItems.length).toBe(1);expect(table.totalPages).toBe(5);
+  });
+});
+
+describe('PersonalizedTable: tarjetas móviles', () => {
+  it('muestra el nombre una vez y distingue las etiquetas de los valores', () => {
+    const fixture = TestBed.createComponent(PersonalizedTable);
+    fixture.componentInstance.allowCreate = false;
+    fixture.componentInstance.columns = [
+      { key: 'name', label: 'Nombre' },
+      { key: 'description', label: 'Descripción' },
+      { key: 'base_price', label: 'Precio base (S/)' },
+    ];
+    fixture.componentInstance.tableData = [{ name: 'Baño canino', description: 'Baño y secado', base_price: 45 }];
+    fixture.detectChanges();
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector('article');
+    expect(card?.querySelector('h3')?.textContent?.trim()).toBe('Baño canino');
+    expect(Array.from(card?.querySelectorAll('dt') ?? []).map(label => label.textContent?.trim()))
+      .toEqual(['Descripción', 'Precio base (S/)']);
+    expect(Array.from(card?.querySelectorAll('dd') ?? []).map(value => value.textContent?.trim()))
+      .toEqual(['Baño y secado', '45']);
+  });
+
+  it('usa el nombre del cliente como título aunque el perfil relacionado sea la primera columna', () => {
+    const fixture = TestBed.createComponent(PersonalizedTable);
+    fixture.componentInstance.allowCreate = false;
+    fixture.componentInstance.columns = [
+      { key: 'profile_id', label: 'Perfil relacionado', options: [{ value: 'p1', label: 'Cuenta vinculada' }] },
+      { key: 'first_name', label: 'Nombre' },
+      { key: 'last_name', label: 'Apellido' },
+    ];
+    fixture.componentInstance.tableData = [{ profile_id: 'p1', first_name: 'Lucía', last_name: 'Herrera' }];
+    fixture.detectChanges();
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector('article');
+    expect(card?.querySelector('h3')?.textContent?.trim()).toBe('Lucía');
+    expect(Array.from(card?.querySelectorAll('dt') ?? []).map(label => label.textContent?.trim()))
+      .toEqual(['Perfil relacionado', 'Apellido']);
   });
 });

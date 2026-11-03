@@ -126,6 +126,10 @@ export class PersonalizedTable {
     return this.columns.some((column) => column.key === 'status');
   }
 
+  get mobileTitleColumn(): TableColumn | undefined {
+    return this.columns.find((column) => column.key === 'name' || column.key === 'first_name') ?? this.columns[0];
+  }
+
   getCellValue(row: TableRow, key: string, column?: TableColumn): string {
     const value = row[key];
     if (column?.options?.length) {

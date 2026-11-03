@@ -36,3 +36,9 @@ El esquema remoto permanece desconocido. La adopción remota necesita una revisi
 ## Aprobación y concreción
 
 El usuario autorizó proceder con la propuesta: OWNER/ADMIN editan; STAFF consulta; CLIENT consulta su ficha/mascotas sin notas internas. Allergies permanece boolean y detalles narrativos son internos; una nota editable por ficha, sin historial de revisiones ni Storage. Migración incremental local sin reset ni adopción remota.
+
+## Ajuste visual de tablas compartidas — 2026-11-03
+
+Cambiar solo la presentación del `<thead>` y sus `<th>` en `PersonalizedTable`: usar texto seminegrita, mayor contraste, línea inferior y `scope="col"`. Tras la corrección del usuario, quitar el fondo de color. Verificar compilación Angular y el diff. No se requieren cambios de modelo, migraciones ni pruebas que dupliquen clases CSS.
+
+Para UI-02, en el bloque móvil del mismo componente usar la columna `name` o `first_name` como título cuando exista y la primera columna en otro caso; excluir esa columna del detalle. Presentar las etiquetas restantes con estilo consistente y los valores con peso normal; permitir saltos de línea. Añadir pruebas de regresión para servicios y clientes. Verificar la prueba focalizada y la compilación.
