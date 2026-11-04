@@ -55,8 +55,6 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
   readonly coatOptions: CustomSelectOption[] = [
     { value: '', label: 'No indicado' }, { value: 'SHORT', label: 'Corto' },
     { value: 'MEDIUM', label: 'Medio' }, { value: 'LONG', label: 'Largo' },
-    { value: 'WIRE', label: 'Cerda' }, { value: 'CURLY', label: 'Rizado' },
-    { value: 'HAIRLESS', label: 'Sin pelo' },
   ];
   readonly serviceOptions = () => [
     { value: '', label: 'Selecciona un servicio' },

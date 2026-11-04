@@ -12,7 +12,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 |---|---|
 | `pet_sex` | MALE, FEMALE, UNKNOWN |
 | `pet_size` | TOY, SMALL, MEDIUM, LARGE, EXTRA_LARGE |
-| `pet_coat_type` | SHORT, MEDIUM, LONG, WIRE, CURLY, HAIRLESS |
+| `pet_coat_type` | SHORT, MEDIUM, LONG |
 | `skill_level` | ALL_SERVICES, ASSISTANT |
 | `appointment_status` | REQUESTED, PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW |
 | `appointment_source` | INTERNAL, ONLINE |

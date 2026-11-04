@@ -4,7 +4,7 @@ import { TableRow } from '../components/tables/basic-tables/personalize-table/pe
 import { PageQuery, PageResult } from './clientes.service';
 export type PetSex = 'MALE' | 'FEMALE' | 'UNKNOWN';
 export type PetSize = 'TOY' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
-export type PetCoatType = 'SHORT' | 'MEDIUM' | 'LONG' | 'WIRE' | 'CURLY' | 'HAIRLESS';
+export type PetCoatType = 'SHORT' | 'MEDIUM' | 'LONG';
 export interface Pet extends TableRow {
     id: string;
     client_id: string;

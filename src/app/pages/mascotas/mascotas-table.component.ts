@@ -79,9 +79,6 @@ export class MascotasTableComponent implements OnInit {
                 { label: 'Corto', value: 'SHORT' },
                 { label: 'Medio', value: 'MEDIUM' },
                 { label: 'Largo', value: 'LONG' },
-                { label: 'Cerda', value: 'WIRE' },
-                { label: 'Rizado', value: 'CURLY' },
-                { label: 'Sin pelo', value: 'HAIRLESS' },
             ],
         },
         {

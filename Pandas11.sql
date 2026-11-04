@@ -35,10 +35,7 @@ CREATE TYPE "pet_size" AS ENUM (
 CREATE TYPE "pet_coat_type" AS ENUM (
   'SHORT',
   'MEDIUM',
-  'LONG',
-  'WIRE',
-  'CURLY',
-  'HAIRLESS'
+  'LONG'
 );
 
 CREATE TYPE "skill_level" AS ENUM (
