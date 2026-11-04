@@ -40,11 +40,11 @@ describe('Inicio público y separación del panel', () => {
     expect(harness.routeNativeElement?.textContent).toContain('Calle General Urco Mz. C Lote 11');
     expect(harness.routeNativeElement?.textContent).toContain('7 a. m. a 6 p. m.');
     const contact = harness.routeNativeElement?.querySelector<HTMLAnchorElement>('main a.button-primary');
-    expect(contact?.href).toBe('https://wa.me/51972704860');
+    expect(contact?.href).toBe('https://wa.me/51976079212');
     expect(harness.routeNativeElement?.textContent).not.toContain('976 079 212');
     expect(harness.routeNativeElement?.textContent).not.toContain('972 704 860');
     expect(harness.routeNativeElement?.querySelector('a[href^="tel:"]')).toBeNull();
-    expect(harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.whatsapp-float')?.href).toBe('https://wa.me/51972704860');
+    expect(harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.whatsapp-float')?.href).toBe('https://wa.me/51976079212');
   });
 
   it('muestra el panfleto publicado como modal y permite cerrarlo o ampliarlo de nuevo', async () => {

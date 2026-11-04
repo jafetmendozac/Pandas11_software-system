@@ -9,9 +9,9 @@ Sitios oficiales consultados el2026-10-18:
 - [LUAN DOG Spa & Boutique](https://luandog.com.co/): referencia de estructura con portada, presentación, servicios, ubicación/contacto e inicio de sesión.
 - [BlissSpaw](https://blisspaw.pet/): referencia de organización de servicios y acciones de contacto.
 
-Usar únicamente ideas generales de composición. Propuesta propia: cabecera limpia con logo Pandas11 y acceso de cuenta, portada con titular destacado y visual de mascota autorizado/ilustrativo, tarjetas para baño, estilismo y corte higiénico, bloque de boutique/orientación, recojo coordinado, presentación, ubicación/contacto y pie con información real. Reutilizar tokens Tailwind, tipografía y logos del proyecto; no copiar contenidos ni atribuir a Pandas 11 los servicios o logros de las referencias.
+Usar únicamente ideas generales de composición. Propuesta propia: cabecera limpia con logo Pandas11 y acceso de cuenta, portada con titular destacado y visual de mascota autorizado/ilustrativo, tarjetas para baño, estilismo y corte higiénico, bloque de boutique/orientación, transporte coordinado (recojo, regreso o ambos), presentación, ubicación/contacto y pie con información real. Reutilizar tokens Tailwind, tipografía y logos del proyecto; no copiar contenidos ni atribuir a Pandas 11 los servicios o logros de las referencias.
 
-Información comercial recibida: WhatsApp972704860, Trujillo/La Libertad y oferta detallada de baño, estilismo, corte higiénico, champús, fragancias, complementos y orientación profesional. Usar el borrador de requirements.md y el horario solicitado «Separa tu cita. Atendemos de lunes a sábado, de 7 a. m. a 6 p. m.».
+Información comercial recibida: WhatsApp976079212, Trujillo/La Libertad y oferta detallada de baño, estilismo, corte higiénico, champús, fragancias, complementos y orientación profesional. Usar el borrador de requirements.md y el horario solicitado «Separa tu cita. Atendemos de lunes a sábado, de 7 a. m. a 6 p. m.».
 
 Aclaración de diseño aprobada: turquesa como color dominante, rosa y morado como acentos, tonos claros y motivos de huellas. Usar Logo.png ya disponible e inspeccionado, correspondiente al panda y aro turquesa de las piezas. Definir variables de color en el componente público para no cambiar los tokens administrativos. Conservar el teléfono confirmado por escrito: los números impresos en los carteles no sustituyen esa instrucción.
 
@@ -27,7 +27,7 @@ Rutas internas existentes → guards/permisos existentes → Supabase con RLS ex
 
 La portada es pública también para personas autenticadas. La presentación comercial no necesita sesión ni consultas Supabase; el acceso de cuenta utiliza el flujo de autenticación ya implementado. El catálogo calculado sigue protegido en `/catalogo`.
 
-La acción comercial **Separa tu cita** abre `https://wa.me/51972704860` para coordinar con el personal; no crea una fila en appointments, confirma una reserva o solicita un adelanto automáticamente. La dirección puede enlazar a una búsqueda de mapas por texto, sin API key, mapa embebido ni coordenadas inferidas.
+La acción comercial **Separa tu cita** abre `https://wa.me/51976079212` para coordinar con el personal; no crea una fila en appointments, confirma una reserva o solicita un adelanto automáticamente. La dirección puede enlazar a una búsqueda de mapas por texto, sin API key, mapa embebido ni coordenadas inferidas.
 
 ## Implementación después de aprobar
 
@@ -62,7 +62,7 @@ El usuario responde «Claro» a la petición de aprobación y añade la identida
 - Variables turquesa/rosa/morado limitadas al CSS del componente; utilidades Tailwind existentes para estructura y espaciado. Sin cambios al tema administrativo ni dependencias.
 - Dashboard en `/panel`; sidebar, logo del shell y breadcrumb ajustados. Breadcrumb usa permisos ya cargados: personal vuelve a `/panel`, cliente a `/`.
 - Login revalida autorización, conserva redirect interno y descarta destinos externos/con barras invertidas. Sin redirect: panel para personal, perfil para cliente. Registro ya confirmado va al perfil; confirmación pendiente conserva su flujo previo.
-- Todas las acciones comerciales abren WhatsApp972704860 o un enlace de dirección/teléfono; no se envía ningún mensaje ni se genera reserva desde la portada.
+- Todas las acciones comerciales abren WhatsApp976079212 o un enlace de dirección/teléfono; no se envía ningún mensaje ni se genera reserva desde la portada.
 - Validación de rutas con RouterTestingHarness y casos de login/registro, más revisión de la build con Chrome sin sesión en escritorio/móvil, oscuro y RTL. Resultados y límites en validation.md.
 
 ## Ajuste solicitado de contacto — 2026-10-18

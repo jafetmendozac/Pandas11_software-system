@@ -7,7 +7,7 @@ Fecha: 2026-10-18. Estado: **implementado y validado localmente**, tras aprobaci
 - Árbol de rutas: raíz privada con dashboard; login/registro existentes y catálogo protegido.
 - Destinos de login/registro y enlaces a raíz en shell/breadcrumb identificados para evitar regresión al introducir la portada.
 - Modelo local y reglas de negocio consultados; no se conoce esquema remoto ni precios comerciales o stock.
-- Oferta, WhatsApp972704860, Trujillo/La Libertad y texto del horario confirmados por el usuario mediante respuestas a las tres preguntas iniciales; incorporados a requirements.md/plan.md.
+- Oferta, WhatsApp976079212, Trujillo/La Libertad y texto del horario confirmados por el usuario mediante respuestas a las tres preguntas iniciales; incorporados a requirements.md/plan.md.
 - Logos locales identificados; imágenes del establecimiento y coordenadas exactas sin verificar. No se atribuye un distrito o punto geográfico que el usuario no haya precisado.
 - Referencias públicas consultadas y registradas en plan.md. No se descargan/copían sus recursos ni contenido comercial.
 - Se crean únicamente requirements.md, plan.md y validation.md de esta funcionalidad. Sin cambios de código, dependencias, entornos, Auth o base de datos.
@@ -23,7 +23,7 @@ Fecha: 2026-10-18. Estado: **implementado y validado localmente**, tras aprobaci
 | IP-02/09, contenido | Servicios, artículos, dirección, teléfono y horario contrastados con respuestas del usuario y RN-01/02/04/05/06; sin datos DEMO o precios inventados |
 | IP-03/07/10, diseño | Capturas reales a1440px y390px revisadas: turquesa dominante, acentos rosa/morado, logo local, modo oscuro; sin desborde horizontal en LTR o RTL. Menú móvil abre/cierra, Escape y navegación de anclas comprobados |
 | IP-03/07, accesibilidad | H1 único, encabezados por sección, salto a contenido, foco visible, botones/enlaces con nombre y destino, alt del logo. Contraste comprobado para colores principales, no auditoría integral WCAG |
-| IP-09, contacto | Enlaces a wa.me/51972704860; búsqueda de mapas por dirección y tel:+51972704860. No se pulsa WhatsApp ni se envían mensajes durante las pruebas |
+| IP-09, contacto | Enlaces a wa.me/51976079212; búsqueda de mapas por dirección y tel:+51976079212. No se pulsa WhatsApp ni se envían mensajes durante las pruebas |
 | IP-07, recursos | Solo Logo.png ya existente, inspeccionado y coherente con las referencias enviadas. Sin fotografías, carteles con número distinto o material ajeno incorporado |
 | IP-08, regresión | TypeScript app/spec sin emisión, build producción y77/77 pruebas Angular correctas; revisión de espacios/diff |
 
@@ -39,7 +39,7 @@ No se ejecutan SQL/migraciones ni se modifica la base. Los nuevos tests de login
 
 ## Límites y decisiones conservadas
 
-El WhatsApp972704860 confirmado por escrito prevalece sobre976079212 de los carteles de referencia. No se infiere una ubicación geográfica exacta ni se incrusta un mapa con marcador supuesto. Los horarios y oferta de la portada son contenido comercial aprobado: no se sincronizan automáticamente con business_hours, services o inventario. El logotipo es real; no se presentan fotografías genéricas como infraestructura o equipo propios.
+El WhatsApp976079212 confirmado por escrito prevalece sobre972704860 de los carteles de referencia. No se infiere una ubicación geográfica exacta ni se incrusta un mapa con marcador supuesto. Los horarios y oferta de la portada son contenido comercial aprobado: no se sincronizan automáticamente con business_hours, services o inventario. El logotipo es real; no se presentan fotografías genéricas como infraestructura o equipo propios.
 
 La página no agrega autorreserva, adelantos, ecommerce, inventario o integración automática de transporte. Permanecen pendientes las funciones de negocio correspondientes y la adopción/despliegue remoto. Sin instalación de dependencias, commits o pushes.
 

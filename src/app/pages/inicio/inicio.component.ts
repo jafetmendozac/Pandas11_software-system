@@ -27,7 +27,7 @@ export class InicioComponent implements OnInit, OnDestroy {
   readonly flyerDays = HOME_FLYER_DAYS;
   private displayedDay = weekdayInLima(new Date());
   readonly year = new Date().getFullYear();
-  readonly whatsapp = 'https://wa.me/51972704860';
+  readonly whatsapp = 'https://wa.me/51976079212';
   readonly maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(
     'Calle General Urco Mz. C Lote 11, Urbanización Los Laureles, Trujillo, La Libertad, Perú',
   );

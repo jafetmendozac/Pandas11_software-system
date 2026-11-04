@@ -74,7 +74,7 @@ Crear/reprogramar/cancelar y cambiar horarios/bloqueos deben seguir un protocolo
 
 ### Recojo y separación de información
 
-Alcance adoptado: esta API interna crea citas sin recojo automático (`requires_pickup=false`, pickup_fee=0, dirección vacía). Los campos del modelo se conservan para otra fase. Si hay un recojo operativo, recepción bloquea manualmente al trabajador durante el traslado y esta fase respeta ese bloqueo. No presentar una cita como recojo gestionado si falta ese registro. Habilitar solicitud/asignación/precio de transporte enlazados exige ampliar el plan.
+Alcance adoptado: esta API interna crea citas sin recojo automático (`pickup_type='NONE'`, pickup_fee=0, dirección vacía). Los campos del modelo se conservan para otra fase. Si hay un recojo operativo, recepción bloquea manualmente al trabajador durante el traslado y esta fase respeta ese bloqueo. No presentar una cita como recojo gestionado si falta ese registro. Habilitar solicitud/asignación/precio de transporte enlazados exige ampliar el plan.
 
 client_notes e items.notes se tratan como información de la ficha de cita potencialmente comunicable al cliente, sin prometer publicación aquí. Las observaciones reservadas van exclusivamente a appointment_internal, con permisos propios y sin incluirlas en eventos/títulos del calendario. Su edición es independiente de horarios/items congelados por un estado terminal y mantiene control de versión. No se implementa un historial clínico ni auditoría de todas las revisiones.
 

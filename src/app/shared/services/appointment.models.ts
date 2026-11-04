@@ -1,9 +1,10 @@
 import { Temporal } from 'temporal-polyfill';
 export type AppointmentStatus='REQUESTED'|'PENDING'|'CONFIRMED'|'IN_PROGRESS'|'COMPLETED'|'CANCELLED'|'NO_SHOW';
 export type StageKind='SERVICE'|'BATH'|'CUT';
+export type PickupType='PICKUP_ONLY'|'DROPOFF_ONLY'|'BOTH'|'NONE';
 export interface AppointmentStage {id:string;item_id:string;employee_id:string;employee_name:string;stage:StageKind;starts_at:string;ends_at:string;}
 export interface AppointmentItem {id:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;requires_specialist_snapshot:boolean;notes:string|null;weight_kg_at_visit:number|null;stages:AppointmentStage[];}
-export interface Appointment {id:string;client_id:string;client_name:string;starts_at:string;ends_at:string;status:AppointmentStatus;source:'INTERNAL'|'ONLINE';version:number;total_price:string;deposit_required:string;pickup_fee:string;client_notes:string|null;cancel_reason:string|null;created_by:string;needs_attention:boolean;items:AppointmentItem[];}
+export interface Appointment {id:string;client_id:string;client_name:string;starts_at:string;ends_at:string;status:AppointmentStatus;source:'INTERNAL'|'ONLINE';version:number;total_price:string;deposit_required:string;pickup_fee:string;pickup_type:PickupType;client_notes:string|null;cancel_reason:string|null;created_by:string;needs_attention:boolean;items:AppointmentItem[];}
 export interface StageInput {employee_id:string;stage:StageKind;starts_local:string;ends_local:string;}
 export interface ItemInput {id?:string;pet_id:string;service_id:string;notes:string;weight_kg_at_visit:number|null;stages:StageInput[];}
 export interface AppointmentInput {client_id:string;client_notes:string;items:ItemInput[];}
@@ -13,6 +14,7 @@ export interface DraftStage {stage:StageKind;employee_id:string;minutes:number|n
 export interface DraftItem {key:string;id?:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;specialist:boolean;notes:string;weight_kg_at_visit:number|null;start:string;stages:DraftStage[];quoting:boolean;quoteRevision:number;}
 export const STATUS_LABELS:Record<AppointmentStatus,string>={REQUESTED:'Solicitada',PENDING:'Pendiente',CONFIRMED:'Confirmada',IN_PROGRESS:'En atención',COMPLETED:'Completada',CANCELLED:'Cancelada',NO_SHOW:'No asistió'};
 export const STAGE_LABELS:Record<StageKind,string>={SERVICE:'Servicio completo',BATH:'Baño',CUT:'Corte'};
+export const PICKUP_TYPE_LABELS:Record<PickupType,string>={PICKUP_ONLY:'Solo recojo',DROPOFF_ONLY:'Solo regreso',BOTH:'Recojo y regreso',NONE:'Sin transporte'};
 export function localLima(instant:string):string{return Temporal.Instant.from(instant).toZonedDateTimeISO('America/Lima').toPlainDateTime().toString({smallestUnit:'second'});}
 export function addLocalMinutes(start:string,minutes:number):string {
  if(!Number.isSafeInteger(minutes)||minutes<0)throw new Error('Indica minutos enteros positivos.');

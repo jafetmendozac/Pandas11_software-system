@@ -61,6 +61,13 @@ CREATE TYPE "appointment_source" AS ENUM (
   'ONLINE'
 );
 
+CREATE TYPE "pickup_type" AS ENUM (
+  'PICKUP_ONLY',
+  'DROPOFF_ONLY',
+  'BOTH',
+  'NONE'
+);
+
 CREATE TYPE "payment_type" AS ENUM (
   'DEPOSIT',
   'BALANCE',
@@ -366,7 +373,7 @@ CREATE TABLE "appointments" (
   "client_id" uuid NOT NULL,
   "starts_at" timestamptz NOT NULL,
   "ends_at" timestamptz NOT NULL,
-  "requires_pickup" boolean NOT NULL DEFAULT false,
+  "pickup_type" pickup_type NOT NULL DEFAULT 'NONE',
   "pickup_address" text,
   "pickup_fee" numeric NOT NULL DEFAULT 0 CHECK (pickup_fee >= 0 AND pickup_fee < 'Infinity'::numeric AND pickup_fee = round(pickup_fee,2)),
   "status" appointment_status NOT NULL DEFAULT 'CONFIRMED',

@@ -15,12 +15,19 @@ CREATE TYPE "appointment_source" AS ENUM (
   'ONLINE'
 );
 
+CREATE TYPE "pickup_type" AS ENUM (
+  'PICKUP_ONLY',
+  'DROPOFF_ONLY',
+  'BOTH',
+  'NONE'
+);
+
 CREATE TABLE "appointments" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
   "starts_at" timestamptz NOT NULL,
   "ends_at" timestamptz NOT NULL,
-  "requires_pickup" boolean NOT NULL DEFAULT false,
+  "pickup_type" pickup_type NOT NULL DEFAULT 'NONE',
   "pickup_address" text,
   "pickup_fee" numeric NOT NULL DEFAULT 0 CHECK (pickup_fee >= 0 AND pickup_fee < 'Infinity'::numeric AND pickup_fee = round(pickup_fee,2)),
   "status" appointment_status NOT NULL DEFAULT 'CONFIRMED',
@@ -204,7 +211,7 @@ begin
 end $$;
 
 create function private.appointment_json(p_id uuid) returns jsonb language sql stable security definer set search_path='' as $$
- select to_jsonb(a)||jsonb_build_object('total_price',a.total_price::text,'deposit_required',a.deposit_required::text,'pickup_fee',a.pickup_fee::text,
+ select to_jsonb(a)||jsonb_build_object('total_price',a.total_price::text,'deposit_required',a.deposit_required::text,'pickup_fee',a.pickup_fee::text,'pickup_type',a.pickup_type,
   'client_name',concat_ws(' ',c.first_name,c.last_name),
   'needs_attention',exists(select 1 from public.appointment_items ai join public.appointment_item_staff s on s.item_id=ai.id where ai.appointment_id=a.id and not (private.labor_coverage(s.employee_id,(s.starts_at at time zone 'America/Lima')::date,s.stage='CUT' or (s.stage='SERVICE' and ai.requires_specialist_snapshot)) @> tstzrange(s.starts_at,s.ends_at,'[)'))),
   'items',coalesce((select jsonb_agg(to_jsonb(ai)||jsonb_build_object('price',ai.price::text,'pet_name',p.name,'service_name',sv.name,'stages',coalesce((

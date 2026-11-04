@@ -280,7 +280,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `client_id` | `uuid` | Sí | FK | — |
 | `starts_at` | `timestamptz` | Sí | — | — |
 | `ends_at` | `timestamptz` | Sí | — | — |
-| `requires_pickup` | `boolean` | Sí | — | `false` |
+| `pickup_type` | `pickup_type` | Sí | — | `'NONE'` |
 | `pickup_address` | `text` | No | — | — |
 | `pickup_fee` | `numeric` | Sí | — | `0` |
 | `status` | `appointment_status` | Sí | — | `'CONFIRMED'` |
