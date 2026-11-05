@@ -134,7 +134,7 @@ async function main() {
     .eq('client_notes', note));
   if (!appointment) {
     const quote = await value(owner.rpc('quote_service', {
-      p_service_id: id(301), p_size: 'TOY', p_coat: 'SHORT',
+      p_service_id: id(301), p_size: 'TOY', p_breed: null,
     }));
     assert.ok(money(quote.price) === '25.00' && quote.duration_minutes === 30,
       'La tarifa de Toby cambió; no se crea la cita histórica');

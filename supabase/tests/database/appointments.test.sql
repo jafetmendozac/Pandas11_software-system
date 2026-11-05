@@ -1,5 +1,5 @@
 begin;
-select plan(36);
+select plan(37);
 select set_config('test.owner',gen_random_uuid()::text,true);
 select set_config('test.staff',gen_random_uuid()::text,true);
 select set_config('test.client',gen_random_uuid()::text,true);
@@ -23,6 +23,7 @@ select set_config('test.appointment',(public.save_internal_appointment(current_s
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'total_price'),'100.10','Precio se cuenta una vez aunque haya dos etapas');
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'deposit_required'),'0','RN09: interna sin adelanto');
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'source'),'INTERNAL','Origen interno de servidor');
+select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'pickup_type'),'NONE','Cita interna sin traslado por defecto');
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'status'),'CONFIRMED','Alta confirmada por recepción');
 select is(jsonb_array_length(public.get_appointment(current_setting('test.appointment')::uuid)->'items'->0->'stages'),2,'Mismo trabajador puede bañar y cortar');
 select is((public.appointment_availability(current_setting('test.employee')::uuid,'2030-07-30','18:00','19:00',true,null,true)->>'interval_covered')::boolean,false,'Agenda descuenta ocupación después18');

@@ -1,9 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
 import { MascotasService, Pet, PetSize } from '../../shared/services/mascotas.service';
+import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
 import { ServiceQuote, TarifasService } from '../../shared/services/tarifas.service';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
+import { CustomSelectOption } from '../../shared/components/form/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-service-catalog',
@@ -15,6 +17,7 @@ export class ServiceCatalogComponent implements OnInit {
   private readonly catalogue = inject(ServiciosService);
   private readonly clients = inject(ClientesService);
   private readonly petsService = inject(MascotasService);
+  private readonly petBreeds = inject(PetBreedsService);
   private readonly pricing = inject(TarifasService);
   private revision = 0;
 
@@ -27,6 +30,7 @@ export class ServiceCatalogComponent implements OnInit {
   readonly selectedPetId = signal('');
   readonly size = signal<PetSize | null>(null);
   readonly breed = signal<string | null>(null);
+  breedOptions: CustomSelectOption[] = [{ value: '', label: 'No indicado' }];
   readonly calculating = signal(false);
   readonly calculationError = signal('');
   readonly result = signal<ServiceQuote | null>(null);
@@ -41,6 +45,13 @@ export class ServiceCatalogComponent implements OnInit {
       this.error.set('No pudimos cargar los servicios. Vuelve a intentarlo más tarde.');
     } finally {
       this.loading.set(false);
+    }
+
+    try {
+      const breedRows = await this.petBreeds.getAll(true);
+      this.breedOptions = [{ value: '', label: 'No indicado' }, ...breedRows.map(b => ({ value: b.id, label: b.name }))];
+    } catch {
+      this.petNotice.set('No pudimos cargar las razas. Vuelve a intentarlo más tarde.');
     }
 
     try {

@@ -15,7 +15,7 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tab
     @if (loading) { <p role="status">Cargando antecedentes…</p> } @else {
       @if (pet) {
         <dl class="grid grid-cols-2 gap-2 text-sm">
-          <dt>Raza</dt><dd>{{ pet.breed || 'No indicada' }}</dd>
+          <dt>Raza</dt><dd>{{ pet.breed_name || 'No indicada' }}</dd>
           <dt>Tamaño</dt><dd>{{ pet.pet_size || 'No indicado' }}</dd>
           <dt>Peso (kg)</dt><dd>{{ pet.weight_kg ?? 'No indicado' }}</dd>
           <dt>Alergias</dt><dd>{{ pet.allergies ? 'Sí' : 'No' }}</dd>

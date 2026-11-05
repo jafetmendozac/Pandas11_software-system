@@ -31,7 +31,7 @@
           <div class="grid gap-4 sm:grid-cols-2">
             @for (pet of pets(); track pet.id) {
               <button type="button" (click)="showPet(pet)" [attr.aria-pressed]="selectedPet()?.id === pet.id" class="rounded-2xl border bg-white p-5 text-start shadow-theme-xs transition-colors hover:border-brand-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-gray-900" [class.border-brand-500]="selectedPet()?.id === pet.id" [class.border-gray-200]="selectedPet()?.id !== pet.id">
-                <span class="flex items-center gap-4"><span aria-hidden="true" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">{{ pet.name.charAt(0).toUpperCase() }}</span><span><span class="block text-lg font-semibold">{{ pet.name }}</span><span class="block text-sm text-gray-500 dark:text-gray-400">{{ pet.breed || 'Raza no indicada' }} · {{ sizeLabel(pet.pet_size) }}</span></span></span>
+                <span class="flex items-center gap-4"><span aria-hidden="true" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">{{ pet.name.charAt(0).toUpperCase() }}</span><span><span class="block text-lg font-semibold">{{ pet.name }}</span><span class="block text-sm text-gray-500 dark:text-gray-400">{{ pet.breed_name || 'Raza no indicada' }} · {{ sizeLabel(pet.pet_size) }}</span></span></span>
                 <span class="mt-4 block text-sm font-medium text-brand-600 dark:text-brand-400">Ver antecedentes →</span>
               </button>
             }

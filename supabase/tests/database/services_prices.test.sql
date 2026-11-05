@@ -3,6 +3,8 @@ select plan(18);
 select set_config('test.owner',gen_random_uuid()::text,true);
 select set_config('test.client',gen_random_uuid()::text,true);
 select set_config('test.service',gen_random_uuid()::text,true);
+select set_config('test.breed',gen_random_uuid()::text,true);
+insert into public.pet_breeds(id,name) values(current_setting('test.breed')::uuid,'Fixture raza');
 select set_config('test.hidden',gen_random_uuid()::text,true);
 insert into auth.users(id,email,raw_user_meta_data) values
  (current_setting('test.owner')::uuid,'test-'||current_setting('test.owner')||'@example.test','{}'),
@@ -16,14 +18,14 @@ select is(public.quote_service(current_setting('test.service')::uuid)->>'price',
 select is(public.quote_service(current_setting('test.service')::uuid)->>'source','BASE','Sin reglas usa base');
 insert into public.service_prices(service_id,price,duration_minutes) values(current_setting('test.service')::uuid,90,100);
 select is(public.quote_service(current_setting('test.service')::uuid)->>'source','GENERAL','Regla general');
-insert into public.service_prices(service_id,pet_coat_type,price,duration_minutes) values(current_setting('test.service')::uuid,'LONG',80,90);
-select is(public.quote_service(current_setting('test.service')::uuid,'TOY','LONG')->>'source','COAT','Regla pelaje');
+insert into public.service_prices(service_id,pet_breed_id,price,duration_minutes) values(current_setting('test.service')::uuid,current_setting('test.breed')::uuid,80,90);
+select is(public.quote_service(current_setting('test.service')::uuid,'TOY',current_setting('test.breed')::uuid)->>'source','BREED','Regla raza');
 insert into public.service_prices(service_id,pet_size,price,duration_minutes) values(current_setting('test.service')::uuid,'TOY',70,80);
-select is(public.quote_service(current_setting('test.service')::uuid,'TOY','LONG')->>'source','SIZE','Tamaño antes que pelaje');
-insert into public.service_prices(service_id,pet_size,pet_coat_type,price,duration_minutes) values(current_setting('test.service')::uuid,'TOY','LONG',0,45);
-select is(public.quote_service(current_setting('test.service')::uuid,'TOY','LONG')->>'source','SIZE_COAT','Exacta antes que tamaño');
-select is(public.quote_service(current_setting('test.service')::uuid,'TOY','LONG')->>'price','0','Cero no usa fallback');
-select is(public.quote_service(current_setting('test.service')::uuid,null,'LONG')->>'source','COAT','Desconocido no coincide con tamaño específico');
+select is(public.quote_service(current_setting('test.service')::uuid,'TOY',current_setting('test.breed')::uuid)->>'source','SIZE','Tamaño antes que raza');
+insert into public.service_prices(service_id,pet_size,pet_breed_id,price,duration_minutes) values(current_setting('test.service')::uuid,'TOY',current_setting('test.breed')::uuid,0,45);
+select is(public.quote_service(current_setting('test.service')::uuid,'TOY',current_setting('test.breed')::uuid)->>'source','SIZE_BREED','Exacta antes que tamaño');
+select is(public.quote_service(current_setting('test.service')::uuid,'TOY',current_setting('test.breed')::uuid)->>'price','0','Cero no usa fallback');
+select is(public.quote_service(current_setting('test.service')::uuid,null,current_setting('test.breed')::uuid)->>'source','BREED','Desconocido no coincide con tamaño específico');
 select is(public.quote_service(current_setting('test.service')::uuid)->>'source','GENERAL','Dos desconocidos usan general');
 select throws_ok($$insert into public.service_prices(service_id,price,duration_minutes) values(current_setting('test.service')::uuid,1,10)$$,'23505',null,'General única con NULL');
 select throws_ok($$insert into public.services(name,base_price,base_duration_minutes) values('Error',1.234,10)$$,'23514',null,'Sin redondear exceso de decimales');

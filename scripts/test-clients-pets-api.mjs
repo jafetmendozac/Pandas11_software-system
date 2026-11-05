@@ -8,7 +8,7 @@ assert.equal(env.API_URL,'http://127.0.0.1:55321');
 const options={auth:{persistSession:false,autoRefreshToken:false}};
 const root=createClient(env.API_URL,env.SERVICE_ROLE_KEY,options);
 const users=[],clients=[],pets=[],bulkPrefix='Pagination-'+randomUUID();
-const apis={};let checks=0;
+const apis={};let checks=0;let breedId=null;
 const check=(ok,label)=>{assert.ok(ok,label);checks++;};
 const sql=text=>execFileSync('psql',['postgresql://postgres:postgres@127.0.0.1:55322/postgres','-v','ON_ERROR_STOP=1','-c',text],{stdio:'pipe'});
 const value=async result=>{const r=await result;assert.ifError(r.error);return r.data;};
@@ -44,7 +44,9 @@ try{
  const deniedEdit=await a.from('pets').update({name:'Cambio'}).eq('id',p1.id).select('id');
  check(!deniedEdit.error&&deniedEdit.data.length===0,'Cliente no edita mascota');
  check((await value(owner.from('pets').select('name').eq('id',p1.id).single())).name==='Toby','Nombre permanece intacto');
- await value(admin.from('pets').update({breed:'Mestizo'}).eq('id',p1.id).select('id').single());checks++;
+ const breed=await value(admin.from('pet_breeds').insert({name:'Mestizo '+randomUUID()}).select().single());
+ breedId=breed.id;
+ await value(admin.from('pets').update({breed_id:breed.id}).eq('id',p1.id).select('id').single());checks++;
  await value(owner.from('pet_internal').insert({pet_id:p1.id,notes:'Detalle reservado de alergia'}).select().single());
  const note=await value(staff.from('pet_internal').select('notes,updated_by').eq('pet_id',p1.id).single());
  check(note.notes==='Detalle reservado de alergia'&&note.updated_by===apis.OWNER.id,'Personal lee nota con autor servidor');
@@ -88,5 +90,6 @@ try{
  for(const id of pets){sql(`delete from public.pet_internal where pet_id='${id}';delete from public.pet_vaccinations where pet_id='${id}';delete from public.pets where id='${id}'`);}
  for(const id of clients){sql(`delete from public.client_internal where client_id='${id}';delete from public.clients where id='${id}'`);}
  sql(`delete from public.clients where first_name like '${bulkPrefix}-%'`);
+ if (breedId) sql(`delete from public.pet_breeds where id='${breedId}'`);
  for(const id of users)await root.auth.admin.deleteUser(id);
 }

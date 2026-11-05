@@ -9,6 +9,7 @@ export interface Pet extends TableRow {
     client_id: string;
     name: string;
     breed_id: string | null;
+    breed_name: string | null;
     pet_sex: PetSex | null;
     pet_size: PetSize | null;
     weight_kg: number | null;

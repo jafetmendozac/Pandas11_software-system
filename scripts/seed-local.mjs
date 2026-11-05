@@ -110,7 +110,7 @@ async function main() {
       pet_size: 'SMALL', pet_coat_type: 'LONG', weight_kg: 6, allergies: true,
       client_notes: 'Información comunicable: usar champú indicado por su dueña.'},
     {id: id(202), client_id: id(101), name: 'Toby', pet_sex: 'MALE', pet_size: 'TOY', pet_coat_type: 'SHORT', weight_kg: 3},
-    {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', pet_coat_type: 'CURLY', bites: true, weight_kg: 25},
+    {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', pet_coat_type: 'LONG', bites: true, weight_kg: 25},
     {id: id(204), client_id: id(103), name: 'Milo', active: false, deleted_at: `${startDate}T00:00:00-05:00`},
   ], 'client_id');
   fixture('pet_vaccinations', [
@@ -131,6 +131,14 @@ async function main() {
     {id: id(403), service_id: id(301), pet_size: null, pet_coat_type: 'LONG', price: '50.00', duration_minutes: 60},
     {id: id(404), service_id: id(301), pet_size: 'SMALL', pet_coat_type: 'LONG', price: '55.00', duration_minutes: 60},
   ], 'service_id');
+  fixtures.push(`insert into public.pet_breeds(name) values ('Mestiza') on conflict do nothing;`);
+  fixtures.push(`update public.pets p set breed_id=b.id from public.pet_breeds b
+    where p.id='${id(201)}'::uuid and p.breed='Mestiza' and b.name='Mestiza'
+    and p.breed_id is distinct from b.id;`);
+  fixtures.push(`update public.service_prices sp set pet_breed_id=b.id,pet_coat_type=null
+    from public.pet_breeds b where sp.id in ('${id(403)}'::uuid,'${id(404)}'::uuid)
+    and sp.service_id='${id(301)}'::uuid and b.name='Mestiza'
+    and (sp.pet_breed_id is distinct from b.id or sp.pet_coat_type is not null);`);
   fixture('employees', [
     {id: id(501), profile_id: accounts.ADMIN, skill_level: 'ALL_SERVICES'},
     {id: id(502), profile_id: accounts.STAFF, skill_level: 'ASSISTANT'},

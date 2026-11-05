@@ -120,7 +120,7 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
 
  it('una cotización fallida de un servicio retirado no contamina el nuevo formulario',async()=>{
   const f=await fixture();const c=f.componentInstance;const i=draft();c.items.set([i]);
-  c.pets.set([{id:'pet',client_id:'c',pet_size:'TOY',breed_id:'poodle',name:'Perro'} as never]);
+  c.pets.set([{id:'pet',client_id:'c',pet_size:'TOY',breed_id:'00000000-0000-4000-8000-000000000001',name:'Perro'} as never]);
   c.services.set([{id:'service',name:'Baño',requires_specialist:false} as never]);
   let reject!:(error:Error)=>void;spyOn(TestBed.inject(TarifasService),'quote').and.callFake(()=>new Promise((_resolve,r)=>reject=r));
   const previous=c.quote(i);c.items.set([]);c.touch();reject(new Error('Cotización anterior denegada'));await previous;

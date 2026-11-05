@@ -40,14 +40,15 @@ try {
   }
   ok((await value(owner.from('pet_vaccinations').select('id').in('id', [id(251), id(252)]))).length === 2, 'Dos antecedentes de vacunas');
   ok((await value(client.from('services').select('id').in('id', [id(301), id(302), id(303), id(304)]))).length === 2, 'Catálogo CLIENT filtra interno e inactivo');
-  for (const [service, size, coat, source, price, minutes] of [
-    [301, 'SMALL', 'LONG', 'SIZE_COAT', '55', 60],
-    [301, 'TOY', 'LONG', 'SIZE', '25', 30],
-    [301, 'MEDIUM', 'LONG', 'COAT', '50', 60],
-    [301, 'LARGE', 'SHORT', 'GENERAL', '40', 60],
-    [302, 'SMALL', 'LONG', 'BASE', '90', 120],
+  const mestiza = await value(owner.from('pet_breeds').select('id').eq('name', 'Mestiza').single());
+  for (const [service, size, breed, source, price, minutes] of [
+    [301, 'SMALL', mestiza.id, 'SIZE_BREED', '55', 60],
+    [301, 'TOY', mestiza.id, 'SIZE', '25', 30],
+    [301, 'MEDIUM', mestiza.id, 'BREED', '50', 60],
+    [301, 'LARGE', null, 'GENERAL', '40', 60],
+    [302, 'SMALL', mestiza.id, 'BASE', '90', 120],
   ]) {
-    const quote = await value(owner.rpc('quote_service', {p_service_id: id(service), p_size: size, p_coat: coat}));
+    const quote = await value(owner.rpc('quote_service', {p_service_id: id(service), p_size: size, p_breed: breed}));
     ok(quote.source === source && Number(quote.price) === Number(price) && quote.duration_minutes === minutes, `Cotización ${source}`);
   }
   const appointments = await value(root.from('appointments').select('*').in('client_id', [id(101), id(102)]).like('client_notes', '[pandas11-phases-0-4-v1:%'));

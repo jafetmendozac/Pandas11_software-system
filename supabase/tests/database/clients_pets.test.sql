@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(16);
 select set_config('test.owner',gen_random_uuid()::text,true);
 select set_config('test.client',gen_random_uuid()::text,true);
 insert into auth.users(id,email,raw_user_meta_data) values
@@ -8,19 +8,23 @@ insert into auth.users(id,email,raw_user_meta_data) values
 insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
 select set_config('test.client_record',gen_random_uuid()::text,true);
 select set_config('test.pet',gen_random_uuid()::text,true);
+select set_config('test.breed',gen_random_uuid()::text,true);
+insert into public.pet_breeds(id,name) values(current_setting('test.breed')::uuid,'Fixture raza');
 insert into public.clients(id,profile_id,first_name) values(current_setting('test.client_record')::uuid,current_setting('test.client')::uuid,'Cliente fixture');
-insert into public.pets(id,client_id,name,pet_size,allergies) values(current_setting('test.pet')::uuid,current_setting('test.client_record')::uuid,'Mini','TOY',true);
+insert into public.pets(id,client_id,name,pet_size,allergies,breed_id) values(current_setting('test.pet')::uuid,current_setting('test.client_record')::uuid,'Mini','TOY',true,current_setting('test.breed')::uuid);
 select is((select allergies from public.pets where id=current_setting('test.pet')::uuid),true,'Alergias boolean');
 select throws_ok($$insert into public.pets(client_id,name,weight_kg) values(current_setting('test.client_record')::uuid,'Peso',-1)$$,'23514',null,'Peso inválido');
 select throws_ok($$insert into public.pet_vaccinations(pet_id,vaccine,applied_on,valid_until) values(current_setting('test.pet')::uuid,'Vacuna','2026-01-02','2026-01-01')$$,'23514',null,'Vigencia inválida');
 select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
 set local role authenticated;
+select is((public.search_pets('',1,10,false,current_setting('test.client_record')::uuid)->'rows'->0->>'breed_name'),'Fixture raza','Ficha devuelve nombre de raza sin mostrar UUID');
 select lives_ok($$insert into public.pet_internal(pet_id,notes) values(current_setting('test.pet')::uuid,'Reservado')$$,'Owner escribe nota');
 select is((select updated_by from public.pet_internal where pet_id=current_setting('test.pet')::uuid),auth.uid(),'Autor servidor');
 select throws_ok($$update public.pet_internal set updated_by=current_setting('test.client')::uuid$$,'42501',null,'Autor protegido');
 reset role;
 select set_config('request.jwt.claim.sub',current_setting('test.client'),true);
 set local role authenticated;
+select is((select count(*)::integer from public.pet_breeds where id=current_setting('test.breed')::uuid),1,'CLIENT activo puede consultar el catálogo de razas');
 select is((select count(*)::integer from public.clients),1,'Cliente solo propia ficha');
 select is((select count(*)::integer from public.pet_internal),0,'Cliente no lee internas');
 select throws_ok($$select public.save_client('{"first_name":"Ataque"}')$$,'42501',null,'Cliente no registra');

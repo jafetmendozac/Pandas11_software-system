@@ -4,6 +4,10 @@ import { TarifasComponent } from './tarifas.component';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { ServiciosService } from '../../shared/services/servicios.service';
 import { TarifasService } from '../../shared/services/tarifas.service';
+import { PetBreedsService } from '../../shared/services/pet-breeds.service';
+import { SupabaseService } from '../../shared/services/supabase.service';
+
+const mockSupabase = { client: { from: () => ({ select: () => ({ ilike: () => ({ order: () => ({ range: () => Promise.resolve({ data: [], error: null, count: 0 }) }) }) }) }) } };
 
 describe('Tarifas de solo lectura', () => {
   it('presenta el nombre incluido en la consulta y conserva el UUID como valor del formulario', async () => {
@@ -16,6 +20,8 @@ describe('Tarifas de solo lectura', () => {
     TestBed.configureTestingModule({
       imports: [TarifasComponent],
       providers: [provideRouter([]),
+        { provide: SupabaseService, useValue: mockSupabase },
+        { provide: PetBreedsService, useValue: { getAll: async () => [] } },
         { provide: AuthorizationService, useValue: { has: (permission: string) => permission.endsWith('.read') } },
         { provide: ServiciosService, useValue: services },
         { provide: TarifasService, useValue: prices }],

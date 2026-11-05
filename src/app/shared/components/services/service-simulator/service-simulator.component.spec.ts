@@ -2,11 +2,18 @@ import { TestBed } from '@angular/core/testing';
 import { ServiceSimulatorComponent } from './service-simulator.component';
 import { ServiciosService } from '../../../services/servicios.service';
 import { TarifasService, ServiceQuote } from '../../../services/tarifas.service';
+import { PetBreedsService } from '../../../services/pet-breeds.service';
+import { SupabaseService } from '../../../services/supabase.service';
+
+const mockSupabase = { client: { from: () => ({ select: () => ({ ilike: () => ({ order: () => ({ range: () => Promise.resolve({ data: [], error: null, count: 0 }) }) }) }) }) } };
+
 describe('Simulador de precios',()=>{
   let pricing:{quote:jasmine.Spy};
   beforeEach(()=>{
     pricing={quote:jasmine.createSpy().and.resolveTo({service_id:'service',price:'0',duration_minutes:45,source:'SIZE_BREED',rule_id:'rule'})};
     TestBed.configureTestingModule({imports:[ServiceSimulatorComponent],providers:[
+      {provide:SupabaseService,useValue:mockSupabase},
+      {provide:PetBreedsService,useValue:{getAll:async()=>[{id:'00000000-0000-4000-8000-000000000001',name:'Poodle',active:true}]}},
       {provide:ServiciosService,useValue:{getAll:async()=>[{id:'service',name:'Baño',active:true,visible_to_clients:true},{id:'hidden',name:'Oculto',active:true,visible_to_clients:false}]}},
       {provide:TarifasService,useValue:pricing},
     ]});
@@ -15,9 +22,9 @@ describe('Simulador de precios',()=>{
     const f=TestBed.createComponent(ServiceSimulatorComponent);f.detectChanges();await f.whenStable();
     expect(f.nativeElement.querySelectorAll('app-custom-select').length).toBe(3);
     expect(f.nativeElement.querySelectorAll('select').length).toBe(0);
-    f.componentInstance.serviceId='service';f.componentInstance.size='TOY';f.componentInstance.breed='poodle';
+    f.componentInstance.serviceId='service';f.componentInstance.size='TOY';f.componentInstance.breed='00000000-0000-4000-8000-000000000001';
     await f.componentInstance.calculate();f.detectChanges();
-    expect(pricing.quote).toHaveBeenCalledWith('service','TOY','poodle');
+    expect(pricing.quote).toHaveBeenCalledWith('service','TOY','00000000-0000-4000-8000-000000000001');
     expect(f.nativeElement.textContent).toContain('0.00');expect(f.nativeElement.textContent).toContain('45 minutos');expect(f.nativeElement.textContent).toContain('Tamaño y raza');
   });
   it('catálogo propio solo ofrece servicios visibles',async()=>{

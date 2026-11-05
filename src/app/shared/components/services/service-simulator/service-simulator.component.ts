@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, inject, signal } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { Service, ServiciosService } from '../../../services/servicios.service';
 import { TarifasService, ServiceQuote, PetSize } from '../../../services/tarifas.service';
+import { PetBreedsService } from '../../../services/pet-breeds.service';
 import { decimalLabel } from '../../../services/service-pricing.models';
 import { CustomSelectComponent, CustomSelectOption } from '../../form/custom-select/custom-select.component';
 
@@ -40,6 +41,7 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
   @Input() publicOnly = false;
   private readonly catalogue = inject(ServiciosService);
   private readonly pricing = inject(TarifasService);
+  private readonly petBreeds = inject(PetBreedsService);
   private revision = 0;
   readonly services = signal<Service[]>([]);
   readonly loading = signal(true);
@@ -52,24 +54,19 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
     { value: 'SMALL', label: 'Pequeño' }, { value: 'MEDIUM', label: 'Mediano' },
     { value: 'LARGE', label: 'Grande' }, { value: 'EXTRA_LARGE', label: 'Extra grande' },
   ];
-  readonly breedOptions: CustomSelectOption[] = [
-    { value: '', label: 'No indicado' },
-    { value: 'shitzu', label: 'Shitzu' },
-    { value: 'schnauzer', label: 'Schnauzer' },
-    { value: 'poodle', label: 'Poodle' },
-    { value: 'siberiano', label: 'Siberiano' },
-    { value: 'husky_siberiano', label: 'Husky Siberiano' },
-    { value: 'golden_retriever', label: 'Golden Retriever' },
-    { value: 'labrador', label: 'Labrador' },
-    { value: 'rottweiler', label: 'Rottweiler' },
-  ];
+  breedOptions: CustomSelectOption[] = [{ value: '', label: 'No indicado' }];
   readonly serviceOptions = () => [
     { value: '', label: 'Selecciona un servicio' },
     ...this.services().map(service => ({ value: service.id, label: service.name })),
   ];
   readonly label = decimalLabel;
   async ngOnInit(): Promise<void> {
-    try { const data = await this.catalogue.getAll(true); this.services.set(this.publicOnly ? data.filter(s => s.visible_to_clients) : data); }
+    try {
+      const data = await this.catalogue.getAll(true);
+      this.services.set(this.publicOnly ? data.filter(s => s.visible_to_clients) : data);
+      const breedRows = await this.petBreeds.getAll(true);
+      this.breedOptions = [{ value: '', label: 'No indicado' }, ...breedRows.map(b => ({ value: b.id, label: b.name }))];
+    }
     catch { this.error.set('No se pudo cargar el catálogo.'); }
     finally { this.loading.set(false); }
   }

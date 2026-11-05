@@ -4,6 +4,7 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { ClientesService, PageQuery } from '../../shared/services/clientes.service';
 import { MascotasService, Pet } from '../../shared/services/mascotas.service';
+import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { RecordDetailsComponent } from '../../shared/components/records/record-details/record-details.component';
 @Component({ selector: 'app-mascotas-table', standalone: true,
@@ -13,6 +14,7 @@ export class MascotasTableComponent implements OnInit {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly pets = inject(MascotasService);
     private readonly clients = inject(ClientesService);
+    private readonly petBreeds = inject(PetBreedsService);
     @ViewChild('petsTable')
     petsTable?: PersonalizedTable;
     tableData: Pet[] = [];
@@ -74,17 +76,7 @@ export class MascotasTableComponent implements OnInit {
             label: 'Raza',
             helpText: 'Selecciona la raza de la mascota.',
             required: false,
-            options: [
-                { label: 'No especificada', value: '' },
-                { label: 'Shitzu', value: 'shitzu' },
-                { label: 'Schnauzer', value: 'schnauzer' },
-                { label: 'Poodle', value: 'poodle' },
-                { label: 'Siberiano', value: 'siberiano' },
-                { label: 'Husky Siberiano', value: 'husky_siberiano' },
-                { label: 'Golden Retriever', value: 'golden_retriever' },
-                { label: 'Labrador', value: 'labrador' },
-                { label: 'Rottweiler', value: 'rottweiler' },
-            ],
+            options: [],
         },
         {
             key: 'weight_kg',
@@ -156,6 +148,13 @@ export class MascotasTableComponent implements OnInit {
             catch {
                 this.errorMessage = 'No se pudieron cargar los clientes.';
             }
+        }
+        try {
+            const breedRows = await this.petBreeds.getAll();
+            this.columns = this.columns.map(c => c.key === 'breed_id' ? { ...c, options: [{ label: 'No especificada', value: '' }, ...breedRows.map(b => ({ label: b.name, value: b.id }))] } : c);
+        }
+        catch {
+            this.errorMessage = 'No se pudieron cargar las razas.';
         }
         await this.loadPets();
     }

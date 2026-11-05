@@ -1,66 +1,139 @@
--- Reemplaza pet_coat_type por pet_breeds (tabla de razas gestionable)
--- Se elimina el enum pet_coat_type y la columna de pets/service_prices.
--- Se añade tabla pet_breeds con CRUD para que el negocio agregue razas libremente.
-
-CREATE TABLE "pet_breeds" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
-  "active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now()
+-- Transición incremental de pelaje/texto libre a razas UUID.
+-- Conserva columnas y datos históricos hasta conciliación posterior.
+create table public.pet_breeds (
+ id uuid primary key default gen_random_uuid(),
+ name text not null check (length(btrim(name)) > 0),
+ active boolean not null default true,
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now()
 );
+create unique index pet_breeds_name_key on public.pet_breeds (lower(btrim(name)));
+create trigger stamp_pet_breeds before update on public.pet_breeds
+ for each row execute function private.stamp_domain();
 
--- Mascotas: quitar pet_coat_type, convertir breed (text) en breed_id (FK opcional)
-ALTER TABLE public.pets DROP COLUMN "pet_coat_type";
-ALTER TABLE public.pets RENAME COLUMN "breed" TO "breed_id";
-ALTER TABLE public.pets ALTER COLUMN "breed_id" DROP NOT NULL;
-ALTER TABLE public.pets ADD CONSTRAINT fk_pets_breed FOREIGN KEY ("breed_id") REFERENCES public.pet_breeds(id);
+insert into public.pet_breeds(name)
+select name from (
+ select distinct btrim(breed) name from public.pets where nullif(btrim(breed),'') is not null
+ union all select unnest(array['Shitzu','Schnauzer','Poodle','Siberiano','Husky Siberiano','Golden Retriever','Labrador','Rottweiler'])
+) names on conflict do nothing;
 
--- Tarifas: quitar pet_coat_type, añadir pet_breed_id (FK opcional)
-ALTER TABLE public.service_prices DROP COLUMN "pet_coat_type";
-ALTER TABLE public.service_prices ADD COLUMN "pet_breed_id" uuid REFERENCES public.pet_breeds(id);
-DROP INDEX IF EXISTS "uq_service_prices_rule";
-CREATE UNIQUE INDEX "uq_service_prices_rule" ON "service_prices" ("service_id", "pet_size", "pet_breed_id") NULLS NOT DISTINCT;
+alter table public.pets add column breed_id uuid references public.pet_breeds(id);
+update public.pets p set breed_id=b.id from public.pet_breeds b
+ where lower(btrim(p.breed))=lower(btrim(b.name));
+alter table public.service_prices add column pet_breed_id uuid references public.pet_breeds(id);
 
--- Eliminar enum ya no usado
-DROP TYPE IF EXISTS public.pet_coat_type;
+-- Las tarifas antiguas por pelaje quedan guardadas para revisión comercial.
+-- La cotización nueva solo considera reglas con pet_coat_type NULL.
+drop index public.uq_service_prices_rule;
+create unique index uq_service_prices_rule on public.service_prices
+ (service_id,pet_size,pet_breed_id,pet_coat_type) nulls not distinct;
 
--- RLS y permisos para pet_breeds
+grant insert(breed_id),update(breed_id) on public.pets to authenticated;
+grant insert(pet_breed_id),update(pet_breed_id) on public.service_prices to authenticated;
 alter table public.pet_breeds enable row level security;
 revoke all on public.pet_breeds from anon,authenticated;
-grant select on public.pet_breeds to authenticated;
-grant insert(name,active),update(name,active) on public.pet_breeds to authenticated;
-create policy breeds_read on public.pet_breeds for select to authenticated using(public.has_permission('services.read') or true);
-create policy breeds_manage on public.pet_breeds for all to authenticated using(public.has_permission('services.manage')) with check(public.has_permission('services.manage'));
+grant select,insert(name,active),update(name,active),delete on public.pet_breeds to authenticated;
+create policy breeds_read on public.pet_breeds for select to authenticated using (private.is_active());
+create policy breeds_create on public.pet_breeds for insert to authenticated
+ with check (public.has_permission('service_prices.manage'));
+create policy breeds_edit on public.pet_breeds for update to authenticated
+ using (public.has_permission('service_prices.manage'))
+ with check (public.has_permission('service_prices.manage'));
+create policy breeds_delete on public.pet_breeds for delete to authenticated
+ using (public.has_permission('service_prices.manage'));
 
--- Función de cotización ajustada: recibe breed_id en lugar de pet_coat_type
-create or replace function public.quote_service(p_service_id uuid,p_size public.pet_size default null,p_breed uuid default null)
+create function public.quote_service(p_service_id uuid,p_size public.pet_size default null,p_breed uuid default null)
 returns jsonb language plpgsql stable set search_path='' as $$
 declare result jsonb;
 begin
-  select jsonb_build_object(
-    'service_id',s.id,'price',coalesce(r.price,s.base_price)::text,
-    'duration_minutes',coalesce(r.duration_minutes,s.base_duration_minutes),
-    'rule_id',r.id,'source',coalesce(r.source,'BASE')) into result
-  from public.services s
-  left join lateral (
-    select sp.*,case
-     when sp.pet_size is not null and sp.pet_breed_id is not null then 'SIZE_BREED'
-     when sp.pet_size is not null then 'SIZE'
-     when sp.pet_breed_id is not null then 'BREED' else 'GENERAL' end as source
-    from public.service_prices sp
-    where sp.service_id=s.id and (sp.pet_size is null or sp.pet_size=p_size) and (sp.pet_breed_id is null or sp.pet_breed_id=p_breed)
-    order by case when sp.pet_size is not null and sp.pet_breed_id is not null then 1 when sp.pet_size is not null then 2 when sp.pet_breed_id is not null then 3 else 4 end
-    limit 1
-  ) r on true
-  where s.id=p_service_id and s.active
-    and (public.has_permission('services.read') or private.catalog_visible(s.id));
-  if result is null then raise exception 'Servicio no disponible para calcular' using errcode='42501'; end if;
-  if public.has_permission('services.read') and not public.has_permission('service_prices.read') and not private.catalog_visible(p_service_id) then
-   raise exception 'Sin permiso para consultar tarifas de este servicio' using errcode='42501';
+ select jsonb_build_object(
+  'service_id',s.id,'price',coalesce(r.price,s.base_price)::text,
+  'duration_minutes',coalesce(r.duration_minutes,s.base_duration_minutes),
+  'rule_id',r.id,'source',coalesce(r.source,'BASE')) into result
+ from public.services s
+ left join lateral (
+  select sp.*,case
+   when sp.pet_size is not null and sp.pet_breed_id is not null then 'SIZE_BREED'
+   when sp.pet_size is not null then 'SIZE'
+   when sp.pet_breed_id is not null then 'BREED' else 'GENERAL' end as source
+  from public.service_prices sp
+  where sp.service_id=s.id and sp.pet_coat_type is null
+   and (sp.pet_size is null or sp.pet_size=p_size)
+   and (sp.pet_breed_id is null or sp.pet_breed_id=p_breed)
+  order by case when sp.pet_size is not null and sp.pet_breed_id is not null then 1
+   when sp.pet_size is not null then 2 when sp.pet_breed_id is not null then 3 else 4 end
+  limit 1
+ ) r on true
+ where s.id=p_service_id and s.active
+  and (public.has_permission('services.read') or private.catalog_visible(s.id));
+ if result is null then raise exception 'Servicio no disponible para calcular' using errcode='42501'; end if;
+ if public.has_permission('services.read') and not public.has_permission('service_prices.read') and not private.catalog_visible(p_service_id) then
+  raise exception 'Sin permiso para consultar tarifas de este servicio' using errcode='42501';
+ end if;
+ return result;
+end $$;
+revoke all on function public.quote_service(uuid,public.pet_size,uuid) from public,anon;
+grant execute on function public.quote_service(uuid,public.pet_size,uuid) to authenticated;
+
+-- La agenda cotiza las nuevas altas con la misma dimensión UUID.
+create or replace function public.save_internal_appointment(p_input jsonb,p_id uuid default null,p_expected_version integer default null) returns jsonb
+language plpgsql volatile security definer set search_path='' as $$
+declare a public.appointments; old_item public.appointment_items; v_item jsonb; v_stage jsonb; item_id uuid; kept uuid[]:=array[]::uuid[]; q jsonb; specialist boolean; pet uuid; service uuid; client uuid;
+ price numeric; duration int; target uuid; first_time timestamptz; last_time timestamptz; v_total numeric;
+begin
+ perform private.require_work_permission('appointments.manage'); perform private.require_work_permission('appointments.read'); perform private.appointment_lock();
+ perform private.require_work_permission('appointments.manage'); perform private.require_work_permission('appointments.read');
+ if p_input is null or jsonb_typeof(p_input)<>'object' or p_input-array['client_id','client_notes','items']<>'{}'::jsonb then raise exception 'Campos de cita no admitidos' using errcode='22023'; end if;
+ if jsonb_typeof(p_input->'items') is distinct from 'array' or jsonb_array_length(p_input->'items')=0 then raise exception 'Añade servicios y asignaciones' using errcode='22023'; end if;
+ client:=(p_input->>'client_id')::uuid;
+ perform 1 from public.clients where id=client and deleted_at is null for share;
+ if not found then raise exception 'Cliente no disponible' using errcode='22023'; end if;
+ if p_id is null then
+  insert into public.appointments(client_id,starts_at,ends_at,total_price,created_by,client_notes) values(client,now(),now()+interval '1 minute',0,auth.uid(),p_input->>'client_notes') returning * into a;
+ else
+  select * into strict a from public.appointments where id=p_id for update;
+  if a.version is distinct from p_expected_version then raise exception 'La cita cambió. Recarga antes de guardar' using errcode='40001'; end if;
+  if a.status<>'CONFIRMED' or a.client_id<>client then raise exception 'Solo se reprograman citas confirmadas del mismo cliente' using errcode='22023'; end if;
+ end if;
+ for v_item in select value from jsonb_array_elements(p_input->'items') loop
+  if jsonb_typeof(v_item)<>'object' or v_item-array['id','pet_id','service_id','weight_kg_at_visit','notes','stages']<>'{}'::jsonb then raise exception 'Campos de servicio no admitidos' using errcode='22023'; end if;
+  pet:=(v_item->>'pet_id')::uuid; service:=(v_item->>'service_id')::uuid;
+  perform 1 from public.pets where id=pet and client_id=client and active and deleted_at is null and death_date is null for share;
+  if not found then raise exception 'Mascota ajena, retirada o no disponible' using errcode='22023'; end if;
+  old_item:=null;
+  if nullif(v_item->>'id','') is not null then
+   select * into strict old_item from public.appointment_items where id=(v_item->>'id')::uuid and appointment_id=a.id;
+   if old_item.pet_id<>pet or old_item.service_id<>service then raise exception 'Para sustituir mascota o servicio añade un item nuevo' using errcode='22023'; end if;
+   item_id:=old_item.id; price:=old_item.price; duration:=old_item.duration_minutes; specialist:=old_item.requires_specialist_snapshot;
+   update public.appointment_items set notes=v_item->>'notes',weight_kg_at_visit=(v_item->>'weight_kg_at_visit')::numeric where id=item_id;
+   delete from public.appointment_item_staff st where st.item_id=old_item.id;
+  else
+   select public.quote_service(s.id,p.pet_size,p.breed_id),s.requires_specialist into q,specialist from public.services s cross join public.pets p where s.id=service and s.active and p.id=pet;
+   if not found then raise exception 'Servicio no disponible' using errcode='22023'; end if;
+   price:=(q->>'price')::numeric; duration:=(q->>'duration_minutes')::integer;
+   insert into public.appointment_items(appointment_id,pet_id,client_id,service_id,price,duration_minutes,requires_specialist_snapshot,weight_kg_at_visit,notes)
+    values(a.id,pet,client,service,price,duration,specialist,(v_item->>'weight_kg_at_visit')::numeric,v_item->>'notes') returning id into item_id;
   end if;
-  return result;
+  if item_id=any(kept) then raise exception 'Servicio repetido' using errcode='22023'; end if; kept:=array_append(kept,item_id);
+  if jsonb_typeof(v_item->'stages') is distinct from 'array' then raise exception 'Indica las etapas' using errcode='22023'; end if;
+  for v_stage in select value from jsonb_array_elements(v_item->'stages') loop
+   if jsonb_typeof(v_stage)<>'object' or v_stage-array['employee_id','stage','starts_local','ends_local']<>'{}'::jsonb then raise exception 'Campos de etapa no admitidos' using errcode='22023'; end if;
+   target:=(v_stage->>'employee_id')::uuid;
+   perform 1 from public.employees e join public.profiles pr on pr.id=e.profile_id where e.id=target for share of e,pr;
+   if not found then raise exception 'Empleado inexistente' using errcode='22023'; end if;
+   insert into public.appointment_item_staff(item_id,employee_id,stage,starts_at,ends_at) values(item_id,target,v_stage->>'stage',private.lima_instant(v_stage->>'starts_local'),private.lima_instant(v_stage->>'ends_local'));
+  end loop;
+ end loop;
+ delete from public.appointment_item_staff st where st.item_id in(select id from public.appointment_items where appointment_id=a.id and not(id=any(kept)));
+ delete from public.appointment_items where appointment_id=a.id and not(id=any(kept));
+ select min(s.starts_at),max(s.ends_at) into first_time,last_time from public.appointment_items i join public.appointment_item_staff s on s.item_id=i.id where i.appointment_id=a.id;
+ if first_time is null or first_time<clock_timestamp() then raise exception 'No se puede reservar o reprogramar en el pasado' using errcode='22023'; end if;
+ select sum(i.price) into v_total from public.appointment_items i where i.appointment_id=a.id;
+ update public.appointments set starts_at=first_time,ends_at=last_time,total_price=v_total,client_notes=p_input->>'client_notes',updated_at=clock_timestamp(),version=case when p_id is null then 1 else version+1 end where id=a.id;
+ perform private.validate_appointment(a.id);
+ return private.appointment_json(a.id);
 end $$;
 
-revoke all on function public.quote_service(uuid,public.pet_size,public.pet_coat_type) from public,anon;
-grant execute on function public.quote_service(uuid,public.pet_size,uuid),public.search_services(text,integer,integer,boolean),public.search_service_prices(text,integer,integer) to authenticated;
+
+-- Retirar la firma antigua elimina la ambigüedad de argumentos predeterminados.
+drop function public.quote_service(uuid,public.pet_size,public.pet_coat_type);

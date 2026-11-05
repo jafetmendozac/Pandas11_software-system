@@ -133,6 +133,8 @@ ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; la
 
 services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/raza → tamaño → raza → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
 
+Corrección 2026-11-05: la migración incremental de razas convierte el texto de mascotas en FK UUID, conserva el texto y las tarifas históricas por pelaje para conciliación y actualiza la agenda a la cotización por raza. Las reglas antiguas definidas solo por pelaje quedan fuera del cálculo nuevo hasta que el negocio defina equivalencias. Otra migración traslada el booleano histórico de recojo a `pickup_type` sin eliminarlo. Evidencia y discrepancia respecto al SQL de referencia en [validación de corrección](features/correccion-razas-transporte/validation.md).
+
 ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.
 
 ## Actualización Fase 3 — 2026-10-17

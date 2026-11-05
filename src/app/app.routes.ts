@@ -93,6 +93,12 @@ export const routes: Routes = [
         title:'Tarifas | Spa & Boutique Pandas 11'
       },
       {
+        path:'razas',
+        data: { permission: 'service_prices.manage' },
+        loadComponent: () => import('./pages/servicios/pet-breeds.component').then(m => m.PetBreedsComponent),
+        title:'Razas de mascota | Spa & Boutique Pandas 11'
+      },
+      {
         path:'empleados',
         data: { permission: 'employees.read' },
         component:EmpleadosComponent,

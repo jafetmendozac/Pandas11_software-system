@@ -289,6 +289,8 @@ CREATE TABLE "pet_breeds" (
   "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE UNIQUE INDEX "pet_breeds_name_key" ON "pet_breeds" (lower(btrim("name")));
+
 CREATE TABLE "pets" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
@@ -701,8 +703,8 @@ CREATE UNIQUE INDEX ON "pets" ("id", "client_id");
 CREATE INDEX ON "pet_vaccinations" ("pet_id");
 
 -- SOLUCIÓN AL ERROR EN POSTGRESQL 15+:
-CREATE UNIQUE INDEX "uq_service_prices_rule" 
-ON "service_prices" ("service_id", "pet_size", "pet_breed_id") 
+CREATE UNIQUE INDEX "uq_service_prices_rule"
+ON "service_prices" ("service_id", "pet_size", "pet_breed_id")
 NULLS NOT DISTINCT;
 
 CREATE INDEX ON "appointments" ("starts_at", "ends_at");

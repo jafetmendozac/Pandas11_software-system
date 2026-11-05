@@ -87,7 +87,9 @@ node scripts/test-clients-pets-api.mjs
 
 Migración incremental `20261017210343_services_prices.sql`; no requiere reset. OWNER/ADMIN administran Servicios y Tarifas, STAFF consulta. CLIENT entra a `/catalogo` desde su perfil y solo calcula servicios activos y visibles. Recargar la aplicación después de aplicar la migración para obtener los permisos nuevos.
 
-Crear servicio con nombre, precio base y minutos positivos. Precio cero válido; usar punto decimal y máximo dos decimales (ej. 12.50), sin redondeo automático. En Tarifas, «Todos los tamaños/pelajes» representa NULL. Prioridad: coincidencia exacta → tamaño → pelaje → general → base. Cada regla define precio y duración completos. Desactivar servicio conserva sus tarifas.
+Crear servicio con nombre, precio base y minutos positivos. Precio cero válido; usar punto decimal y máximo dos decimales (ej. 12.50), sin redondeo automático. En Tarifas, «Todos los tamaños/razas» representa NULL. Prioridad: coincidencia exacta → tamaño → raza → general → base. Cada regla define precio y duración completos. Desactivar servicio conserva sus tarifas.
+
+La migración 20261104000000 añade razas UUID y convierte las razas de texto de mascotas sin borrar el texto anterior. Las tarifas históricas definidas solo por pelaje quedan conservadas, pero fuera de la cotización nueva por raza: el negocio debe revisarlas y crear las reglas equivalentes que corresponda. No se supone una equivalencia automática entre pelaje y raza. La migración 20261104010000 lleva el antiguo indicador de recojo a PICKUP_ONLY y conserva la columna original para conciliación. No ejecutar Pandas11.sql sobre una base existente.
 
 El simulador de Tarifas y catálogo muestra precio, duración y origen sin reservar citas ni incluir transporte. Los importes se calculan en PostgreSQL numeric y se entregan como texto decimal exacto. No hay valores comerciales sembrados; deben configurarse.
 
@@ -121,7 +123,7 @@ Migración `20261017220427_internal_appointments.sql`, aplicada incrementalmente
 
 Recargar la app con `npm run start:local` y abrir **Citas → Calendario**. OWNER/ADMIN gestionan; STAFF consulta. CLIENT no accede. El calendario usa America/Lima y muestra eventos por etapa, incluso después18. Seleccionar un evento abre la ficha completa de la cita.
 
-Para reservar: elegir cliente, añadir uno o varios servicios por mascota, definir inicio de cada servicio y trabajador. La tarifa se resuelve por tamaño/pelaje y se confirma en servidor. En servicios que requieren especialista se puede desglosar baño/corte: indicar los minutos positivos de ambas etapas, cuya suma debe coincidir con el total, y asignar trabajadores. Puede ser la misma persona cualificada. No se permiten huecos ni solapamientos para una mascota. La primera atención de cada perro inicia hasta17; continuaciones posteriores requieren cobertura laboral completa.
+Para reservar: elegir cliente, añadir uno o varios servicios por mascota, definir inicio de cada servicio y trabajador. La tarifa se resuelve por tamaño/raza y se confirma en servidor. En servicios que requieren especialista se puede desglosar baño/corte: indicar los minutos positivos de ambas etapas, cuya suma debe coincidir con el total, y asignar trabajadores. Puede ser la misma persona cualificada. No se permiten huecos ni solapamientos para una mascota. La primera atención de cada perro inicia hasta17; continuaciones posteriores requieren cobertura laboral completa.
 
 **Comprobar disponibilidad** muestra horarios posibles por trabajador; al guardar se vuelve a validar todo atómicamente. Si dos reservas compiten, una se rechaza. Un bloqueo o cambio laboral que invalide una cita vigente también se rechaza; resolver las citas afectadas primero. La baja de una cuenta por seguridad no se bloquea: las citas con trabajador/perfil sin cobertura muestran aviso para reasignar.
 

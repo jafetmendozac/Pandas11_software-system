@@ -19,21 +19,22 @@ try{
  }
  const owner=actors.OWNER.api,admin=actors.ADMIN.api,staff=actors.STAFF.api,client=actors.CLIENT.api;
  const makeService=async payload=>{const s=await value(owner.from('services').insert({name:prefix,base_price:'100.10',base_duration_minutes:120,...payload}).select().single());services.push(s.id);return s;};
+ const breed=await value(owner.from('pet_breeds').insert({name:prefix+' raza'}).select().single());
  const s=await makeService({});
- const quote=async(size=null,coat=null,api=owner,id=s.id)=>value(api.rpc('quote_service',{p_service_id:id,p_size:size,p_coat:coat}));
- const add=payload=>value(admin.from('service_prices').insert({service_id:s.id,pet_size:null,pet_coat_type:null,price:'90.25',duration_minutes:100,...payload}).select().single());
- let q=await quote('TOY','LONG');ok(q.source==='BASE'&&q.price==='100.10'&&q.duration_minutes===120&&q.rule_id===null,'Fallback base exacto');
- const general=await add({});q=await quote('TOY','LONG');ok(q.source==='GENERAL'&&q.rule_id===general.id&&q.duration_minutes===100,'Regla general');
- const coat=await add({pet_coat_type:'LONG',price:'80.20',duration_minutes:90});q=await quote('TOY','LONG');ok(q.source==='COAT'&&q.rule_id===coat.id,'Pelaje gana a general');
- const size=await add({pet_size:'TOY',price:'70.15',duration_minutes:80});q=await quote('TOY','LONG');ok(q.source==='SIZE'&&q.rule_id===size.id&&q.price==='70.15'&&q.duration_minutes===80,'Tamaño gana a pelaje sin mezclar campos');
- const exact=await add({pet_size:'TOY',pet_coat_type:'LONG',price:'0',duration_minutes:45});q=await quote('TOY','LONG');ok(q.source==='SIZE_COAT'&&q.rule_id===exact.id&&q.price==='0'&&q.duration_minutes===45,'Exacta gana y cero es válido');
- q=await quote(null,'LONG');ok(q.source==='COAT','Tamaño desconocido solo admite comodín');
- q=await quote('TOY',null);ok(q.source==='SIZE','Pelaje desconocido solo admite comodín');
+ const quote=async(size=null,breedId=null,api=owner,id=s.id)=>value(api.rpc('quote_service',{p_service_id:id,p_size:size,p_breed:breedId}));
+ const add=payload=>value(admin.from('service_prices').insert({service_id:s.id,pet_size:null,pet_breed_id:null,price:'90.25',duration_minutes:100,...payload}).select().single());
+ let q=await quote('TOY',breed.id);ok(q.source==='BASE'&&q.price==='100.10'&&q.duration_minutes===120&&q.rule_id===null,'Fallback base exacto');
+ const general=await add({});q=await quote('TOY',breed.id);ok(q.source==='GENERAL'&&q.rule_id===general.id&&q.duration_minutes===100,'Regla general');
+ const breedRule=await add({pet_breed_id:breed.id,price:'80.20',duration_minutes:90});q=await quote('TOY',breed.id);ok(q.source==='BREED'&&q.rule_id===breedRule.id,'Raza gana a general');
+ const size=await add({pet_size:'TOY',price:'70.15',duration_minutes:80});q=await quote('TOY',breed.id);ok(q.source==='SIZE'&&q.rule_id===size.id&&q.price==='70.15'&&q.duration_minutes===80,'Tamaño gana a raza sin mezclar campos');
+ const exact=await add({pet_size:'TOY',pet_breed_id:breed.id,price:'0',duration_minutes:45});q=await quote('TOY',breed.id);ok(q.source==='SIZE_BREED'&&q.rule_id===exact.id&&q.price==='0'&&q.duration_minutes===45,'Exacta gana y cero es válido');
+ q=await quote(null,breed.id);ok(q.source==='BREED','Tamaño desconocido solo admite comodín');
+ q=await quote('TOY',null);ok(q.source==='SIZE','Raza desconocido solo admite comodín');
  q=await quote();ok(q.source==='GENERAL','Ambos desconocidos usan general');
  ok(!!(await admin.from('service_prices').insert({service_id:s.id,price:'10',duration_minutes:30})).error,'No duplicar regla general con NULL');
- ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_size:'TOY',price:'10',duration_minutes:30})).error,'No duplicar tamaño con pelaje NULL');
- ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_coat_type:'LONG',price:'10',duration_minutes:30})).error,'No duplicar pelaje con tamaño NULL');
- ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_size:'TOY',pet_coat_type:'LONG',price:'10',duration_minutes:30})).error,'No duplicar exacta');
+ ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_size:'TOY',price:'10',duration_minutes:30})).error,'No duplicar tamaño con raza NULL');
+ ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_breed_id:breed.id,price:'10',duration_minutes:30})).error,'No duplicar raza con tamaño NULL');
+ ok(!!(await admin.from('service_prices').insert({service_id:s.id,pet_size:'TOY',pet_breed_id:breed.id,price:'10',duration_minutes:30})).error,'No duplicar exacta');
  for(const payload of [
   {base_price:'-1'},{base_price:'1.234'},{base_price:null},{base_price:'NaN'},{base_price:'Infinity'},
   {base_duration_minutes:0},{base_duration_minutes:-1},{base_duration_minutes:1.5},{base_duration_minutes:null},{name:'   '},
@@ -48,13 +49,13 @@ try{
  ok((await value(client.from('service_prices').select('id').eq('service_id',hidden.id))).length===0,'CLIENT no ve tarifas ocultas');
  ok(!!(await client.rpc('quote_service',{p_service_id:hidden.id})).error,'CLIENT no cotiza oculto');
  ok(!!(await owner.rpc('quote_service',{p_service_id:inactive.id})).error,'Ni owner cotiza inactivo');
- ok((await quote('TOY','LONG',client)).source==='SIZE_COAT','CLIENT calcula catálogo permitido');
+ ok((await quote('TOY',breed.id,client)).source==='SIZE_BREED','CLIENT calcula catálogo permitido');
  ok((await quote(null,null,staff,hidden.id)).source==='GENERAL','STAFF calcula oculto autorizado');
  ok(!!(await staff.from('services').insert({name:prefix,base_price:'1',base_duration_minutes:10})).error,'STAFF no crea servicios');
  const noEdit=await client.from('services').update({base_price:'1'}).eq('id',s.id).select('id');ok(!noEdit.error&&noEdit.data.length===0,'CLIENT no edita servicio');
  ok(!!(await staff.from('service_prices').insert({service_id:s.id,pet_size:'SMALL',price:'1',duration_minutes:10})).error,'STAFF no crea tarifa');
  const noDelete=await staff.from('service_prices').delete().eq('id',exact.id).select('id');ok(!noDelete.error&&noDelete.data.length===0,'STAFF no elimina tarifa');
- await value(admin.from('service_prices').delete().eq('id',exact.id).select('id').single());q=await quote('TOY','LONG');ok(q.source==='SIZE','Eliminar específica recalcula precedencia');
+ await value(admin.from('service_prices').delete().eq('id',exact.id).select('id').single());q=await quote('TOY',breed.id);ok(q.source==='SIZE','Eliminar específica recalcula precedencia');
  const precise=await makeService({name:prefix+' preciso',base_price:'9007199254740993.25',base_duration_minutes:5});
  const exactDecimal=await quote(null,null,client,precise.id);ok(exactDecimal.price==='9007199254740993.25','RPC conserva decimal sin límite de precisión JS');
  const matches=await value(staff.rpc('search_services',{p_search:prefix}));ok(matches.rows.every(r=>typeof r.base_price==='string'),'Catálogo devuelve importes como texto');
@@ -72,6 +73,6 @@ try{
  ok(!!(await staff.rpc('quote_service',{p_service_id:precise.id})).error,'Perfil inactivo no cotiza');
  console.log(`Fase 2 API: ${checks} comprobaciones correctas.`);
 }finally{
- sql(`delete from public.service_prices where service_id in (select id from public.services where name like '${prefix}%');delete from public.services where name like '${prefix}%'`);
+ sql(`delete from public.service_prices where service_id in (select id from public.services where name like '${prefix}%');delete from public.services where name like '${prefix}%';delete from public.pet_breeds where name='${prefix} raza'`);
  for(const id of users)await root.auth.admin.deleteUser(id);
 }
