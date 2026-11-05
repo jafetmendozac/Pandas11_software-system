@@ -70,7 +70,7 @@ async function main() {
     'La fecha comercial debe estar en el pasado; revisar la metadata de la cuenta demo.');
   assert.equal(date.dayOfWeek, 1, 'La fecha comercial debe ser lunes.');
 
-  for (const [table, key] of [['clients', id(101)], ['pets', id(202)], ['services', id(301)],
+  for (const [table, key] of [['clients', id(101)], ['pets', id(202)], ['services', id(305)],
     ['employees', id(502)]]) {
     const fixture = await row(root.from(table).select('id').eq('id', key));
     assert.ok(fixture, `Falta fixture ${table}/${key}. Ejecutar npm run seed:local primero.`);
@@ -134,7 +134,7 @@ async function main() {
     .eq('client_notes', note));
   if (!appointment) {
     const quote = await value(owner.rpc('quote_service', {
-      p_service_id: id(301), p_size: 'TOY', p_breed: null,
+      p_service_id: id(305), p_size: 'TOY', p_breed: null,
     }));
     assert.ok(money(quote.price) === '25.00' && quote.duration_minutes === 30,
       'La tarifa de Toby cambió; no se crea la cita histórica');
@@ -154,7 +154,7 @@ async function main() {
           ${literal(ends)}::timestamptz,25.00,${literal(actors.ADMIN.user.id)}::uuid,${literal(note)});
       insert into public.appointment_items(id,appointment_id,pet_id,client_id,service_id,price,duration_minutes,requires_specialist_snapshot)
         values(${literal(id(810))}::uuid,${literal(id(809))}::uuid,${literal(id(202))}::uuid,
-          ${literal(id(101))}::uuid,${literal(id(301))}::uuid,25.00,30,false);
+          ${literal(id(101))}::uuid,${literal(id(305))}::uuid,25.00,30,false);
       insert into public.appointment_item_staff(id,item_id,employee_id,stage,starts_at,ends_at)
         values(${literal(id(811))}::uuid,${literal(id(810))}::uuid,${literal(id(502))}::uuid,
           'SERVICE',${literal(starts)}::timestamptz,${literal(ends)}::timestamptz);
@@ -169,7 +169,7 @@ async function main() {
   assert.equal(appointment.starts_at.slice(0, 10), `${date}`, 'La fecha de la cita comercial cambió');
   const detail = await value(owner.rpc('get_appointment', {p_id: appointment.id}));
   assert.ok(detail.items.length === 1 && detail.items[0].pet_id === id(202)
-    && detail.items[0].service_id === id(301) && detail.items[0].stages.length === 1
+    && [id(301), id(305)].includes(detail.items[0].service_id) && detail.items[0].stages.length === 1
     && detail.items[0].stages[0].employee_id === id(502),
   'El detalle de la cita comercial fue modificado');
   if (appointment.status === 'CONFIRMED') {

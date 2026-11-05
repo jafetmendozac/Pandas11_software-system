@@ -39,18 +39,26 @@ try {
     ok((await value(client.from(table).select('*'))).length === 0, `CLIENT sin notas de ${table}`);
   }
   ok((await value(owner.from('pet_vaccinations').select('id').in('id', [id(251), id(252)]))).length === 2, 'Dos antecedentes de vacunas');
-  ok((await value(client.from('services').select('id').in('id', [id(301), id(302), id(303), id(304)]))).length === 2, 'Catálogo CLIENT filtra interno e inactivo');
-  const mestiza = await value(owner.from('pet_breeds').select('id').eq('name', 'Mestiza').single());
-  for (const [service, size, breed, source, price, minutes] of [
-    [301, 'SMALL', mestiza.id, 'SIZE_BREED', '55', 60],
-    [301, 'TOY', mestiza.id, 'SIZE', '25', 30],
-    [301, 'MEDIUM', mestiza.id, 'BREED', '50', 60],
-    [301, 'LARGE', null, 'GENERAL', '40', 60],
-    [302, 'SMALL', mestiza.id, 'BASE', '90', 120],
-  ]) {
-    const quote = await value(owner.rpc('quote_service', {p_service_id: id(service), p_size: size, p_breed: breed}));
-    ok(quote.source === source && Number(quote.price) === Number(price) && quote.duration_minutes === minutes, `Cotización ${source}`);
-  }
+  const serviceNames = [
+    'Baño estético', 'Baño medicado para piel delicada', 'Baño medicado para parásitos externos',
+    'Corte de pelo simple', 'Corte de pelo de raza', 'Desparasitación', 'Cepillados', 'Corte de uñas',
+  ];
+  const newServiceIds = Array.from({length: 8}, (_, index) => id(305 + index));
+  const demoServices = await value(root.from('services').select('id,name,active,requires_specialist').in('id', newServiceIds));
+  ok(demoServices.length === 8 && serviceNames.every(name => demoServices.some(row => row.name === name && row.active)),
+    'Seed contiene los ocho servicios activos solicitados');
+  ok((await value(client.from('services').select('id').in('id', newServiceIds))).length === 8,
+    'CLIENT ve los ocho servicios del seed');
+  const archivedServices = await value(root.from('services').select('id,active').in('id', [301,302,303,304].map(id)));
+  ok(archivedServices.length === 4 && archivedServices.every(row => !row.active),
+    'Servicios demo anteriores archivados para conservar citas');
+  ok((await value(root.from('service_prices').select('id').in('service_id', [301,302,303,304].map(id)))).length === 0,
+    'Tarifas demo anteriores eliminadas');
+  const bathQuote = await value(owner.rpc('quote_service', {p_service_id: id(305), p_size: 'TOY', p_breed: null}));
+  ok(bathQuote.source === 'BASE' && Number(bathQuote.price) === 25 && bathQuote.duration_minutes === 30,
+    'Baño estético usa precio y minutos sintéticos del flujo comercial');
+  ok(demoServices.filter(row => [id(308), id(309)].includes(row.id)).every(row => row.requires_specialist),
+    'Los dos cortes requieren especialista');
   const appointments = await value(root.from('appointments').select('*').in('client_id', [id(101), id(102)]).like('client_notes', '[pandas11-phases-0-4-v1:%'));
   ok(appointments.length === 3, 'Tres citas demo sin duplicados');
   const split = appointments.find(a => a.client_notes.includes(':relevo-dos-mascotas]'));

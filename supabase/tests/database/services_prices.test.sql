@@ -1,5 +1,8 @@
 begin;
-select plan(18);
+select plan(21);
+select ok(to_regtype('public.pet_coat_type') is null,'Enum de pelaje retirado');
+select ok(not exists(select 1 from information_schema.columns where table_schema='public' and table_name='service_prices' and column_name='pet_coat_type'),'Tarifas sin dimensión antigua de pelaje');
+select ok(not exists(select 1 from information_schema.columns where table_schema='public' and table_name='pets' and column_name='pet_coat_type'),'Mascotas sin dimensión antigua de pelaje');
 select set_config('test.owner',gen_random_uuid()::text,true);
 select set_config('test.client',gen_random_uuid()::text,true);
 select set_config('test.service',gen_random_uuid()::text,true);

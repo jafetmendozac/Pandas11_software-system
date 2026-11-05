@@ -135,6 +135,8 @@ services/service_prices migrados incrementalmente con RLS y permisos de dominio.
 
 Corrección 2026-11-05: la migración incremental de razas convierte el texto de mascotas en FK UUID, conserva el texto y las tarifas históricas por pelaje para conciliación y actualiza la agenda a la cotización por raza. Las reglas antiguas definidas solo por pelaje quedan fuera del cálculo nuevo hasta que el negocio defina equivalencias. Otra migración traslada el booleano histórico de recojo a `pickup_type` sin eliminarlo. Evidencia y discrepancia respecto al SQL de referencia en [validación de corrección](features/correccion-razas-transporte/validation.md).
 
+Aclaración posterior del usuario, también 2026-11-05: las tarifas por pelaje eran un error de interpretación. La migración `20261105000000_remove_coat_pricing.sql` elimina esas reglas y la dimensión de pelaje; conserva las citas históricas mediante sus snapshots. El seed local archiva sus cuatro servicios antiguos y deja ocho servicios nuevos activos, con valores sintéticos. Los servicios ajenos al seed se conservan. Véase [validación del catálogo](features/seed-catalogo-ocho-servicios/validation.md).
+
 ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.
 
 ## Actualización Fase 3 — 2026-10-17

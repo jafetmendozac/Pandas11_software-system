@@ -107,10 +107,10 @@ async function main() {
   ], 'first_name');
   fixture('pets', [
     {id: id(201), client_id: id(101), name: 'Luna', breed: 'Mestiza', pet_sex: 'FEMALE',
-      pet_size: 'SMALL', pet_coat_type: 'LONG', weight_kg: 6, allergies: true,
+      pet_size: 'SMALL', weight_kg: 6, allergies: true,
       client_notes: 'Información comunicable: usar champú indicado por su dueña.'},
-    {id: id(202), client_id: id(101), name: 'Toby', pet_sex: 'MALE', pet_size: 'TOY', pet_coat_type: 'SHORT', weight_kg: 3},
-    {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', pet_coat_type: 'LONG', bites: true, weight_kg: 25},
+    {id: id(202), client_id: id(101), name: 'Toby', pet_sex: 'MALE', pet_size: 'TOY', weight_kg: 3},
+    {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', bites: true, weight_kg: 25},
     {id: id(204), client_id: id(103), name: 'Milo', active: false, deleted_at: `${startDate}T00:00:00-05:00`},
   ], 'client_id');
   fixture('pet_vaccinations', [
@@ -125,20 +125,23 @@ async function main() {
     {id: id(303), name: 'Hidratación de pelaje', description: 'Servicio interno de acondicionamiento.', base_price: '30.00', base_duration_minutes: 30, visible_to_clients: false},
     {id: id(304), name: 'Spa de temporada', base_price: '10.00', base_duration_minutes: 30, active: false},
   ], 'name');
+  fixture('services', [
+    {id: id(305), name: 'Baño estético', base_price: '25.00', base_duration_minutes: 30},
+    {id: id(306), name: 'Baño medicado para piel delicada', base_price: '0.00', base_duration_minutes: 60},
+    {id: id(307), name: 'Baño medicado para parásitos externos', base_price: '0.00', base_duration_minutes: 60},
+    {id: id(308), name: 'Corte de pelo simple', base_price: '0.00', base_duration_minutes: 60, requires_specialist: true},
+    {id: id(309), name: 'Corte de pelo de raza', base_price: '0.00', base_duration_minutes: 90, requires_specialist: true},
+    {id: id(310), name: 'Desparasitación', base_price: '0.00', base_duration_minutes: 30},
+    {id: id(311), name: 'Cepillados', base_price: '0.00', base_duration_minutes: 30},
+    {id: id(312), name: 'Corte de uñas', base_price: '0.00', base_duration_minutes: 15},
+  ], 'name');
   fixture('service_prices', [
-    {id: id(401), service_id: id(301), pet_size: null, pet_coat_type: null, price: '40.00', duration_minutes: 60},
-    {id: id(402), service_id: id(301), pet_size: 'TOY', pet_coat_type: null, price: '25.00', duration_minutes: 30},
-    {id: id(403), service_id: id(301), pet_size: null, pet_coat_type: 'LONG', price: '50.00', duration_minutes: 60},
-    {id: id(404), service_id: id(301), pet_size: 'SMALL', pet_coat_type: 'LONG', price: '55.00', duration_minutes: 60},
+    {id: id(402), service_id: id(301), pet_size: 'TOY', pet_breed_id: null, price: '25.00', duration_minutes: 30},
   ], 'service_id');
   fixtures.push(`insert into public.pet_breeds(name) values ('Mestiza') on conflict do nothing;`);
   fixtures.push(`update public.pets p set breed_id=b.id from public.pet_breeds b
     where p.id='${id(201)}'::uuid and p.breed='Mestiza' and b.name='Mestiza'
     and p.breed_id is distinct from b.id;`);
-  fixtures.push(`update public.service_prices sp set pet_breed_id=b.id,pet_coat_type=null
-    from public.pet_breeds b where sp.id in ('${id(403)}'::uuid,'${id(404)}'::uuid)
-    and sp.service_id='${id(301)}'::uuid and b.name='Mestiza'
-    and (sp.pet_breed_id is distinct from b.id or sp.pet_coat_type is not null);`);
   fixture('employees', [
     {id: id(501), profile_id: accounts.ADMIN, skill_level: 'ALL_SERVICES'},
     {id: id(502), profile_id: accounts.STAFF, skill_level: 'ASSISTANT'},
@@ -188,6 +191,17 @@ async function main() {
     }));
     console.log(`Creada cita ${scenario.key}: ${appointment.id} (${appointment.status})`);
   }
+  const formerServices = [301, 302, 303, 304].map(number => `'${id(number)}'::uuid`).join(',');
+  sql(`begin; select pg_advisory_xact_lock(930003);
+    do $$ begin
+      if (select count(*) from public.services where id in (${formerServices})
+        and name in ('Baño canino','Baño y corte canino','Hidratación de pelaje','Spa de temporada')) <> 4 then
+        raise exception 'Los servicios históricos del seed cambiaron; revisar antes de archivarlos';
+      end if;
+    end $$;
+    delete from public.service_prices where service_id in (${formerServices});
+    update public.services set active=false where id in (${formerServices}) and active;
+    commit;`);
   console.log(`Seed local completado. Agenda de ejemplo: ${startDate} (America/Lima).`);
   console.log('Cuentas: demo.fases.{owner,admin,staff,client}@example.test');
   console.log('Contraseña inicial pública de demostración: Pandas11-Demo-2026!');

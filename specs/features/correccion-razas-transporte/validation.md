@@ -19,3 +19,5 @@ Fecha: 2026-11-05. Alcance: Supabase local y árbol de trabajo actual.
 La suite Angular general encontró 11 fallos fuera de esta corrección: diez tests de guard con mock sin `isSessionValidated` y uno de paginación de PersonalizedTable. El alcance revisado pasó.
 
 La base local tenía una mascota con raza histórica, ahora vinculada a UUID (cero razas históricas sin correspondencia). Conserva los campos anteriores; las tarifas antiguas por pelaje no se convierten automáticamente a una raza. No se inspeccionó ni cambió ninguna base remota.
+
+**Actualización del 2026-11-05:** el usuario aclaró que las reglas por pelaje eran erróneas y pidió retirarlas. La migración posterior 20261105000000 las elimina junto con la dimensión antigua. La validación vigente está en [ocho servicios y limpieza de pelaje](../seed-catalogo-ocho-servicios/validation.md).

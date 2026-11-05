@@ -40,7 +40,7 @@ Los nombres visibles usan identidades ficticias verosímiles: Ana Valdez (OWNER)
 |---|---|
 | 0 | Cuatro usuarios confirmados y perfiles activos. OWNER administra seguridad; ADMIN gestiona; STAFF consulta; CLIENT accede solo a sus datos. Probar cada cuenta en una sesión separada |
 | 1 | Tres clientes: Lucía vinculada a CLIENT, Mateo sin cuenta y un cliente retirado. Cuatro mascotas: Luna y Toby de Lucía, Rocky de Mateo y una mascota retirada. Dos vacunas, una vigente y otra vencida al crear el seed; notas internas de cliente y mascota separadas de notas comunicables |
-| 2 | Baño, baño y corte, servicio interno no visible y servicio inactivo. Cuatro reglas de baño para probar exacta → tamaño → pelaje → general; baño y corte usa la base. El baño TOY dura30min como ejemplo ficticio; no cambia la regla general del negocio |
+| 2 | Ocho servicios demo activos: Baño estético, Baño medicado para piel delicada, Baño medicado para parásitos externos, Corte de pelo simple, Corte de pelo de raza, Desparasitación, Cepillados y Corte de uñas. Los cuatro servicios demo anteriores quedan archivados para mantener citas históricas; sus tarifas se retiran. Los dos servicios ajenos al seed se conservan |
 | 3 | Dos empleados: ADMIN especialista, STAFF asistente. Turnos lunes–sábado 07–19 y07–18 respectivamente; domingo sin turno. Un bloqueo de recojo manual el lunes11–12 para el asistente y una ausencia del especialista el martes13–14. No se modifica business_hours |
 | 4 | Tres citas internas: dos mascotas con relevo, final después18 y cancelación con motivo. Todas con observaciones internas separadas, origen INTERNAL y adelanto obligatorio0. No se crean pagos |
 
@@ -52,9 +52,9 @@ Agenda inicial de ese lunes:
 |---|---|---|
 | Dos mascotas y relevo | Luna: baño08–09 asistente → corte09–10 especialista; Toby: baño08–08:30 especialista | S/115.00 |
 | Fin después18 | Rocky: baño y corte17–19 especialista, con turno explícito hasta19 | S/90.00 |
-| Cancelada | Rocky: baño14–15 asistente, cancelada por OWNER con motivo; intervalo liberado | S/40.00 |
+| Cancelada | Rocky: baño14–15 asistente, cancelada por OWNER con motivo; intervalo liberado | Snapshot histórico: S/40.00 en el seed ya existente; S/45.00 en una carga nueva |
 
-Cotizaciones iniciales de baño: SMALL/LONG S/55 y60min; TOY/LONG S/25 y30min (tamaño gana a pelaje); MEDIUM/LONG S/50 y60min; LARGE/SHORT S/40 y60min. Baño y corte: base S/90 y120min. Ejemplos relacionados con RN-01/03/04/05/07/09/10/13/14/15; no resuelven las preguntas pendientes del negocio.
+El nuevo Baño estético usa S/25.00 y30min como fixture del flujo comercial. Los otros siete servicios tienen precio base S/0.00 y duraciones sintéticas de 60/60/60/90/30/30/15min en el orden de la lista; son valores técnicos, no tarifas comerciales aprobadas. Las cotizaciones de los servicios demo archivados se deniegan, pero las citas guardadas conservan sus importes. Ejemplos relacionados con RN-01/03/04/05/07/09/10/13/14/15; no resuelven las preguntas pendientes del negocio.
 
 ## Repetición, conservación y recuperación
 
@@ -63,7 +63,7 @@ Cotizaciones iniciales de baño: SMALL/LONG S/55 y60min; TOY/LONG S/25 y30min (t
 - Las citas existentes se reconocen por cliente y marcador en client_notes; se conservan con sus estados, versiones y notas. No retirar esos marcadores si se desea repetir el seed. No se desplazan automáticamente citas cuando pasa la fecha.
 - Auth, fixtures SQL y cada RPC son pasos separados: una interrupción puede dejar datos parciales. SQL agrupa los fixtures en una transacción; las citas pasan por sus validaciones transaccionales reales. Corregir la causa y repetir; una cita ya creada se conserva, incluso si quedó sin nota o sin cancelar durante una interrupción, y debe revisarse manualmente.
 - Si se cambiaron horarios, tarifas, contraseñas o perfiles demo, la carga puede detenerse por validación. No se fuerza disponibilidad ni se restauran cambios. Revisar la causa y los datos parciales. Si la fecha almacenada pasó y falta una cita, el script pide revisión en vez de fabricar reservas pasadas.
-- No hay limpieza automática ni comando de borrado. No hace falta resetear la instancia para cargar o repetir el seed.
+- No hay reset ni limpieza de registros ajenos. El seed retira solo las tarifas de sus cuatro servicios antiguos y los archiva una vez guardadas las citas; no hace falta reiniciar la instancia.
 - Al repetir el seed base, solo los nombres antiguos intactos (`DEMO ...`) de sus propios UUID pasan a los nombres visibles nuevos. Si alguien editó una ficha o servicio, ese cambio se conserva y una colisión de marcador detiene la carga. No se restablecen contraseñas.
 
 ## Recorrido comercial adicional
@@ -90,7 +90,7 @@ supabase test db
 git diff --check
 ```
 
-`test-local-seed.mjs` comprueba por lectura/login el estado inicial esperado, permisos, RLS, aislamiento de notas, las cinco prioridades de tarifa, relevo, ocupación, bloqueo, cancelación y fin19 Lima. Si se editan manualmente los ejemplos, sus comprobaciones iniciales pueden dejar de pasar. No sustituye las suites completas de cada fase.
+`test-local-seed.mjs` comprueba por lectura/login el catálogo de ocho servicios demo, archivo de los anteriores, eliminación de sus tarifas, permisos, RLS, aislamiento de notas, relevo, ocupación, bloqueo, cancelación y fin19 Lima. Si se editan manualmente los ejemplos, sus comprobaciones iniciales pueden dejar de pasar. No sustituye las suites completas de cada fase.
 
 No se falsea el reloj ni se fuerzan estados históricos: para iniciar/completar o marcar NO_SHOW hay que llegar al inicio programado o crear otra cita válida. Las pruebas API de Fase4 ya cubren esas transiciones con fixtures aislados. No se crean autorreservas, pagos, transporte automático ni tablas de fases futuras. No se conectó a una base remota. La experiencia visual en navegador requiere revisión manual del usuario.
 
@@ -107,3 +107,5 @@ Resultados comprobados el2026-10-18:
 No se repitieron build ni pruebas Angular porque no se cambió código de aplicación. Tampoco se presentan las ejecuciones API históricas de cada fase como nuevas pruebas de esta tarea. Revisión visual manual pendiente; sin commits, dependencias nuevas o migraciones adicionales.
 
 Ampliación comercial del 2026-10-25: `npm run seed:commercial` completado y repetido sin duplicados; 41 comprobaciones del seed base, 19 del comercial, 272 pruebas SQL y 36 operaciones API comerciales correctas. La prueba API tuvo un timeout transitorio de Auth durante su primer intento de limpieza; se retiraron sus dos cuentas residuales y la repetición terminó con salida 0. Evidencia y límites en [validación del flujo comercial](features/seed-flujo-comercial/validation.md).
+
+Actualización del 2026-11-05: se sustituyó el catálogo activo del seed por los ocho servicios indicados por el usuario y se eliminaron sus tarifas antiguas. Se aplicó una migración para retirar las reglas por pelaje y el enum; las citas y cobros históricos conservaron sus snapshots. Las cifras históricas de validación anteriores corresponden a la versión previa del seed. Resultados actuales en [validación de ocho servicios](features/seed-catalogo-ocho-servicios/validation.md).

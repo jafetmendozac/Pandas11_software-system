@@ -13,3 +13,5 @@ Estado: corrección solicitada el 2026-11-05 tras revisión de los tres commits 
 ## Discrepancia del modelo
 
 `Pandas11.sql` describe el modelo final sin columnas de pelaje ni texto libre. Las migraciones correctivas conservan `pets.breed`, `pets.pet_coat_type`, `service_prices.pet_coat_type` y, donde exista, `appointments.requires_pickup`. Es una transición para no destruir datos históricos. Su retiro requiere conciliación comercial y una migración posterior aprobada.
+
+**Aclaración posterior:** el usuario confirmó que las tarifas por pelaje procedían de una interpretación errónea y solicitó retirarlas. Se conserva el texto histórico de raza y, donde exista, el indicador anterior de recojo. El estado actual y la migración de limpieza se documentan en [el nuevo requisito](../seed-catalogo-ocho-servicios/requirements.md).

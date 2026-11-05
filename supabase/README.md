@@ -25,6 +25,8 @@ Cuentas `demo.fases.owner@example.test`, `demo.fases.admin@example.test`, `demo.
 
 Las fichas muestran nombres ficticios de personas y mascotas sin prefijos técnicos. El segundo comando añade una cita completada, productos, stock, venta mixta, venta de mostrador, cobros separados y caja cerrada. La cita histórica se inserta como fixture SQL local con validación transaccional; sus cambios de estado usan RPC. Solo se ejecuta contra los puertos locales 55321/55322; se detiene si hay una caja abierta ajena. No modifica las citas anteriores ni datos remotos.
 
+El catálogo activo del seed contiene ocho servicios: Baño estético, Baño medicado para piel delicada, Baño medicado para parásitos externos, Corte de pelo simple, Corte de pelo de raza, Desparasitación, Cepillados y Corte de uñas. Sus precios y minutos son ficticios. Cuatro servicios anteriores del seed quedan archivados porque conservan citas históricas; sus tarifas se retiran. «Servicio Duplex» y «Servicio Express», creados fuera del seed, se mantienen. [Validación del nuevo catálogo](../specs/features/seed-catalogo-ocho-servicios/validation.md).
+
 Recorrido de prueba, fechas, precios de ejemplo, conservación y verificación: [seed local](../specs/seed-local.md) y [validación comercial](../specs/features/seed-flujo-comercial/validation.md). Comprobar el estado inicial con `node scripts/test-local-seed.mjs`. Las migraciones y el seed automático SQL mantienen la base sin cuentas demo por defecto; esta carga requiere el comando explícito.
 
 ## Primer owner
@@ -89,9 +91,9 @@ Migración incremental `20261017210343_services_prices.sql`; no requiere reset. 
 
 Crear servicio con nombre, precio base y minutos positivos. Precio cero válido; usar punto decimal y máximo dos decimales (ej. 12.50), sin redondeo automático. En Tarifas, «Todos los tamaños/razas» representa NULL. Prioridad: coincidencia exacta → tamaño → raza → general → base. Cada regla define precio y duración completos. Desactivar servicio conserva sus tarifas.
 
-La migración 20261104000000 añade razas UUID y convierte las razas de texto de mascotas sin borrar el texto anterior. Las tarifas históricas definidas solo por pelaje quedan conservadas, pero fuera de la cotización nueva por raza: el negocio debe revisarlas y crear las reglas equivalentes que corresponda. No se supone una equivalencia automática entre pelaje y raza. La migración 20261104010000 lleva el antiguo indicador de recojo a PICKUP_ONLY y conserva la columna original para conciliación. No ejecutar Pandas11.sql sobre una base existente.
+La migración 20261104000000 añade razas UUID y convierte las razas de texto de mascotas sin borrar el texto anterior. La migración 20261105000000 retira las reglas, columnas y el enum de pelaje: el usuario aclaró que esas tarifas se basaban en una interpretación equivocada y no deben trasladarse a razas. La migración 20261104010000 lleva el antiguo indicador de recojo a PICKUP_ONLY y conserva esa columna original para conciliación. No ejecutar Pandas11.sql sobre una base existente.
 
-El simulador de Tarifas y catálogo muestra precio, duración y origen sin reservar citas ni incluir transporte. Los importes se calculan en PostgreSQL numeric y se entregan como texto decimal exacto. No hay valores comerciales sembrados; deben configurarse.
+El simulador de Tarifas y catálogo muestra precio, duración y origen sin reservar citas ni incluir transporte. Los importes se calculan en PostgreSQL numeric y se entregan como texto decimal exacto. El seed optativo carga ocho servicios con importes y duraciones sintéticos; no son precios comerciales aprobados.
 
 ```sh
 node scripts/test-services-prices-api.mjs

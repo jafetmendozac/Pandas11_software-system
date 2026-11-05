@@ -20,7 +20,7 @@ try{
  }
  const owner=actors.OWNER.api,admin=actors.ADMIN.api,staff=actors.STAFF.api,clientApi=actors.CLIENT.api,anon=createClient(env.API_URL,env.ANON_KEY,opts);
  for(let i=0;i<2;i++){const c=await value(owner.rpc('save_client',{p_input:{first_name:prefix+i}}));clients.push(c.id);}
- for(let i=0;i<3;i++){const p=await value(owner.from('pets').insert({client_id:clients[i===2?1:0],name:prefix+' perro'+i,pet_size:'TOY',pet_coat_type:'LONG'}).select().single());pets.push(p.id);}
+ for(let i=0;i<3;i++){const p=await value(owner.from('pets').insert({client_id:clients[i===2?1:0],name:prefix+' perro'+i,pet_size:'TOY'}).select().single());pets.push(p.id);}
  for(const [i,minutes,specialist] of [[0,120,true],[1,60,false]]){
   const s=await value(owner.from('services').insert({name:prefix+' servicio'+i,base_price:i===0?'100.10':'50.25',base_duration_minutes:minutes,requires_specialist:specialist}).select().single());services.push(s.id);
  }
