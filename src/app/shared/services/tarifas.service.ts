@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 import type { PageQuery, PageResult } from './clientes.service';
-import type { PetSize, PetCoatType } from './mascotas.service';
+import type { PetSize } from './mascotas.service';
 import { money, minutes } from './service-pricing.models';
-export type { PetSize, PetCoatType } from './mascotas.service';
+export type { PetSize } from './mascotas.service';
 export interface ServicePrice extends TableRow {
   id: string; service_id: string; service_name: string; pet_size: PetSize | null;
-  pet_coat_type: PetCoatType | null; price: string; duration_minutes: number;
+  pet_breed_id: string | null; price: string; duration_minutes: number;
 }
 export interface ServiceQuote {
   service_id: string; price: string; duration_minutes: number; rule_id: string | null;
-  source: 'SIZE_COAT' | 'SIZE' | 'COAT' | 'GENERAL' | 'BASE';
+  source: 'SIZE_BREED' | 'SIZE' | 'BREED' | 'GENERAL' | 'BASE';
 }
 @Injectable({ providedIn: 'root' })
 export class TarifasService {
@@ -35,7 +35,7 @@ export class TarifasService {
     if (!row['service_id']) throw new Error('Selecciona un servicio.');
     return {
       service_id: row['service_id'], pet_size: String(row['pet_size'] ?? '') || null,
-      pet_coat_type: String(row['pet_coat_type'] ?? '') || null,
+      pet_breed_id: String(row['pet_breed_id'] ?? '') || null,
       price: money(row['price']), duration_minutes: minutes(row['duration_minutes']),
     };
   }
@@ -56,9 +56,9 @@ export class TarifasService {
     if (error) throw error;
     if (!data) throw new Error('No se eliminó la tarifa.');
   }
-  async quote(serviceId: string, size: PetSize | null, coat: PetCoatType | null): Promise<ServiceQuote> {
+  async quote(serviceId: string, size: PetSize | null, breed: string | null): Promise<ServiceQuote> {
     if (!serviceId) throw new Error('Selecciona un servicio.');
-    const { data, error } = await this.supabase.client.rpc('quote_service', { p_service_id: serviceId, p_size: size, p_coat: coat });
+    const { data, error } = await this.supabase.client.rpc('quote_service', { p_service_id: serviceId, p_size: size, p_breed: breed });
     if (error) throw error;
     return data as ServiceQuote;
   }

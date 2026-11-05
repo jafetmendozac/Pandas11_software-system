@@ -37,7 +37,7 @@ Angular adapta pantallas existentes con persistencia confirmada, precios como te
 
 Precio cero no cae a base; decimal `9007199254740993.25` regresa exactamente sin conversión binaria. Exceso de decimales, NaN, Infinity, minutos cero/negativos/fraccionarios y campos NULL requeridos se rechazan. Se comprueban respuestas y filas afectadas en denegaciones por RLS.
 
-La tarifa general se utiliza para dimensiones desconocidas; tamaño gana a pelaje y exacta gana a ambas. Eliminar exacta deja actuar la siguiente regla; desactivar servicio conserva sus tarifas. Cliente no ve reglas de servicio oculto/inactivo. El simulador no mezcla precio y duración y limpia cotización cuando cambian entradas.
+La tarifa general se utiliza para dimensiones desconocidas; tamaño gana a raza y exacta gana a ambas. Eliminar exacta deja actuar la siguiente regla; desactivar servicio conserva sus tarifas. Cliente no ve reglas de servicio oculto/inactivo. El simulador no mezcla precio y duración y limpia cotización cuando cambian entradas.
 
 ## Límites
 

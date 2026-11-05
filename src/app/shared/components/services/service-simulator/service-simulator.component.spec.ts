@@ -5,7 +5,7 @@ import { TarifasService, ServiceQuote } from '../../../services/tarifas.service'
 describe('Simulador de precios',()=>{
   let pricing:{quote:jasmine.Spy};
   beforeEach(()=>{
-    pricing={quote:jasmine.createSpy().and.resolveTo({service_id:'service',price:'0',duration_minutes:45,source:'SIZE_COAT',rule_id:'rule'})};
+    pricing={quote:jasmine.createSpy().and.resolveTo({service_id:'service',price:'0',duration_minutes:45,source:'SIZE_BREED',rule_id:'rule'})};
     TestBed.configureTestingModule({imports:[ServiceSimulatorComponent],providers:[
       {provide:ServiciosService,useValue:{getAll:async()=>[{id:'service',name:'Baño',active:true,visible_to_clients:true},{id:'hidden',name:'Oculto',active:true,visible_to_clients:false}]}},
       {provide:TarifasService,useValue:pricing},
@@ -15,10 +15,10 @@ describe('Simulador de precios',()=>{
     const f=TestBed.createComponent(ServiceSimulatorComponent);f.detectChanges();await f.whenStable();
     expect(f.nativeElement.querySelectorAll('app-custom-select').length).toBe(3);
     expect(f.nativeElement.querySelectorAll('select').length).toBe(0);
-    f.componentInstance.serviceId='service';f.componentInstance.size='TOY';f.componentInstance.coat='LONG';
+    f.componentInstance.serviceId='service';f.componentInstance.size='TOY';f.componentInstance.breed='poodle';
     await f.componentInstance.calculate();f.detectChanges();
-    expect(pricing.quote).toHaveBeenCalledWith('service','TOY','LONG');
-    expect(f.nativeElement.textContent).toContain('0.00');expect(f.nativeElement.textContent).toContain('45 minutos');expect(f.nativeElement.textContent).toContain('Tamaño y pelaje');
+    expect(pricing.quote).toHaveBeenCalledWith('service','TOY','poodle');
+    expect(f.nativeElement.textContent).toContain('0.00');expect(f.nativeElement.textContent).toContain('45 minutos');expect(f.nativeElement.textContent).toContain('Tamaño y raza');
   });
   it('catálogo propio solo ofrece servicios visibles',async()=>{
     const f=TestBed.createComponent(ServiceSimulatorComponent);f.componentRef.setInput('publicOnly',true);f.detectChanges();await f.whenStable();

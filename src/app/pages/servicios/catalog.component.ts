@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
-import { MascotasService, Pet, PetCoatType, PetSize } from '../../shared/services/mascotas.service';
+import { MascotasService, Pet, PetSize } from '../../shared/services/mascotas.service';
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
 import { ServiceQuote, TarifasService } from '../../shared/services/tarifas.service';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
@@ -26,7 +26,7 @@ export class ServiceCatalogComponent implements OnInit {
   readonly selectedServiceId = signal('');
   readonly selectedPetId = signal('');
   readonly size = signal<PetSize | null>(null);
-  readonly coat = signal<PetCoatType | null>(null);
+  readonly breed = signal<string | null>(null);
   readonly calculating = signal(false);
   readonly calculationError = signal('');
   readonly result = signal<ServiceQuote | null>(null);
@@ -55,7 +55,7 @@ export class ServiceCatalogComponent implements OnInit {
       }
       this.pets.set(pets);
     } catch {
-      this.petNotice.set('No pudimos cargar tus mascotas. Puedes indicar tamaño y pelaje manualmente.');
+      this.petNotice.set('No pudimos cargar tus mascotas. Puedes indicar tamaño y raza manualmente.');
     }
   }
 
@@ -68,12 +68,12 @@ export class ServiceCatalogComponent implements OnInit {
     this.selectedPetId.set(id);
     const pet = this.pets().find(item => item.id === id);
     this.size.set(pet?.pet_size ?? null);
-    this.coat.set(pet?.pet_coat_type ?? null);
+    this.breed.set(pet?.breed_id ?? null);
     this.invalidate();
   }
 
   setSize(value: string): void { this.size.set(value ? value as PetSize : null); this.invalidate(); }
-  setCoat(value: string): void { this.coat.set(value ? value as PetCoatType : null); this.invalidate(); }
+  setBreed(value: string): void { this.breed.set(value ? value : null); this.invalidate(); }
 
   async calculate(): Promise<void> {
     if (!this.selectedServiceId() || this.calculating()) return;
@@ -82,7 +82,7 @@ export class ServiceCatalogComponent implements OnInit {
     this.result.set(null);
     this.calculationError.set('');
     try {
-      const result = await this.pricing.quote(this.selectedServiceId(), this.size(), this.coat());
+      const result = await this.pricing.quote(this.selectedServiceId(), this.size(), this.breed());
       if (revision === this.revision) this.result.set(result);
     } catch {
       if (revision === this.revision) this.calculationError.set('No pudimos calcular esta tarifa. Revisa el servicio e inténtalo de nuevo.');

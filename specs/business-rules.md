@@ -25,7 +25,7 @@ Reglas de Fase 2 aprobadas el 2026-10-17:
 
 | ID | Regla | Estado |
 |---|---|---|
-| RN-11 | Resolver tarifa por prioridad: tamaño+pelaje exactos, solo tamaño, solo pelaje, general (ambos NULL), valores base. Si una dimensión se desconoce, solo aplican comodines en esa dimensión | Confirmado por aprobación del plan de Fase 2 |
+| RN-11 | Resolver tarifa por prioridad: tamaño+raza exactos, solo tamaño, solo raza, general (ambos NULL), valores base. Si una dimensión se desconoce, solo aplican comodines en esa dimensión | Confirmado por aprobación del plan de Fase 2 |
 | RN-12 | La tarifa ganadora aporta precio y duración completos, sin mezclar campos de reglas. Precio en PEN no negativo, cero válido, máximo dos decimales; minutos enteros positivos. Servicio inactivo no se calcula; cliente solo calcula servicios activos y visibles | Confirmado por aprobación del plan de Fase 2 |
 
 Las referencias de 1 y 2 horas no son duraciones fijas universales. No se inventan tiempos por tamaño ni una fórmula automática de transporte. Los nombres administrador y owner describen responsabilidades del negocio; sus permisos técnicos deben especificarse antes de implementar.

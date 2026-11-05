@@ -4,9 +4,9 @@ Fecha: 2026-10-17. Estado: aprobado por el usuario el 2026-10-17; implementado l
 
 ## Objetivo
 
-Configurar servicios, duración, precio base y tarifas por tamaño/pelaje. Resolver de manera determinista el costo y duración de un servicio, indicando la tarifa utilizada. Reutilizar las pantallas existentes.
+Configurar servicios, duración, precio base y tarifas por tamaño/raza. Resolver de manera determinista el costo y duración de un servicio, indicando la tarifa utilizada. Reutilizar las pantallas existentes.
 
-Modelo de referencia: `services` y `service_prices` de Pandas11.sql, FK service_id, enums pet_size (incluido TOY) y pet_coat_type, índice único `uq_service_prices_rule` con NULLS NOT DISTINCT. No asumir esquema remoto.
+Modelo de referencia: `services` y `service_prices` de Pandas11.sql, FK service_id, enums pet_size (incluido TOY) y tabla `pet_breeds`, índice único `uq_service_prices_rule` con NULLS NOT DISTINCT. No asumir esquema remoto.
 
 ## Situación comprobada
 
@@ -17,8 +17,8 @@ Hay CRUD de servicios y tarifas; tarifas omiten TOY y no representan NULL como c
 - RN-04/RN-05: las referencias de 1/2 horas no son universales; configurar duraciones por tamaño, sin inventar importes o tiempos reales.
 - RN-07: conservar requires_specialist; calcular duración/precio no asigna personal ni valida disponibilidad.
 - RN-06: cotización manual de transporte queda fuera; el resultado de esta fase es solo el servicio.
-- Prioridad propuesta: tamaño+pelaje exactos → solo tamaño → solo pelaje → regla general (ambos NULL) → valores base del servicio.
-- NULL en tamaño/pelaje significa «todos», no una categoría adicional. Si la entrada de cálculo desconoce una dimensión (NULL), solo pueden aplicar reglas comodín de esa dimensión.
+- Prioridad propuesta: tamaño+raza exactos → solo tamaño → solo raza → regla general (ambos NULL) → valores base del servicio.
+- NULL en tamaño/raza significa «todos», no una categoría adicional. Si la entrada de cálculo desconoce una dimensión (NULL), solo pueden aplicar reglas comodín de esa dimensión.
 - La tarifa ganadora aporta precio y duración completos. No combinar precio de una regla con duración de otra. Propuesta: ambos importes base y de tarifa obligatorios; precio >= 0, máximo dos decimales, duración entera > 0 minutos. Sin tarifa específica, usar base, nunca cero implícito.
 - Precio expresado en PEN; devolver importe decimal exacto (texto decimal o tipo decimal seguro) y minutos, evitando redondeo monetario binario en el cálculo autoritativo PostgreSQL.
 - Servicio inactivo no se cotiza. Servicio no visible no se expone ni calcula para CLIENT. No anon. No reactivar servicios automáticamente.

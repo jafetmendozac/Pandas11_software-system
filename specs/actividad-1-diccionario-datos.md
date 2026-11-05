@@ -12,7 +12,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 |---|---|
 | `pet_sex` | MALE, FEMALE, UNKNOWN |
 | `pet_size` | TOY, SMALL, MEDIUM, LARGE, EXTRA_LARGE |
-| `pet_coat_type` | SHORT, MEDIUM, LONG |
+| `pet_coat_type` | Eliminado. Se usa `pet_breeds` (tabla gestionable con razas: Shitzu, Schnauzer, Poodle, Siberiano, Husky Siberiano, Golden Retriever, Labrador, Rottweiler y otras que el negocio agregue) |
 | `skill_level` | ALL_SERVICES, ASSISTANT |
 | `appointment_status` | REQUESTED, PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW |
 | `appointment_source` | INTERNAL, ONLINE |
@@ -177,10 +177,9 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `id` | `uuid` | Sí | PK | `gen_random_uuid()` |
 | `client_id` | `uuid` | Sí | FK | — |
 | `name` | `text` | Sí | — | — |
-| `breed` | `text` | No | — | — |
+| `breed_id` | `uuid` | No | FK pet_breeds | — |
 | `pet_sex` | `pet_sex` | No | — | — |
 | `pet_size` | `pet_size` | No | — | — |
-| `pet_coat_type` | `pet_coat_type` | No | — | — |
 | `photo_url` | `text` | No | — | — |
 | `weight_kg` | `numeric` | No | — | — |
 | `allergies` | `boolean` | Sí | — | `false` |
@@ -257,7 +256,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `created_at` | `timestamptz` | Sí | — | `now()` |
 | `updated_at` | `timestamptz` | Sí | — | `now()` |
 
-### `service_prices` — Tarifas por tamaño y pelaje
+### `service_prices` — Tarifas por tamaño y raza
 
 **Estado:** con migración local.
 
@@ -266,7 +265,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `id` | `uuid` | Sí | PK | `gen_random_uuid()` |
 | `service_id` | `uuid` | Sí | FK | — |
 | `pet_size` | `pet_size` | No | — | — |
-| `pet_coat_type` | `pet_coat_type` | No | — | — |
+| `pet_breed_id` | `uuid` | No | FK pet_breeds | — |
 | `price` | `numeric` | Sí | — | — |
 | `duration_minutes` | `integer` | Sí | — | — |
 
@@ -427,7 +426,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 - `profiles.id` referencia `auth.users.id`, administrada por Supabase Auth; esa tabla externa no aparece en el SQL raíz.
 - `role_permissions` y `user_roles` tienen claves primarias compuestas; cada componente también es FK.
 - `appointment_items(appointment_id, client_id)` referencia `appointments(id, client_id)` y `(pet_id, client_id)` referencia `pets(id, client_id)`: esto impide mezclar mascota y cita de clientes distintos.
-- `service_prices` tiene unicidad por servicio, tamaño y pelaje con `NULLS NOT DISTINCT`; tamaño/pelaje nulos representan comodines.
+- `service_prices` tiene unicidad por servicio, tamaño y raza con `NULLS NOT DISTINCT`; tamaño/raza nulos representan comodines.
 - `employee_schedules` y `business_hours` restringen día de semana a 1–6, intervalos positivos y unicidad de hora inicial por día.
 - `time_blocks.employee_id` nulo expresa bloqueo global; los rangos de bloqueo y cita requieren fin posterior al inicio.
 - `appointment_item_staff.stage` acepta SERVICE, BATH o CUT; el intervalo de etapa mide minutos enteros.

@@ -41,9 +41,9 @@
                 <option value="">No indicado</option><option value="TOY">Miniatura</option><option value="SMALL">Pequeño</option><option value="MEDIUM">Mediano</option><option value="LARGE">Grande</option><option value="EXTRA_LARGE">Extra grande</option>
               </select>
             </label>
-            <label class="block text-sm font-medium">Pelaje
-              <select #coatSelect [value]="coat() ?? ''" (change)="setCoat(coatSelect.value)" class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                <option value="">No indicado</option><option value="SHORT">Corto</option><option value="MEDIUM">Medio</option><option value="LONG">Largo</option><option value="WIRE">Cerda</option><option value="CURLY">Rizado</option><option value="HAIRLESS">Sin pelo</option>
+            <label class="block text-sm font-medium">Raza
+              <select #breedSelect [value]="breed() ?? ''" (change)="setBreed(breedSelect.value)" class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                <option value="">No indicado</option><option value="shitzu">Shitzu</option><option value="schnauzer">Schnauzer</option><option value="poodle">Poodle</option><option value="siberiano">Siberiano</option><option value="husky_siberiano">Husky Siberiano</option><option value="golden_retriever">Golden Retriever</option><option value="labrador">Labrador</option><option value="rottweiler">Rottweiler</option>
               </select>
             </label>
           </div>

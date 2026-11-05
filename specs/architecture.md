@@ -131,7 +131,7 @@ ClientesService y MascotasService usan RPC de búsqueda paginada en servidor; la
 
 ## Actualización Fase 2 — 2026-10-17
 
-services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/pelaje → tamaño → pelaje → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
+services/service_prices migrados incrementalmente con RLS y permisos de dominio. quote_service es SQL autoritativo (invoker): exacta tamaño/raza → tamaño → raza → general → base, con regla completa y precio en texto decimal exacto. Dimensiones desconocidas solo admiten comodines. Nombre/importe/minutos obligatorios y validados; cero permitido, sin precios no finitos o redondeo coercitivo.
 
 ServiciosService/TarifasService utilizan búsquedas paginadas y guardado confirmado; ServiceSimulatorComponent ofrece cálculo con protección frente a respuestas obsoletas. Catálogo de cliente en /catalogo, sin panel y solo servicios activos/visibles. STAFF consulta, OWNER/ADMIN gestionan. Agenda sigue usando su contrato previo: integrar este cálculo a citas requiere otra fase, sin modificar históricos automáticamente.
 

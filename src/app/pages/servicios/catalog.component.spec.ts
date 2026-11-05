@@ -22,7 +22,7 @@ describe('Catálogo para clientes', () => {
         provideRouter([]),
         { provide: ServiciosService, useValue: { getAll } },
         { provide: ClientesService, useValue: { own: () => Promise.resolve({ rows: [{ id: 'client-1' }], total: 1 }) } },
-        { provide: MascotasService, useValue: { search: () => Promise.resolve({ rows: [{ id: 'pet-1', name: 'Luna', active: true, pet_size: 'SMALL', pet_coat_type: 'LONG' }], total: 1 }) } },
+        { provide: MascotasService, useValue: { search: () => Promise.resolve({ rows: [{ id: 'pet-1', name: 'Luna', active: true, pet_size: 'SMALL', breed_id: 'poodle' }], total: 1 }) } },
         { provide: TarifasService, useValue: { quote } },
       ],
     });
@@ -40,7 +40,7 @@ describe('Catálogo para clientes', () => {
     fixture.componentInstance.selectPet('pet-1');
     await fixture.componentInstance.calculate();
     await fixture.whenStable();
-    expect(quote).toHaveBeenCalledOnceWith('bath', 'SMALL', 'LONG');
+    expect(quote).toHaveBeenCalledOnceWith('bath', 'SMALL', 'poodle');
     expect(fixture.nativeElement.textContent).toContain('S/ 55.00 · 60 minutos');
   });
 

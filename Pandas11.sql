@@ -32,12 +32,6 @@ CREATE TYPE "pet_size" AS ENUM (
   'EXTRA_LARGE'
 );
 
-CREATE TYPE "pet_coat_type" AS ENUM (
-  'SHORT',
-  'MEDIUM',
-  'LONG'
-);
-
 CREATE TYPE "skill_level" AS ENUM (
   'ALL_SERVICES',
   'ASSISTANT'
@@ -287,14 +281,21 @@ CREATE TABLE "clients" (
   "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE "pet_breeds" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name" text NOT NULL CHECK (length(btrim(name)) > 0),
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE "pets" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "client_id" uuid NOT NULL,
   "name" text NOT NULL CHECK (length(btrim(name)) > 0),
-  "breed" text,
+  "breed_id" uuid REFERENCES public.pet_breeds(id),
   "pet_sex" pet_sex,
   "pet_size" pet_size,
-  "pet_coat_type" pet_coat_type,
   "photo_url" text,
   "weight_kg" numeric CHECK (weight_kg > 0),
   "allergies" boolean NOT NULL DEFAULT false,
@@ -358,7 +359,7 @@ CREATE TABLE "service_prices" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "service_id" uuid NOT NULL,
   "pet_size" pet_size,
-  "pet_coat_type" pet_coat_type,
+  "pet_breed_id" uuid REFERENCES public.pet_breeds(id),
   "price" numeric NOT NULL,
   "duration_minutes" integer NOT NULL,
   CONSTRAINT "chk_sp_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
@@ -701,7 +702,7 @@ CREATE INDEX ON "pet_vaccinations" ("pet_id");
 
 -- SOLUCIÓN AL ERROR EN POSTGRESQL 15+:
 CREATE UNIQUE INDEX "uq_service_prices_rule" 
-ON "service_prices" ("service_id", "pet_size", "pet_coat_type") 
+ON "service_prices" ("service_id", "pet_size", "pet_breed_id") 
 NULLS NOT DISTINCT;
 
 CREATE INDEX ON "appointments" ("starts_at", "ends_at");

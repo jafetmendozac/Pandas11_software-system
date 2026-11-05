@@ -4,15 +4,13 @@ import { TableRow } from '../components/tables/basic-tables/personalize-table/pe
 import { PageQuery, PageResult } from './clientes.service';
 export type PetSex = 'MALE' | 'FEMALE' | 'UNKNOWN';
 export type PetSize = 'TOY' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
-export type PetCoatType = 'SHORT' | 'MEDIUM' | 'LONG';
 export interface Pet extends TableRow {
     id: string;
     client_id: string;
     name: string;
-    breed: string | null;
+    breed_id: string | null;
     pet_sex: PetSex | null;
     pet_size: PetSize | null;
-    pet_coat_type: PetCoatType | null;
     weight_kg: number | null;
     allergies: boolean;
     bites: boolean;
@@ -57,7 +55,7 @@ export class MascotasService {
         if (birth && death && death < birth)
             throw new Error('El fallecimiento no puede ser anterior al nacimiento.');
         return {
-            name, breed: text('breed'), pet_sex: text('pet_sex'), pet_size: text('pet_size'), pet_coat_type: text('pet_coat_type'),
+            name, breed_id: text('breed_id'), pet_sex: text('pet_sex'), pet_size: text('pet_size'),
             weight_kg: weight, allergies: pet['allergies'] === true || pet['allergies'] === 'true',
             bites: pet['bites'] === true || pet['bites'] === 'true', client_notes: text('client_notes'),
             birth_date: birth, death_date: death, active: pet['active'] !== false && pet['active'] !== 'false',

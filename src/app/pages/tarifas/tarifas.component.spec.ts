@@ -10,7 +10,7 @@ describe('Tarifas de solo lectura', () => {
     const serviceId = 'd0400000-0000-4000-8000-000000000301';
     const prices = { search: jasmine.createSpy().and.resolveTo({
       rows: [{ id: 'tarifa', service_id: serviceId, service_name: 'DEMO Baño',
-        pet_size: null, pet_coat_type: null, price: '40.00', duration_minutes: 60 }], total: 1,
+        pet_size: null, pet_breed_id: null, price: '40.00', duration_minutes: 60 }], total: 1,
     }) };
     const services = { getAll: jasmine.createSpy().and.resolveTo([]) };
     TestBed.configureTestingModule({
