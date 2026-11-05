@@ -17,7 +17,7 @@ export interface TableColumn {
   helpText?: string;
   type?: 'text' | 'number' | 'date' | 'time' | 'datetime-local';
   control?: 'radio';
-  display?: 'status-indicator' | 'visibility-indicator';
+  display?: 'status-indicator' | 'visibility-indicator' | 'date-short';
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }
@@ -146,6 +146,17 @@ export class PersonalizedTable {
 
   isTruthy(value: unknown): boolean {
     return value === true || value === 'true';
+  }
+
+  formatShortDate(value: unknown): string {
+    if (!value) return '';
+    const date = new Date(String(value));
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat('es-PE', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date).replace('.', '');
   }
 
   goToPage(page: number): void {

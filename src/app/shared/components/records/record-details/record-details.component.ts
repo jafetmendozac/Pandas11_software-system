@@ -37,7 +37,6 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tab
           <textarea [(ngModel)]="notes" [readOnly]="archived || saving || !authorization.has('internal.manage')"
             class="mt-2 min-h-28 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white"></textarea>
         </label>
-        @if (note) { <p class="text-sm">Última edición: {{ note.updated_at }} · Autor: {{ note.updated_by }}</p> }
         @if (!archived && authorization.has('internal.manage')) {
           <button type="button" (click)="saveNotes()" [disabled]="saving" class="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">Guardar nota interna</button>
         }

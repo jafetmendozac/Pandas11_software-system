@@ -70,6 +70,8 @@
               <app-badge size="sm" [color]="getBadgeColor(item[column.key])">
                 {{ getCellValue(item, column.key) }}
               </app-badge>
+              } @else if (column.display === 'date-short') {
+              {{ formatShortDate(item[column.key]) }}
               } @else {
               {{ getCellValue(item, column.key, column) }}
               }
@@ -176,7 +178,11 @@
             <span class="sr-only">{{ isTruthy(item[column.key]) ? 'Visible para clientes' : 'No visible para clientes' }}</span>
           </span>
           } @else {
+          @if (column.display === 'date-short') {
+          {{ formatShortDate(item[column.key]) }}
+          } @else {
           {{ getCellValue(item, column.key, column) }}
+          }
           }
           </dd>
         </div>

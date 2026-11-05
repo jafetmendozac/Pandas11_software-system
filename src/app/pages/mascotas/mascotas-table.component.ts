@@ -127,6 +127,7 @@ export class MascotasTableComponent implements OnInit {
         {
             key: 'active',
             label: 'Estado',
+            display: 'status-indicator',
             helpText: 'Define si la mascota sigue activa en el negocio.',
             options: [
                 { label: 'Activo', value: 'true' },
@@ -136,6 +137,7 @@ export class MascotasTableComponent implements OnInit {
         {
             key: 'created_at',
             label: 'Creado el',
+            display: 'date-short',
             editable: false,
         },
     ];
