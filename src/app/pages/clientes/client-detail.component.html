@@ -1,0 +1,48 @@
+<app-page-breadcrumb [pageTitle]="client ? 'Ficha de ' + clientName : 'Ficha de cliente'" />
+
+<div class="space-y-5">
+  <a routerLink="/clientes" [queryParams]="returnQueryParams" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5">
+    <span aria-hidden="true">←</span> Volver a clientes
+  </a>
+
+  @if (loading) {
+    <p role="status" class="text-gray-600 dark:text-gray-300">Cargando ficha del cliente…</p>
+  } @else if (error) {
+    <section class="rounded-xl border border-error-200 bg-error-50 p-5 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert"><p>{{ error }}</p></section>
+  } @else if (client) {
+    <app-component-card [title]="clientName" desc="Datos de contacto y preferencias del cliente">
+      <dl class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div><dt class="text-gray-500 dark:text-gray-400">Teléfono</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ client.phone || 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">WhatsApp</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ client.whatsapp || 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Correo electrónico</dt><dd class="mt-1 break-words font-medium text-gray-800 dark:text-white/90">{{ client.email || 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Documento</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ client.tax_doc_type && client.tax_doc_number ? client.tax_doc_type + ' · ' + client.tax_doc_number : 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Dirección</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ client.address || 'No indicada' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Mensajes por WhatsApp</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ client.whatsapp_opt_in ? 'Acepta recibir mensajes' : 'No acepta recibir mensajes' }}</dd></div>
+      </dl>
+    </app-component-card>
+
+    <app-record-details [client]="client" [archived]="archived" title="Notas internas" />
+
+    <app-component-card title="Mascotas" desc="Consulta, registra o actualiza las mascotas vinculadas a este cliente.">
+      @if (petsError) { <p role="alert" class="mb-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ petsError }}</p> }
+      @if (petsLoading) { <p role="status" class="mb-4 text-sm text-gray-600 dark:text-gray-300">Cargando mascotas…</p> }
+      <app-personalized-table
+        title="Mascotas"
+        [serverTotal]="petsTotal"
+        (queryChanged)="loadPets($event)"
+        [saveAction]="savePet"
+        [allowCreate]="!archived && authorization.has('pets.manage')"
+        [allowEdit]="!archived && authorization.has('pets.manage')"
+        [allowDelete]="!archived && authorization.has('pets.manage')"
+        detailsLabel="Ver antecedentes"
+        (rowDetails)="openPet($event)"
+        addLabel="Añadir mascota"
+        createTitle="Añadir mascota"
+        editTitle="Editar mascota"
+        searchPlaceholder="Buscar mascota..."
+        [tableData]="petsRows"
+        [columns]="petColumns"
+      />
+    </app-component-card>
+  }
+</div>

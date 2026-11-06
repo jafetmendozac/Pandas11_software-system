@@ -5,10 +5,10 @@ import { MascotasService } from '../../shared/services/mascotas.service';
 import { RecordsService } from '../../shared/services/records.service';
 import { PetDetailComponent } from './pet-detail.component';
 
-const route = (id: string | null) => ({
+const route = (id: string | null, fromClient: string | null = null) => ({
   snapshot: {
     paramMap: { get: (key: string) => key === 'id' ? id : null },
-    queryParamMap: { get: (key: string) => key === 'q' ? 'Luna' : key === 'page' ? '2' : key === 'archived' ? '1' : null },
+    queryParamMap: { get: (key: string) => key === 'q' ? 'Luna' : key === 'page' ? '2' : key === 'archived' ? '1' : key === 'fromClient' ? fromClient : null },
   },
 });
 
@@ -51,5 +51,14 @@ describe('PetDetailComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('La mascota no existe o no tienes permiso para verla.');
     expect(fixture.nativeElement.textContent).not.toContain('Mascota de Ana Pérez');
+  });
+
+  it('vuelve a la ficha de cliente cuando se abrió desde ella', () => {
+    TestBed.overrideProvider(ActivatedRoute, { useValue: route('pet-1', 'client-1') });
+    TestBed.overrideProvider(MascotasService, { useValue: { get: jasmine.createSpy() } });
+    const fixture = TestBed.createComponent(PetDetailComponent);
+
+    expect(fixture.componentInstance.returnPath).toEqual(['/clientes', 'client-1']);
+    expect(fixture.componentInstance.returnLabel).toBe('Volver a la ficha del cliente');
   });
 });

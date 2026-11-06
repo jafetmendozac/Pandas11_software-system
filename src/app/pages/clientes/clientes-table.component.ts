@@ -1,14 +1,14 @@
 import { ChangeDetectorRef, Component, Input, ViewChild, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { Client, ClientesService, PageQuery } from '../../shared/services/clientes.service';
 import { ProfilesService, profileLabel } from '../../shared/services/profiles.service';
-import { MascotasService, Pet } from '../../shared/services/mascotas.service';
+import { MascotasService } from '../../shared/services/mascotas.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
-import { RecordDetailsComponent } from '../../shared/components/records/record-details/record-details.component';
 @Component({ selector: 'app-clientes-table', standalone: true,
-    imports: [PageBreadcrumbComponent, ComponentCardComponent, PersonalizedTable, RecordDetailsComponent],
+    imports: [PageBreadcrumbComponent, ComponentCardComponent, PersonalizedTable],
     templateUrl: './clientes-table.component.html' })
 export class ClientesTableComponent implements OnInit {
     @Input()
@@ -18,58 +18,16 @@ export class ClientesTableComponent implements OnInit {
     readonly authorization = inject(AuthorizationService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly clients = inject(ClientesService);
-    private readonly pets = inject(MascotasService);
+    private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly profiles = inject(ProfilesService);
     tableData: Client[] = [];
     total = 0;
     archived = false;
     loading = false;
     errorMessage = '';
-    selectedClient: Client | null = null;
-    selectedPet: Pet | null = null;
-    selectedClientPets: Pet[] = [];
-    petsErrorMessage = '';
-    petsTotal = 0;
     query: PageQuery = { search: '', page: 1, size: 10 };
-    petQuery: PageQuery = { search: '', page: 1, size: 10 };
     private revision = 0;
-    private petRevision = 0;
-    petColumns: TableColumn[] = [
-        { key: 'name', label: 'Nombre', placeholder: 'Ej. Max' },
-        { key: 'breed', label: 'Raza', placeholder: 'Ej. Pomerania', required: false },
-        {
-            key: 'pet_sex', label: 'Sexo', required: false, options: [
-                { label: 'No especificado', value: '' },
-                { label: 'Macho', value: 'MALE' },
-                { label: 'Hembra', value: 'FEMALE' },
-                { label: 'Desconocido', value: 'UNKNOWN' },
-            ],
-        },
-        {
-            key: 'pet_size', label: 'Tamaño', required: false, options: [
-                { label: 'No especificado', value: '' },
-                { label: 'Miniatura', value: 'TOY' },
-                { label: 'Pequeño', value: 'SMALL' },
-                { label: 'Mediano', value: 'MEDIUM' },
-                { label: 'Grande', value: 'LARGE' },
-                { label: 'Extra grande', value: 'EXTRA_LARGE' },
-            ],
-        },
-        { key: 'weight_kg', label: 'Peso (kg)', type: 'number', required: false },
-        { key: 'allergies', label: 'Alergias', required: false, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
-        {
-            key: 'bites', label: 'Muerde', required: false, options: [
-                { label: 'No', value: 'false' },
-                { label: 'Sí', value: 'true' },
-            ],
-        },
-        { key: 'client_notes', label: 'Notas', required: false },
-        { key: 'birth_date', label: 'Nacimiento', type: 'date', required: false },
-        { key: 'active', label: 'Estado', options: [
-                { label: 'Activo', value: 'true' },
-                { label: 'Inactivo', value: 'false' },
-            ] },
-    ];
     columns: TableColumn[] = [
         {
             key: 'profile_id',
@@ -143,6 +101,9 @@ export class ClientesTableComponent implements OnInit {
         },
     ];
     async ngOnInit(): Promise<void> {
+        const page = Number(this.route.snapshot.queryParamMap.get('page'));
+        this.archived = this.route.snapshot.queryParamMap.get('archived') === '1';
+        this.query = { search: this.route.snapshot.queryParamMap.get('q') ?? '', page: Number.isInteger(page) && page > 0 ? page : 1, size: 10 };
         if (this.authorization.has('profiles.read')) {
             try {
                 const profiles = await this.profiles.getAll();
@@ -178,7 +139,7 @@ export class ClientesTableComponent implements OnInit {
             this.cdr.markForCheck();
         }
     }
-    async toggleArchive(): Promise<void> { this.archived = !this.archived; this.closePets(); if (this.clientsTable)
+    async toggleArchive(): Promise<void> { this.archived = !this.archived; if (this.clientsTable)
         this.clientsTable.currentPage = 1; await this.loadClients({ ...this.query, page: 1 }); }
     readonly saveClient = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
         if (this.selfService || this.archived || !this.authorization.has('clients.manage'))
@@ -191,35 +152,8 @@ export class ClientesTableComponent implements OnInit {
         }
         await this.loadClients();
     };
-    async openPets(row: TableRow): Promise<void> { this.selectedClient = row as Client; this.selectedPet = null; this.petQuery = { search: '', page: 1, size: 10 }; await this.loadPets(); }
-    closePets(): void { this.petRevision++; this.selectedClient = null; this.selectedPet = null; this.selectedClientPets = []; }
-    async loadPets(query = this.petQuery): Promise<void> {
-        this.petQuery = query;
-        const revision = ++this.petRevision;
-        const id = this.selectedClient?.id;
-        if (!id)
-            return;
-        this.petsErrorMessage = '';
-        try {
-            const result = await this.pets.search(query, this.archived, id);
-            if (revision === this.petRevision && id === this.selectedClient?.id) {
-                this.selectedClientPets = result.rows;
-                this.petsTotal = result.total;
-            }
-        }
-        catch (error) {
-            if (revision === this.petRevision)
-                this.petsErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las mascotas.';
-        } finally { this.cdr.markForCheck(); }
+    openPets(row: TableRow): void {
+        const client = row as Client;
+        void this.router.navigate(['/clientes', client.id], { queryParams: { q: this.query.search || undefined, page: this.query.page, archived: this.archived ? '1' : undefined } });
     }
-    readonly savePet = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
-        if (this.selfService || this.archived || !this.authorization.has('pets.manage'))
-            throw new Error('Operación no permitida.');
-        const pet = { ...row, client_id: this.selectedClient?.id };
-        await (mode === 'create' ? this.pets.create(pet) : mode === 'update' ? this.pets.update(pet) : this.pets.remove(pet));
-        this.selectedPet = null;
-        await this.loadPets();
-    };
-    selectPet(row: TableRow): void { this.selectedPet = row as Pet; }
-    get selectedClientName(): string { return `${this.selectedClient?.first_name ?? ''} ${this.selectedClient?.last_name ?? ''}`.trim(); }
 }

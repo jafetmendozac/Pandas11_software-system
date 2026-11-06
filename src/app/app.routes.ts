@@ -69,6 +69,12 @@ export const routes: Routes = [
           'Spa & Boutique Pandas 11',
       },
       {
+        path:'clientes/:id',
+        data: { permission: 'clients.read' },
+        loadComponent: () => import('./pages/clientes/client-detail.component').then(m => m.ClientDetailComponent),
+        title:'Ficha de cliente | Spa & Boutique Pandas 11'
+      },
+      {
         path:'clientes',
         data: { permission: 'clients.read' },
         component:ClientesTableComponent,

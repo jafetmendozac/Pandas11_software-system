@@ -61,6 +61,15 @@ export class ClientesService {
                 return rows;
         }
     }
+    async get(id: string, archived = false): Promise<Client | null> {
+        const { data, error } = await this.supabase.client.from('clients').select('*').eq('id', id).maybeSingle();
+        if (error)
+            throw error;
+        const client = data as Client | null;
+        if (!client || Boolean(client.deleted_at) !== archived)
+            return null;
+        return client;
+    }
     private validate(client: TableRow): void {
         if (!String(client['first_name'] ?? '').trim())
             throw new Error('El nombre del cliente es obligatorio.');

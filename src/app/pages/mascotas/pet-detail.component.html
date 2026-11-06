@@ -1,8 +1,8 @@
 <app-page-breadcrumb [pageTitle]="pet ? 'Ficha de ' + pet.name : 'Ficha de mascota'" />
 
 <div class="space-y-5">
-  <a routerLink="/mascotas" [queryParams]="returnQueryParams" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5">
-    <span aria-hidden="true">←</span> Volver a mascotas
+  <a [routerLink]="returnPath" [queryParams]="returnQueryParams" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5">
+    <span aria-hidden="true">←</span> {{ returnLabel }}
   </a>
 
   @if (loading) {

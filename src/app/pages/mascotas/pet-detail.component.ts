@@ -20,6 +20,9 @@ export class PetDetailComponent implements OnInit {
   loading = true;
   error = '';
   readonly archived = this.route.snapshot.queryParamMap.get('archived') === '1';
+  private readonly fromClient = this.route.snapshot.queryParamMap.get('fromClient');
+  readonly returnPath = this.fromClient ? ['/clientes', this.fromClient] : ['/mascotas'];
+  readonly returnLabel = this.fromClient ? 'Volver a la ficha del cliente' : 'Volver a mascotas';
   readonly returnQueryParams = {
     q: this.route.snapshot.queryParamMap.get('q') ?? undefined,
     page: this.route.snapshot.queryParamMap.get('page') ?? undefined,
