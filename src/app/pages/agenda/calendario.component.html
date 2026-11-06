@@ -18,19 +18,16 @@
       <h2 aria-live="polite" class="text-center text-lg font-medium text-gray-800 dark:text-white/90">{{ calendarTitle() }}</h2>
       <div class="flex items-center justify-center gap-2 sm:justify-end">
         <button type="button" (click)="navigate('today')" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Hoy</button>
-        <label for="agenda-view" class="sr-only">Vista del calendario</label>
-        <select id="agenda-view" [ngModel]="currentView()" (ngModelChange)="changeView($event)" class="h-10 rounded-lg border border-gray-300 bg-white ps-3 pe-8 text-sm font-medium text-gray-700 shadow-theme-xs focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-          @for(view of viewOptions;track view.key){<option [value]="view.key">{{ view.label }}</option>}
-        </select>
+        <div class="w-32"><app-custom-select [options]="viewSelectOptions" [value]="currentView()" (valueChange)="selectView($event)" ariaLabel="Vista del calendario" /></div>
       </div>
     </nav>
     <div class="mt-5 flex flex-wrap items-end gap-4 border-y border-gray-100 bg-gray-50/50 px-6 py-4 dark:border-gray-800 dark:bg-gray-900/30">
-      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Empleado
-        <select [(ngModel)]="employeeFilter" (ngModelChange)="loadRange()" class="mt-1.5 block h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="">Todos</option>@for(e of employees();track e.id){<option [value]="e.id">{{ e.employee_name }}</option>}</select>
-      </label>
-      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Estado
-        <select [(ngModel)]="statusFilter" (ngModelChange)="loadRange()" class="mt-1.5 block h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="">Todos</option><option value="CONFIRMED">Confirmada</option><option value="IN_PROGRESS">En atención</option><option value="COMPLETED">Completada</option><option value="CANCELLED">Cancelada</option><option value="NO_SHOW">No asistió</option></select>
-      </label>
+      <div class="w-40 text-sm font-medium text-gray-700 dark:text-gray-300"><span class="mb-1.5 block">Empleado</span>
+        <app-custom-select [options]="employeeFilterOptions()" [value]="employeeFilter" (valueChange)="setEmployeeFilter($event)" ariaLabel="Filtrar por empleado" />
+      </div>
+      <div class="w-40 text-sm font-medium text-gray-700 dark:text-gray-300"><span class="mb-1.5 block">Estado</span>
+        <app-custom-select [options]="statusSelectOptions" [value]="statusFilter" (valueChange)="setStatusFilter($event)" ariaLabel="Filtrar por estado" />
+      </div>
       <label class="min-w-0 flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">Cliente o mascota
         <input type="search" [(ngModel)]="search" (ngModelChange)="loadRange()" placeholder="Buscar cliente o mascota…" class="mt-1.5 block h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500" />
       </label>
@@ -63,15 +60,16 @@
             <div><span class="mb-1 block">Cliente</span><app-custom-select [options]="clientOptions()" [value]="clientId" [disabled]="pending() || !canEdit" (valueChange)="setClient($event)" placeholder="Selecciona cliente" ariaLabel="Cliente" /></div>
           }
           <div><span class="mb-1 block">Notas de la cita (comunicables al cliente)</span><app-text-area name="notes" ariaLabel="Notas de la cita" placeholder="Añade una nota" [value]="notes" [disabled]="pending() || !canEdit" (valueChange)="notes=$event; touch()" /></div>
-          @for(item of items();track item.key){
+          @for(group of petGroups();track group.key){
             <section class="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-              @if(item.id){<h3 class="font-semibold">{{ item.pet_name }} · {{ item.service_name }} (tarifa conservada)</h3>}
-              @else{
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <div><span class="mb-1 block">Mascota</span><app-custom-select [options]="petOptions()" [value]="item.pet_id" [disabled]="pending() || !canEdit" (valueChange)="setPet(item,$event)" placeholder="Selecciona mascota del cliente" ariaLabel="Mascota" /></div>
-                  <div><span class="mb-1 block">Servicio</span><app-custom-select [options]="serviceOptions(item)" [value]="item.service_id" [disabled]="pending() || !canEdit" (valueChange)="setService(item,$event)" placeholder="Selecciona servicio" ariaLabel="Servicio" /></div>
-                </div>
-              }
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div><span class="mb-1 block">Mascota</span><app-custom-select [options]="petOptions(group)" [value]="group.pet_id" [disabled]="pending() || !canEdit || group.items.some(i=>!!i.id)" (valueChange)="setGroupPet(group,$event)" placeholder="Selecciona mascota del cliente" [ariaLabel]="'Mascota ' + (group.pet_name || '')" /></div>
+                <app-multi-select [options]="serviceOptions(group)" [selected]="selectedServices(group)" [disabled]="pending() || !canEdit || !group.pet_id" [label]="'Servicios para ' + (group.pet_name || 'esta mascota')" placeholder="Selecciona uno o varios servicios" (selectionChange)="setGroupServices(group,$event)" />
+              </div>
+              @for(item of group.items;track item.key){
+              @if(item.service_id){
+              <div class="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+              <h3 class="font-semibold">{{ item.service_name || 'Servicio seleccionado' }} @if(item.id){<span class="text-sm font-normal">(tarifa conservada)</span>}</h3>
               @if(item.quoting){<p role="status">Calculando tarifa…</p>}
               @if(item.duration_minutes){<p>S/ {{ money(item.price) }} · {{ item.duration_minutes }} minutos en total. El servidor confirma tarifa y cobertura al guardar.</p>}
               <div class="grid gap-3 sm:grid-cols-2">
@@ -80,23 +78,25 @@
               </div>
               @if(item.specialist){<app-checkbox [id]="'split-'+item.key" label="Desglosar baño y corte con relevo (define ambos tiempos)" [checked]="item.stages.length===2" [disabled]="pending() || !canEdit" (checkedChange)="split(item,$event)" />}
               @for(stage of item.stages;track $index;let index=$index){
-                <div class="grid gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:grid-cols-2">
+                <div class="grid gap-3 sm:grid-cols-2">
                   <div><span class="mb-1 block">{{ stages[stage.stage] }} · minutos</span><app-input-field type="number" [name]="'minutes-'+item.key+'-'+index" [ariaLabel]="stages[stage.stage] + ' minutos'" min="1" [step]="1" [value]="stage.minutes ?? ''" [preserveEmpty]="true" [readOnly]="item.stages.length===1" [inputRequired]="true" [disabled]="pending() || !canEdit" (valueChange)="setMinutes(item,index,$event)" /></div>
                   <div><span class="mb-1 block">Trabajador</span><app-custom-select [options]="employeeOptions(item,index)" [value]="stage.employee_id" [disabled]="pending() || !canEdit" (valueChange)="setEmployee(item,index,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para ' + stages[stage.stage]" /></div>
                   @if(interval(item,index);as range){<p class="sm:col-span-2">{{ range.starts_local.replace('T',' ') }} — {{ range.ends_local.replace('T',' ') }} (Lima)</p>}
                 </div>
               }
               <div><span class="mb-1 block">Observaciones del servicio</span><app-input-field [name]="'item-notes-'+item.key" ariaLabel="Observaciones del servicio" [value]="item.notes" [disabled]="pending() || !canEdit" (valueChange)="item.notes=''+$event; touch()" /></div>
-              @if(canEdit && item.pet_id){<button type="button" (click)="addServiceForPet(item)" class="me-3 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">Añadir otro servicio para {{ item.pet_name || 'esta mascota' }}</button>}
-              @if(canEdit){<button type="button" (click)="removeItem(item.key)" class="text-error-600 dark:text-error-400">Retirar este servicio de la cita</button>}
+              </div>
+              }
+              }
+              @if(canEdit){<button type="button" (click)="removePetGroup(group)" class="text-error-600 dark:text-error-400">Quitar mascota de la cita</button>}
             </section>
           }
-          @if(canEdit){<button type="button" [disabled]="!clientId" (click)="addItem()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Añadir servicio por mascota</button>}
+          @if(canEdit){<button type="button" [disabled]="!clientId" (click)="addItem()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Añadir mascota</button>}
           @if(items().length){<p class="text-sm text-gray-600 dark:text-gray-400">Los servicios de una misma mascota deben ser consecutivos. Puedes ajustar la hora sugerida.</p>}
         </fieldset>
         @if(canEdit){
           <div class="flex flex-wrap gap-3">
-            <button type="button" [disabled]="pending() || checking() || !items().length" (click)="checkAvailability()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">{{ checking() ? 'Comprobando…' : 'Comprobar disponibilidad' }}</button>
+            <button type="button" [disabled]="pending() || checking() || !items().length || items().some(i=>i.quoting)" (click)="checkAvailability()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">{{ checking() ? 'Comprobando…' : 'Comprobar disponibilidad' }}</button>
             <button type="submit" [disabled]="pending() || items().some(i=>i.quoting)" class="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">{{ pending() ? 'Guardando…' : 'Guardar cita' }}</button>
           </div>
         }

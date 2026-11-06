@@ -29,11 +29,16 @@ import { TextAreaComponent } from '../../shared/components/form/input/text-area.
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { TimePickerComponent } from '../../shared/components/form/time-picker/time-picker.component';
+import { MultiSelectComponent, Option as MultiSelectOption } from '../../shared/components/form/multi-select/multi-select.component';
 
-@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,InputFieldComponent,TextAreaComponent,CheckboxComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
+interface PetGroup { key:string; pet_id:string; pet_name:string; items:DraftItem[]; }
+
+@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,MultiSelectComponent,InputFieldComponent,TextAreaComponent,CheckboxComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
+ readonly viewSelectOptions:CustomSelectOption[]=this.viewOptions.map(view=>({value:view.key,label:view.label}));
+ readonly statusSelectOptions:CustomSelectOption[]=[{value:'',label:'Todos'},...(['CONFIRMED','IN_PROGRESS','COMPLETED','CANCELLED','NO_SHOW'] as const).map(status=>({value:status,label:STATUS_LABELS[status]}))];
  readonly calendarTitle=signal('');
  readonly currentView=signal('dayGridMonth');
  readonly authorization=inject(AuthorizationService);
@@ -48,6 +53,8 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
  clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
  private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
+ private readonly automaticStarts=new Set<string>();
+ private readonly removedItems=new Map<string,DraftItem>();
  get canEdit():boolean{return !this.detailFailed()&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
  async ngOnInit():Promise<void>{
   this.options.set({...calendarAppearance,plugins:[themePlugin,dayGridPlugin,multiMonthPlugin,timeGridPlugin,interactionPlugin],initialView:'dayGridMonth',locale:esLocale,timeZone:'America/Lima',direction:document.documentElement.dir==='rtl'?'rtl':'ltr',allDaySlot:false,
@@ -85,6 +92,14 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  }
  navigate(direction:'prev'|'next'|'today'):void{this.calendar?.getApi()[direction]();}
  changeView(view:string):void{if(this.viewOptions.some(option=>option.key===view))this.calendar?.getApi().changeView(view);}
+ selectView(value:string|number|null):void{this.changeView(String(value??''));}
+ employeeFilterOptions():CustomSelectOption[]{return [{value:'',label:'Todos'},...this.employees().map(e=>({value:e.id,label:e.employee_name}))];}
+ setEmployeeFilter(value:string|number|null):void{this.employeeFilter=String(value??'');void this.loadRange();}
+ setStatusFilter(value:string|number|null):void{
+  const status=String(value??'');
+  if(!this.statusSelectOptions.some(option=>option.value===status))return;
+  this.statusFilter=status as AppointmentStatus|'';void this.loadRange();
+ }
  ngOnDestroy():void{this.revision++;this.formRevision++;this.detailRevision++;}
  async loadRange():Promise<void>{
   if(!this.rangeFrom||!this.rangeUntil)return;const revision=++this.revision;this.loading.set(true);this.error.set('');
@@ -108,10 +123,10 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  }
  openNew(start?:string):void{
   if(!this.authorization.has('appointments.manage')||this.pending()||this.optionsLoading())return;
-  this.detailRevision++;this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
+  this.detailRevision++;this.automaticStarts.clear();this.removedItems.clear();this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
  }
  async openAppointment(id:string):Promise<void>{
-  if(this.pending())return;const revision=++this.detailRevision;this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
+  if(this.pending())return;const revision=++this.detailRevision;this.automaticStarts.clear();this.removedItems.clear();this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
   try{
    const a=await this.appointments.get(id);if(revision!==this.detailRevision)return;
    this.current.set(a);this.clientId=a.client_id;this.notes=a.client_notes??'';this.cancelReason='';this.items.set(a.items.map(draftItem));this.checks.set({});
@@ -120,11 +135,30 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  }
  close():void{if(this.pending())return;this.detailRevision++;this.formRevision++;this.isOpen.set(false);this.checking.set(false);}
  touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
- changeClient():void{this.items.set([]);this.touch();}
+ changeClient():void{this.automaticStarts.clear();this.removedItems.clear();this.items.set([]);this.touch();}
  filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
  clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''}`.trim()}));}
- petOptions():CustomSelectOption[]{return this.filteredPets().map(p=>({value:p.id,label:p.name}));}
- serviceOptions(item:DraftItem):CustomSelectOption[]{return this.services().map(s=>({value:s.id,label:s.name,disabled:!!item.pet_id&&this.items().some(other=>other!==item&&other.pet_id===item.pet_id&&other.service_id===s.id)}));}
+ petGroups():PetGroup[]{
+  const groups:PetGroup[]=[];const byPet=new Map<string,PetGroup>();
+  for(const item of this.items()){
+   const id=item.pet_id||`pending:${item.key}`;let group=byPet.get(id);
+   if(!group){group={key:id,pet_id:item.pet_id,pet_name:item.pet_name,items:[]};byPet.set(id,group);groups.push(group);}
+   group.items.push(item);
+  }
+  return groups;
+ }
+ petOptions(group:PetGroup):CustomSelectOption[]{
+  const options:CustomSelectOption[]=this.filteredPets().map(p=>({value:p.id,label:p.name,disabled:this.items().some(i=>!group.items.includes(i)&&i.pet_id===p.id)}));
+  if(group.pet_id&&!options.some(option=>option.value===group.pet_id))options.unshift({value:group.pet_id,label:group.pet_name||'Mascota no disponible',disabled:true});
+  return options;
+ }
+ serviceOptions(group:PetGroup):MultiSelectOption[]{
+  const options:MultiSelectOption[]=this.services().map(s=>({value:s.id,text:s.name}));
+  for(const item of group.items)if(item.service_id&&!options.some(option=>option.value===item.service_id))options.push({value:item.service_id,text:item.service_name||'Servicio no disponible'});
+  for(const item of this.removedItems.values())if(item.pet_id===group.pet_id&&!options.some(option=>option.value===item.service_id))options.push({value:item.service_id,text:item.service_name||'Servicio anterior'});
+  return options;
+ }
+ selectedServices(group:PetGroup):string[]{return group.items.map(item=>item.service_id).filter(Boolean);}
  employeeOptions(item:DraftItem,index:number):CustomSelectOption[]{
   const stage=item.stages[index], candidates=this.candidates(item,index);
   const rows:CustomSelectOption[]=candidates.map(e=>({value:e.id,label:`${e.employee_name} · ${this.availabilityLabel(item,index,e.id)}`,disabled:this.unavailable(item,index,e.id)}));
@@ -132,37 +166,71 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   return rows;
  }
  setClient(value:string|number|null):void{this.clientId=String(value??'');this.changeClient();}
- setPet(item:DraftItem,value:string|number|null):void{item.pet_id=String(value??'');item.pet_name=this.pets().find(p=>p.id===item.pet_id)?.name??'';void this.quote(item);}
- setService(item:DraftItem,value:string|number|null):void{item.service_id=String(value??'');void this.quote(item);}
+ setGroupPet(group:PetGroup,value:string|number|null):void{
+  if(!this.canEdit||group.items.some(item=>!!item.id))return;
+  const id=String(value??''),pet=this.filteredPets().find(p=>p.id===id);
+  if(!pet||this.items().some(item=>!group.items.includes(item)&&item.pet_id===id))return;
+  for(const item of group.items){item.pet_id=id;item.pet_name=pet.name;void this.quote(item);}
+ }
+ setGroupServices(group:PetGroup,selected:string[]):void{
+  if(!this.canEdit||!group.pet_id)return;
+  const all=this.items(),live=group.items.filter(item=>all.includes(item));if(!live.length)return;
+  const allowed=new Set(this.serviceOptions(group).map(option=>option.value));
+  const ids=[...new Set(selected)].filter(id=>allowed.has(id)),wanted=new Set(ids);
+  const kept=live.filter(item=>!!item.service_id&&wanted.has(item.service_id));
+  for(const item of live)if(item.id&&item.service_id&&!wanted.has(item.service_id))this.removedItems.set(`${item.pet_id}:${item.service_id}`,item);
+  let placeholder=live.find(item=>!item.id&&!item.service_id);
+  const added:DraftItem[]=[];
+  for(const id of ids){
+   if(kept.some(item=>item.service_id===id))continue;
+   const key=`${group.pet_id}:${id}`,restored=this.removedItems.get(key);
+   if(restored){this.removedItems.delete(key);kept.push(restored);continue;}
+   const item=placeholder??this.newItem(group.pet_id,'');
+   if(!placeholder)this.automaticStarts.add(item.key);
+   placeholder=undefined;item.service_id=id;item.service_name=this.services().find(service=>service.id===id)?.name??'';item.pet_name=group.pet_name;added.push(item);
+  }
+  const next=[...kept,...added];
+  if(!next.length){const empty=placeholder??this.newItem(group.pet_id,live[0].start);empty.pet_name=group.pet_name;next.push(empty);}
+  for(const item of live)if(!next.includes(item))this.automaticStarts.delete(item.key);
+  const first=all.findIndex(item=>live.includes(item));
+  this.items.set([...all.slice(0,first).filter(item=>!live.includes(item)),...next,...all.slice(first).filter(item=>!live.includes(item))]);
+  this.reflowPet(group.pet_id);this.touch();
+  for(const item of added)void this.quote(item);
+ }
  setEmployee(item:DraftItem,index:number,value:string|number|null):void{item.stages[index].employee_id=String(value??'');this.touch();}
  setMinutes(item:DraftItem,index:number,value:string|number):void{item.stages[index].minutes=value===''?null:Number(value);this.touch();}
  itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
  itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
- setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.touch();}
- setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha del servicio.');return;}item.start=`${date}T${time}`;this.touch();}
- addItem(petId='',start?:string):void{
+ setItemDate(item:DraftItem,date:string):void{this.automaticStarts.delete(item.key);item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha del servicio.');return;}this.automaticStarts.delete(item.key);item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();}
+ private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
+ addItem():void{
   if(!this.canEdit||!this.clientId)return;
-  this.items.update(rows=>[...rows,{key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start:start??(this.suggestedStart||this.nextStart()),stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0}]);this.touch();
+  this.items.update(rows=>[...rows,this.newItem('',this.suggestedStart||this.nextStart())]);this.touch();
  }
- addServiceForPet(item:DraftItem):void{
-  if(!this.canEdit||!item.pet_id)return;
-  const related=this.items().filter(i=>i.pet_id===item.pet_id);
-  let next='';
-  try{if(related.every(i=>i.start&&i.duration_minutes>0&&!i.quoting))next=related.map(i=>addLocalMinutes(i.start,i.duration_minutes)).sort().at(-1)??'';}catch{next='';}
-  this.addItem(item.pet_id,next);
+ removePetGroup(group:PetGroup):void{
+  if(!this.canEdit)return;for(const item of group.items){this.automaticStarts.delete(item.key);if(item.id&&item.service_id)this.removedItems.set(`${item.pet_id}:${item.service_id}`,item);}
+  this.items.update(rows=>rows.filter(item=>!group.items.includes(item)));this.touch();
  }
- removeItem(key:string):void{if(!this.canEdit)return;this.items.update(rows=>rows.filter(i=>i.key!==key));this.touch();}
+ private reflowPet(petId:string):void{
+  if(!petId)return;let ready=true;const ends:string[]=[];
+  for(const item of this.items().filter(i=>i.pet_id===petId&&i.service_id)){
+   if(this.automaticStarts.has(item.key))item.start=ready&&ends.length?[...ends].sort().at(-1)??'':'';
+   if(!item.start||!item.duration_minutes||item.quoting){ready=false;continue;}
+   try{ends.push(addLocalMinutes(item.start,item.duration_minutes));}catch{ready=false;}
+  }
+ }
  async quote(item:DraftItem):Promise<void>{
-  if(item.id||!this.canEdit)return;const token=++item.quoteRevision;this.touch();item.duration_minutes=0;item.quoting=true;this.items.update(rows=>[...rows]);
+  if(item.id||!this.canEdit)return;const token=++item.quoteRevision;this.touch();item.duration_minutes=0;item.quoting=true;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);
   const pet=this.pets().find(p=>p.id===item.pet_id),service=this.services().find(s=>s.id===item.service_id);
-  if(!pet||!service){item.quoting=false;this.items.update(rows=>[...rows]);return;}
+  if(!pet||!service){item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);return;}
   try{
    const q=await this.pricing.quote(service.id,pet.pet_size,pet.breed_id);
    if(item.quoteRevision!==token||!this.items().includes(item))return;
    item.price=q.price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
    item.stages=[{stage:'SERVICE',employee_id:'',minutes:q.duration_minutes}];
   }catch(error){if(item.quoteRevision===token&&this.items().includes(item))this.formError.set(workError(error));}
-  finally{if(item.quoteRevision===token&&this.items().includes(item)){item.quoting=false;this.items.update(rows=>[...rows]);}}
+  finally{if(item.quoteRevision===token&&this.items().includes(item)){item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);}}
  }
  split(item:DraftItem,enabled:boolean):void{
   if(!this.canEdit)return;
@@ -190,6 +258,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  }
  unavailable(item:DraftItem,index:number,id:string):boolean{const r=this.checks()[this.checkKey(item,index,id)];return !!r&&!r.can_start_service;}
  async checkAvailability():Promise<void>{
+  if(!this.canEdit||this.pending()||this.checking()||this.items().some(item=>item.quoting))return;
   const revision=this.formRevision;this.checking.set(true);this.formError.set('');const result:Record<string,ReservationAvailability>={};
   try{
    await Promise.all(this.items().flatMap(item=>item.stages.flatMap((s,index)=>{
@@ -204,13 +273,13 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   this.formError.set('');
   try{
    const payload=appointmentInput(this.clientId,this.notes,this.items());this.pending.set(true);
-   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();
+   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.automaticStarts.clear();this.removedItems.clear();this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();
   }catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
  }
  async transition(target:AppointmentStatus):Promise<void>{
   const a=this.current();if(!a||this.pending()||!this.authorization.has(target==='CANCELLED'?'appointments.cancel':'appointments.status'))return;
   this.formError.set('');this.pending.set(true);
-  try{const saved=await this.appointments.transition(a,target,this.cancelReason);this.current.set(saved);this.items.set(saved.items.map(draftItem));this.notes=saved.client_notes??'';this.formRevision++;this.checks.set({});await this.loadRange();}
+  try{const saved=await this.appointments.transition(a,target,this.cancelReason);this.automaticStarts.clear();this.removedItems.clear();this.current.set(saved);this.items.set(saved.items.map(draftItem));this.notes=saved.client_notes??'';this.formRevision++;this.checks.set({});await this.loadRange();}
   catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
  }
  async saveInternal():Promise<void>{

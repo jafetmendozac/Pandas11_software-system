@@ -127,3 +127,10 @@ El usuario solicitó usar los controles reutilizables equivalentes en el formula
 
 - F4-UI-01 (RN-01, RN-13; F4-02/F4-07/F4-11): usar selectores, fecha, hora, texto, número y casilla reutilizables conservando edición, lectura, permisos y tiempos de Lima con segundos. El selector de trabajador respeta las opciones no habilitadas.
 - F4-UI-02 (RN-03, RN-11/RN-12, RN-14/RN-15; F4-02/F4-04/F4-05/F4-06): permitir añadir otro servicio a la mascota elegida y sugerir el inicio tras el último servicio cuando sus duraciones estén disponibles. Cada servicio conserva cotización y etapas; se impide repetir la misma combinación de mascota y servicio y el servidor valida continuidad y disponibilidad al guardar.
+
+## Agrupación por mascota y filtros — 2026-11-06
+
+El usuario pidió elegir varios servicios en un mismo selector y usar otra tarjeta únicamente para otra mascota; también pidió sustituir los selectores nativos de empleado, estado y vista de la agenda.
+
+- F4-UI-03 (RN-03, RN-11/RN-12, RN-14/RN-15; F4-02/F4-04/F4-05/F4-06): mostrar una tarjeta por mascota con selección múltiple de servicios. Cada servicio conserva sus horarios, etapas, trabajador y tarifa, sin duplicar la combinación mascota/servicio. Los servicios de una mascota siguen siendo consecutivos; distintas mascotas pueden tener el mismo servicio.
+- F4-UI-04 (RN-13; F4-11/F4-12): empleado, estado y vista mes/año/semana/día utilizan el selector compartido y conservan su comportamiento de filtrado y navegación.
