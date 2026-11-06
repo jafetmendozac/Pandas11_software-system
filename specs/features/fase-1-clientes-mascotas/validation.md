@@ -59,6 +59,8 @@ UI-03 / F1-02, F1-05, F1-06 y F1-08: «Ver antecedentes» de `/mascotas` ahora n
 
 Validación: `npx ngc -p tsconfig.app.json --noEmit`, `npx tsc -p tsconfig.spec.json --noEmit` y `git diff --check` correctos. ChromeHeadless ejecutó 7/7 pruebas focalizadas: navegación y contexto del listado, carga de ficha, estado no disponible y regresiones de antecedentes. Falta una revisión manual visual con una sesión conectada a Supabase; no se afirma como realizada.
 
+Corrección posterior: la ficha conserva el resumen operativo único en su primera tarjeta. `RecordDetailsComponent` recibe una opción de presentación para ocultar esa repetición cuando se reutiliza dentro de la ficha y deja visibles antecedentes, observaciones, vacunas y notas internas. Su comportamiento existente conserva el resumen por defecto. La prueba de la ficha verifica que hay exactamente seis términos del resumen y no se duplica.
+
 ## Corrección del formulario de mascotas — 2026-11-05
 
 Alcance F1-02/F1-04: se retiró la columna de texto `breed`, que duplicaba «Raza» y no existe en `pets`; queda el selector `breed_id` cargado desde `pet_breeds`. Alergias, Muerde y Estado usan el control de radio existente de la tabla, ahora extraído como componente reutilizable `RadioOptionsComponent` con grupo etiquetado por `fieldset`/`legend`. Conserva los valores iniciales No, No y Activo y los booleanos al editar. Servicios sigue usando el mismo control de radio sin cambiar opciones ni persistencia. No se alteraron esquema, RLS ni permisos; RN-03/RN-04/RN-05/RN-07 permanecen sin cambios.

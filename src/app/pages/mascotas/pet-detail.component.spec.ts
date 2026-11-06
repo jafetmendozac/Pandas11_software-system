@@ -36,6 +36,8 @@ describe('PetDetailComponent', () => {
     expect(pets.get).toHaveBeenCalledWith('pet-1', true);
     expect(fixture.nativeElement.textContent).toContain('Mascota de Ana Pérez');
     expect(fixture.nativeElement.textContent).toContain('Alergias');
+    expect(fixture.nativeElement.querySelectorAll('dt').length).toBe(6);
+    expect(fixture.nativeElement.textContent).toContain('Antecedentes');
     expect(fixture.componentInstance.returnQueryParams).toEqual({ q: 'Luna', page: '2', archived: '1' });
   });
 

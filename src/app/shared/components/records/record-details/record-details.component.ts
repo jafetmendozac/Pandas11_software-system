@@ -9,12 +9,12 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tab
     selector: 'app-record-details', standalone: true, imports: [FormsModule, PersonalizedTable],
     template: `
   <section class="my-5 space-y-4 rounded-xl border border-gray-200 bg-white p-5 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-    <h3 class="text-lg font-semibold">Ficha de {{ pet?.name || client?.first_name }}</h3>
+    <h3 class="text-lg font-semibold">{{ title || (showPetSummary ? 'Ficha de ' + (pet?.name || client?.first_name) : 'Antecedentes') }}</h3>
     @if (archived) { <p>Archivo: consulta de antecedentes, sin edición.</p> }
     @if (error) { <p role="alert" class="text-error-600 dark:text-error-400">{{ error }}</p> }
     @if (loading) { <p role="status">Cargando antecedentes…</p> } @else {
       @if (pet) {
-        <dl class="grid grid-cols-2 gap-2 text-sm">
+        @if (showPetSummary) { <dl class="grid grid-cols-2 gap-2 text-sm">
           <dt>Raza</dt><dd>{{ pet.breed_name || 'No indicada' }}</dd>
           <dt>Tamaño</dt><dd>{{ pet.pet_size || 'No indicado' }}</dd>
           <dt>Peso (kg)</dt><dd>{{ pet.weight_kg ?? 'No indicado' }}</dd>
@@ -22,7 +22,7 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tab
           <dt>Muerde</dt><dd>{{ pet.bites ? 'Sí' : 'No' }}</dd>
           <dt>Nacimiento</dt><dd>{{ pet.birth_date || 'No indicado' }}</dd>
           <dt>Fallecimiento</dt><dd>{{ pet.death_date || 'No indicado' }}</dd>
-        </dl>
+        </dl> }
         <h4 class="font-medium">Observaciones visibles al cliente</h4><p class="whitespace-pre-wrap">{{ pet.client_notes || 'Sin observaciones.' }}</p>
         <h4 class="font-medium">Vacunas</h4>
         <app-personalized-table [tableData]="vaccines" [columns]="vaccineColumns"
@@ -52,6 +52,10 @@ export class RecordDetailsComponent implements OnChanges {
     pet: Pet | null = null;
     @Input()
     archived = false;
+    @Input()
+    showPetSummary = true;
+    @Input()
+    title = '';
     readonly authorization = inject(AuthorizationService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly service = inject(RecordsService);
