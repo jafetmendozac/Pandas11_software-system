@@ -75,7 +75,7 @@ La migración incremental `20261017201505_clients_pets.sql` añade las cinco tab
 
 OWNER/ADMIN registran y editan; STAFF consulta; CLIENT accede a `/mis-datos` desde su perfil y ve solo la ficha vinculada y sus mascotas. El vínculo a perfil se realiza por personal autorizado, no automáticamente por email. Tras aplicar la migración, recargar la aplicación para obtener los nuevos permisos.
 
-En Clientes → Consultar ficha y mascotas aparecen notas internas del cliente y sus mascotas; seleccionar Ver antecedentes para vacunas y notas de mascota. En Mascotas → Ver antecedentes se consulta la ficha directamente. Consultar archivo conserva antecedentes en modo lectura. Retirar un cliente oculta también sus mascotas al cliente sin borrarlas.
+En Clientes → Consultar ficha y mascotas aparecen notas internas del cliente y sus mascotas; seleccionar Ver antecedentes para vacunas y notas de mascota. En Mascotas → Ver antecedentes se consulta la ficha directamente. Los listados usan el botón Ver archivados para consultar registros retirados y cambian a Ver activas para regresar al listado operativo; el archivo conserva los antecedentes en modo lectura. Retirar un cliente oculta también sus mascotas al cliente sin borrarlas.
 
 Alergias es un indicador sí/no; detalle reservado en nota interna. Vacunas: registrar y corregir fechas; no se bloquean citas automáticamente por vencimiento. Las notas almacenan la última edición y autor, no un historial clínico. Fotos, documentos adjuntos, traslado y pagos no se implementan aquí.
 

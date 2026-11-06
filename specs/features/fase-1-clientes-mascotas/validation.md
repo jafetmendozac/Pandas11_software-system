@@ -53,6 +53,10 @@ UI-01: el encabezado de `PersonalizedTable` conserva el fondo de la tabla; desta
 
 UI-02: en móvil el nombre es el título de la tarjeta y ya no aparece de nuevo en el detalle; si no existe columna de nombre se usa la primera. Las etiquetas restantes usan el mismo peso y contraste, los valores tienen peso normal y pueden ocupar varias líneas. Las pruebas DOM de servicios y clientes verificaron que el nombre no se duplica y que «Perfil relacionado» no sustituye al título del cliente. `npx ngc -p tsconfig.app.json --noEmit`, `npx tsc -p tsconfig.spec.json --noEmit`, `npm run build` y `git diff --check` pasaron. La prueba focalizada ejecutó 7 casos: 6 correctos y un fallo previo de paginación (espera tamaño 5, recibe 10); los dos casos nuevos pasaron. El build mantiene la advertencia CSS previa de la portada. No hubo inspección visual en navegador.
 
+## Etiquetas del modo de archivo — 2026-11-06
+
+UI-05: los botones de clientes y mascotas muestran «Ver archivados» en el listado activo y «Ver activas» en el listado archivado. La verificación es de texto y no modifica la consulta, la baja lógica ni los permisos; la compilación y `git diff --check` deben confirmar el cambio sin regresiones.
+
 ## Ficha de mascota por ruta — 2026-11-06
 
 UI-03 / F1-02, F1-05, F1-06 y F1-08: «Ver antecedentes» de `/mascotas` ahora navega a la ruta protegida `/mascotas/:id` y conserva búsqueda/página/archivo al volver. La ficha muestra el nombre, propietario, alertas operativas y datos de la mascota antes de reutilizar el componente de vacunas, observaciones del cliente y notas internas. `MascotasService.get` devuelve una fila solo si coincide con el modo operativo o archivo y Supabase mantiene la decisión final mediante RLS. Para ausencia o denegación se muestra un único mensaje sin divulgar datos. No hubo SQL, migraciones, RLS ni cambios remotos.
