@@ -60,34 +60,39 @@
       <form (ngSubmit)="save()" class="space-y-5">
         <fieldset [disabled]="pending() || !canEdit" class="space-y-5">
           @if(!current()){
-            <label class="block">Cliente<select name="client" [(ngModel)]="clientId" (ngModelChange)="changeClient()" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"><option value="">Selecciona cliente</option>@for(c of clients();track c.id){<option [value]="c.id">{{ c.first_name }} {{ c.last_name }}</option>}</select></label>
+            <div><span class="mb-1 block">Cliente</span><app-custom-select [options]="clientOptions()" [value]="clientId" [disabled]="pending() || !canEdit" (valueChange)="setClient($event)" placeholder="Selecciona cliente" ariaLabel="Cliente" /></div>
           }
-          <label class="block">Notas de la cita (comunicables al cliente)<textarea name="notes" [(ngModel)]="notes" (ngModelChange)="touch()" class="mt-1 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"></textarea></label>
+          <div><span class="mb-1 block">Notas de la cita (comunicables al cliente)</span><app-text-area name="notes" ariaLabel="Notas de la cita" placeholder="Añade una nota" [value]="notes" [disabled]="pending() || !canEdit" (valueChange)="notes=$event; touch()" /></div>
           @for(item of items();track item.key){
             <section class="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
               @if(item.id){<h3 class="font-semibold">{{ item.pet_name }} · {{ item.service_name }} (tarifa conservada)</h3>}
               @else{
                 <div class="grid gap-3 sm:grid-cols-2">
-                  <label>Mascota<select [name]="'pet-'+item.key" [(ngModel)]="item.pet_id" (ngModelChange)="quote(item)" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"><option value="">Selecciona mascota del cliente</option>@for(p of filteredPets();track p.id){<option [value]="p.id">{{ p.name }}</option>}</select></label>
-                  <label>Servicio<select [name]="'service-'+item.key" [(ngModel)]="item.service_id" (ngModelChange)="quote(item)" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"><option value="">Selecciona servicio</option>@for(s of services();track s.id){<option [value]="s.id">{{ s.name }}</option>}</select></label>
+                  <div><span class="mb-1 block">Mascota</span><app-custom-select [options]="petOptions()" [value]="item.pet_id" [disabled]="pending() || !canEdit" (valueChange)="setPet(item,$event)" placeholder="Selecciona mascota del cliente" ariaLabel="Mascota" /></div>
+                  <div><span class="mb-1 block">Servicio</span><app-custom-select [options]="serviceOptions(item)" [value]="item.service_id" [disabled]="pending() || !canEdit" (valueChange)="setService(item,$event)" placeholder="Selecciona servicio" ariaLabel="Servicio" /></div>
                 </div>
               }
               @if(item.quoting){<p role="status">Calculando tarifa…</p>}
               @if(item.duration_minutes){<p>S/ {{ money(item.price) }} · {{ item.duration_minutes }} minutos en total. El servidor confirma tarifa y cobertura al guardar.</p>}
-              <label class="block">Inicio del servicio (Lima)<input type="datetime-local" step="1" [name]="'start-'+item.key" [(ngModel)]="item.start" (ngModelChange)="touch()" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
-              @if(item.specialist){<label class="flex gap-2"><input type="checkbox" [name]="'split-'+item.key" [ngModel]="item.stages.length===2" (ngModelChange)="split(item,$event)" />Desglosar baño y corte con relevo (define ambos tiempos)</label>}
+              <div class="grid gap-3 sm:grid-cols-2">
+                <app-date-picker [id]="'date-'+item.key" label="Fecha del servicio (Lima)" placeholder="Selecciona fecha" [value]="itemDate(item)" [disabled]="pending() || !canEdit" [required]="true" [spanish]="true" [customOnMobile]="true" [aboveModal]="true" (dateChange)="setItemDate(item,$event.dateStr)" />
+                <app-time-picker [id]="'time-'+item.key" label="Hora de inicio (Lima)" placeholder="Selecciona hora" [value]="itemTime(item)" [disabled]="pending() || !canEdit" [required]="true" [enableSeconds]="true" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setItemTime(item,$event)" />
+              </div>
+              @if(item.specialist){<app-checkbox [id]="'split-'+item.key" label="Desglosar baño y corte con relevo (define ambos tiempos)" [checked]="item.stages.length===2" [disabled]="pending() || !canEdit" (checkedChange)="split(item,$event)" />}
               @for(stage of item.stages;track $index;let index=$index){
                 <div class="grid gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:grid-cols-2">
-                  <label>{{ stages[stage.stage] }} · minutos<input type="number" min="1" step="1" [name]="'minutes-'+item.key+'-'+index" [(ngModel)]="stage.minutes" [readOnly]="item.stages.length===1" (ngModelChange)="touch()" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
-                  <label>Trabajador<select [name]="'employee-'+item.key+'-'+index" [(ngModel)]="stage.employee_id" (ngModelChange)="touch()" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"><option value="">Selecciona trabajador cualificado</option>@if(stage.employee_id && !candidates(item,index).some(e=>e.id===stage.employee_id)){<option [value]="stage.employee_id" disabled>{{ assignedName(item,index) }} · No habilitado</option>}@for(e of candidates(item,index);track e.id){<option [value]="e.id" [disabled]="unavailable(item,index,e.id)">{{ e.employee_name }} · {{ availabilityLabel(item,index,e.id) }}</option>}</select></label>
+                  <div><span class="mb-1 block">{{ stages[stage.stage] }} · minutos</span><app-input-field type="number" [name]="'minutes-'+item.key+'-'+index" [ariaLabel]="stages[stage.stage] + ' minutos'" min="1" [step]="1" [value]="stage.minutes ?? ''" [preserveEmpty]="true" [readOnly]="item.stages.length===1" [inputRequired]="true" [disabled]="pending() || !canEdit" (valueChange)="setMinutes(item,index,$event)" /></div>
+                  <div><span class="mb-1 block">Trabajador</span><app-custom-select [options]="employeeOptions(item,index)" [value]="stage.employee_id" [disabled]="pending() || !canEdit" (valueChange)="setEmployee(item,index,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para ' + stages[stage.stage]" /></div>
                   @if(interval(item,index);as range){<p class="sm:col-span-2">{{ range.starts_local.replace('T',' ') }} — {{ range.ends_local.replace('T',' ') }} (Lima)</p>}
                 </div>
               }
-              <label class="block">Observaciones del servicio<input type="text" [name]="'item-notes-'+item.key" [(ngModel)]="item.notes" (ngModelChange)="touch()" class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
+              <div><span class="mb-1 block">Observaciones del servicio</span><app-input-field [name]="'item-notes-'+item.key" ariaLabel="Observaciones del servicio" [value]="item.notes" [disabled]="pending() || !canEdit" (valueChange)="item.notes=''+$event; touch()" /></div>
+              @if(canEdit && item.pet_id){<button type="button" (click)="addServiceForPet(item)" class="me-3 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">Añadir otro servicio para {{ item.pet_name || 'esta mascota' }}</button>}
               @if(canEdit){<button type="button" (click)="removeItem(item.key)" class="text-error-600 dark:text-error-400">Retirar este servicio de la cita</button>}
             </section>
           }
           @if(canEdit){<button type="button" [disabled]="!clientId" (click)="addItem()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Añadir servicio por mascota</button>}
+          @if(items().length){<p class="text-sm text-gray-600 dark:text-gray-400">Los servicios de una misma mascota deben ser consecutivos. Puedes ajustar la hora sugerida.</p>}
         </fieldset>
         @if(canEdit){
           <div class="flex flex-wrap gap-3">
@@ -100,13 +105,13 @@
         <section class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700">
           @if(a.status==='CONFIRMED'){
             @if(authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('IN_PROGRESS')" class="me-3 rounded-lg bg-brand-500 px-4 py-2 text-white">Iniciar atención</button><button type="button" [disabled]="pending()" (click)="transition('NO_SHOW')" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Marcar no asistió</button>}
-            @if(authorization.has('appointments.cancel')){<label class="block">Motivo para cancelar<input type="text" [(ngModel)]="cancelReason" [disabled]="pending()" class="mt-1 block w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label><button type="button" [disabled]="pending() || !cancelReason.trim()" (click)="transition('CANCELLED')" class="rounded-lg border border-error-300 px-4 py-2 text-error-600 dark:border-error-500 dark:text-error-400">Cancelar reserva</button>}
+            @if(authorization.has('appointments.cancel')){<div><span class="mb-1 block">Motivo para cancelar</span><app-input-field ariaLabel="Motivo para cancelar" [value]="cancelReason" [disabled]="pending()" (valueChange)="cancelReason=''+$event" /></div><button type="button" [disabled]="pending() || !cancelReason.trim()" (click)="transition('CANCELLED')" class="rounded-lg border border-error-300 px-4 py-2 text-error-600 dark:border-error-500 dark:text-error-400">Cancelar reserva</button>}
           }
           @if(a.status==='IN_PROGRESS' && authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('COMPLETED')" class="rounded-lg bg-brand-500 px-4 py-2 text-white">Completar atención</button>}
         </section>
         @if(authorization.has('appointment_internal.read')){
           <section class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"><h3 class="font-semibold">Observaciones internas (solo personal autorizado)</h3>
-            <textarea [(ngModel)]="internalNotes" [readOnly]="!authorization.has('appointment_internal.manage') || pending() || !internalLoaded" class="w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900"></textarea>
+            <app-text-area ariaLabel="Observaciones internas" placeholder="Añade una observación interna" [value]="internalNotes" [readOnly]="!authorization.has('appointment_internal.manage') || pending() || !internalLoaded" (valueChange)="internalNotes=$event" />
             @if(authorization.has('appointment_internal.manage')){<button type="button" [disabled]="pending() || !internalLoaded" (click)="saveInternal()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Guardar observación interna</button>}
           </section>
         }

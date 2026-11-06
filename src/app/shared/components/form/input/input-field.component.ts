@@ -16,6 +16,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
         [max]="max"
         [step]="step"
         [disabled]="disabled"
+        [readOnly]="readOnly"
+        [required]="inputRequired"
+        [attr.aria-label]="ariaLabel || null"
         [ngClass]="inputClasses"
         (input)="onInput($event)"
       />
@@ -44,6 +47,10 @@ export class InputFieldComponent {
   @Input() max?: string;
   @Input() step?: number;
   @Input() disabled: boolean = false;
+  @Input() readOnly = false;
+  @Input() inputRequired = false;
+  @Input() preserveEmpty = false;
+  @Input() ariaLabel = '';
   @Input() success: boolean = false;
   @Input() error: boolean = false;
   @Input() hint?: string;
@@ -68,6 +75,6 @@ export class InputFieldComponent {
 
   onInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.valueChange.emit(this.type === 'number' ? +input.value : input.value);
+    this.valueChange.emit(this.type === 'number' && !(this.preserveEmpty && input.value === '') ? +input.value : input.value);
   }
 }

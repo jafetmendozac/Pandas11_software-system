@@ -133,3 +133,9 @@ Autorizada expresamente por el usuario tras la explicación de la diferencia vis
 Representar eventos con las tarjetas y colores de plantilla mediante nodos DOM/textContent: nunca interpolar nombres en HTML. Acomodar los filtros y textos de ayuda a los componentes y tokens existentes. Conservar íntegro el formulario de reservas y los límites laborales; al seleccionar un día mensual/anual usar inicio07:00 local como sugerencia, que el servidor vuelve a validar. Mantener arrastre/resize deshabilitados.
 
 Sin impacto en las cuatro tablas de Pandas11.sql ni necesidad de cambios SQL, servicios, dependencias o RLS. Verificar TypeScript, build y pruebas Angular existentes; adaptar la prueba con FullCalendar real para recorrer las vistas recuperadas, abrir etapas y verificar seguridad de texto y final después18. Documentar límites visuales sin presentar comprobaciones de componente como E2E real con Supabase.
+
+## Controles y varios servicios por mascota — 2026-11-06
+
+Plan aprobado por el usuario: adaptar `CalendarioComponent` y el contrato de validación del formulario; reutilizar `CustomSelectComponent`, entradas, texto, casilla, fecha y hora. Añadir a los controles existentes las capacidades de opciones deshabilitadas y valores controlados/lectura necesarias para la agenda sin cambiar los valores predeterminados de sus otros usos. Los selectores de fecha y hora mantienen la representación local de Lima y segundos; sus paneles deben poder abrirse sobre el modal en móvil.
+
+Cada acción «Añadir otro servicio» crea una fila para la misma mascota y sugiere como inicio el mayor fin calculable de sus servicios. Si falta duración o fecha, deja el inicio pendiente. Se conserva la validación del servidor, las tarifas históricas y las restricciones de una combinación mascota/servicio. Verificar componentes Angular, estados sin permiso, disponibilidad, valores de tiempo y ventana móvil; compilar y documentar. Sin migración ni cambios de RLS.

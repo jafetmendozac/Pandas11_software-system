@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 export interface CustomSelectOption {
   value: string | number;
   label: string;
+  disabled?: boolean;
 }
 
 @Component({
@@ -63,7 +64,7 @@ export class CustomSelectComponent implements OnInit, OnChanges {
   }
 
   selectOption(option: CustomSelectOption) {
-    if (this.disabled) return;
+    if (this.disabled || option.disabled) return;
     this.value = option.value;
     this.selectedLabel = option.label;
     this.valueChange.emit(option.value);

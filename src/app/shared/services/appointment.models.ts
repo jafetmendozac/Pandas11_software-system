@@ -22,7 +22,7 @@ export function addLocalMinutes(start:string,minutes:number):string {
 }
 export function limaInstant(local:string):string {return Temporal.PlainDateTime.from(local).toZonedDateTime('America/Lima').toInstant().toString();}
 export function stageInputs(item:DraftItem):StageInput[]{
- if(!item.start)throw new Error('Indica inicio para cada servicio.');
+ if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(item.start))throw new Error('Indica fecha y hora de inicio para cada servicio.');
  let cursor=item.start;
  const stages=item.stages.map(s=>{
   if(!s.employee_id||s.minutes===null||!Number.isSafeInteger(s.minutes)||s.minutes<=0)throw new Error('Completa trabajador y minutos positivos de cada etapa.');
@@ -33,8 +33,12 @@ export function stageInputs(item:DraftItem):StageInput[]{
 }
 export function appointmentInput(clientId:string,notes:string,items:DraftItem[]):AppointmentInput {
  if(!clientId||!items.length)throw new Error('Selecciona cliente y añade servicios por mascota.');
+ const combinations=new Set<string>();
  return {client_id:clientId,client_notes:notes,items:items.map(i=>{
   if(!i.pet_id||!i.service_id||i.quoting||i.duration_minutes<=0)throw new Error('Completa la mascota y el servicio cotizado.');
+  const combination=`${i.pet_id}:${i.service_id}`;
+  if(combinations.has(combination))throw new Error('Este servicio ya se agregó para la misma mascota.');
+  combinations.add(combination);
   return {...(i.id?{id:i.id}:{}),pet_id:i.pet_id,service_id:i.service_id,notes:i.notes,weight_kg_at_visit:i.weight_kg_at_visit,stages:stageInputs(i)};
  })};
 }

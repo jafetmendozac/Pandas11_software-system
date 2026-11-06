@@ -127,4 +127,56 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.formError()).toBe('');expect(c.items()).toEqual([]);
  });
 
+ it('añade otro servicio para la misma mascota a continuación del anterior',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';const first=draft();c.items.set([first]);f.detectChanges();
+  const add=Array.from(f.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find(button=>button.textContent?.includes('Añadir otro servicio para Perro'));
+  expect(add).toBeDefined();add!.click();const second=c.items()[1];
+  expect(second.pet_id).toBe('pet');expect(second.start).toBe('2030-07-29T09:00:00');
+  second.service_id='corte';second.duration_minutes=30;second.stages=[{stage:'SERVICE',employee_id:'e',minutes:30}];
+  await c.save();
+  const saved=api.save.calls.mostRecent().args[0];
+  expect(saved.items.map((i:{pet_id:string})=>i.pet_id)).toEqual(['pet','pet']);
+  expect(saved.items[1].stages[0].starts_local).toBe('2030-07-29T09:00:00');
+ });
+
+ it('no inventa el inicio si falta la duración de un servicio anterior',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';const first=draft();first.duration_minutes=0;c.items.set([first]);
+  c.addServiceForPet(first);expect(c.items()[1].start).toBe('');
+ });
+
+ it('evita repetir un servicio para la misma mascota sin bloquear otras mascotas',async()=>{
+  const f=await fixture();const c=f.componentInstance;const first=draft();const other={...draft(),key:'other',service_id:''};
+  c.items.set([first,other]);c.services.set([{id:'service',name:'Baño'} as never]);
+  expect(c.serviceOptions(other)[0].disabled).toBeTrue();
+  other.pet_id='otra';expect(c.serviceOptions(other)[0].disabled).toBeFalse();
+  other.pet_id='';first.pet_id='';expect(c.serviceOptions(other)[0].disabled).toBeFalse();
+ });
+
+ it('sincroniza los selectores de fecha y hora con el valor de Lima incluyendo segundos',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';const i=draft();i.start='2030-07-29T08:15:27';c.items.set([i]);f.detectChanges();
+  const date=f.nativeElement.querySelector('#date-key') as HTMLInputElement;
+  const time=f.nativeElement.querySelector('#time-key') as HTMLInputElement;
+  expect(date.value).toBe('2030-07-29');expect(time.value).toBe('08:15:27');
+  const datePicker=(date as HTMLInputElement & {_flatpickr:{setDate:(value:string,trigger:boolean)=>void}})._flatpickr;
+  const timePicker=(time as HTMLInputElement & {_flatpickr:{setDate:(value:string,trigger:boolean)=>void}})._flatpickr;
+  datePicker.setDate('2030-07-30',true);timePicker.setDate('09:20:35',true);f.detectChanges();
+  expect(i.start).toBe('2030-07-30T09:20:35');expect(date.value).toBe('2030-07-30');expect(time.value).toBe('09:20:35');
+ });
+
+ it('abre los selectores de fecha y hora por encima del modal',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';c.items.set([draft()]);f.detectChanges();
+  const date=f.nativeElement.querySelector('#date-key') as HTMLInputElement;
+  const time=f.nativeElement.querySelector('#time-key') as HTMLInputElement;
+  date.click();
+  const datePopup=document.querySelector<HTMLElement>('.flatpickr-calendar.open');
+  expect(datePopup).not.toBeNull();
+  expect(Number(getComputedStyle(datePopup!).zIndex)).toBeGreaterThan(99999);
+  time.click();
+  const timePopup=document.querySelector<HTMLElement>('.flatpickr-calendar.open');
+  expect(timePopup).not.toBeNull();
+  expect(Number(getComputedStyle(timePopup!).zIndex)).toBeGreaterThan(99999);
+  c.pending.set(true);f.detectChanges();
+  expect(document.querySelector('.flatpickr-calendar.open')).toBeNull();
+ });
+
 });

@@ -1,5 +1,5 @@
 
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, SimpleChanges } from '@angular/core';
 import flatpickr from 'flatpickr';
 
 @Component({
@@ -14,6 +14,13 @@ export class TimePickerComponent {
   @Input() label: string = 'Time Select Input';
   @Input() placeholder: string = 'Select time';
   @Input() defaultTime?: string | Date;
+  @Input() value?: string;
+  @Input() disabled = false;
+  @Input() required = false;
+  @Input() enableSeconds = false;
+  @Input() use24Hour = false;
+  @Input() customOnMobile = false;
+  @Input() aboveModal = false;
 
   @Output() timeChange = new EventEmitter<string>();
 
@@ -25,14 +32,27 @@ export class TimePickerComponent {
     this.flatpickrInstance = flatpickr(this.timeInput.nativeElement, {
       enableTime: true,
       noCalendar: true,
-      dateFormat: 'H:i',   // time format HH:mm
-      time_24hr: false,    // set true for 24hr clock
+      dateFormat: this.enableSeconds ? 'H:i:S' : 'H:i',
+      enableSeconds: this.enableSeconds,
+      time_24hr: this.use24Hour,
+      disableMobile: this.customOnMobile,
+      onReady: (_dates, _dateStr, instance) => {
+        if (this.aboveModal) instance.calendarContainer.classList.add('z-[100000]!');
+      },
       minuteIncrement: 1,
-      defaultDate: this.defaultTime,
+      defaultDate: this.value || this.defaultTime,
       onChange: (selectedDates, dateStr) => {
-        this.timeChange.emit(dateStr); // emit "HH:mm"
+        if (!this.disabled) this.timeChange.emit(dateStr);
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['disabled'] && this.disabled) this.flatpickrInstance?.close();
+    if (changes['value'] && this.flatpickrInstance && this.value !== undefined) {
+      if (this.value) this.flatpickrInstance.setDate(this.value, false, this.enableSeconds ? 'H:i:S' : 'H:i');
+      else this.flatpickrInstance.clear(false);
+    }
   }
 
   ngOnDestroy() {

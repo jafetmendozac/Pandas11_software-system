@@ -28,4 +28,14 @@ describe('Contrato de agenda: snapshots y tiempos',()=>{
   expect(()=>appointmentInput('c','',[])).toThrow();const i=item();i.quoting=true;expect(()=>appointmentInput('c','',[i])).toThrow();
   expect(()=>addLocalMinutes('2030-07-29T08:00',1.5)).toThrow();
  });
+ it('permite servicios distintos para una mascota y rechaza repetir el mismo',()=>{
+  const first=item();const second={...item(),key:'otro',service_id:'otro-servicio',start:'2030-07-29T19:00:00'};
+  expect(appointmentInput('c','',[first,second]).items.map(i=>i.pet_id)).toEqual(['pet','pet']);
+  second.service_id=first.service_id;
+  expect(()=>appointmentInput('c','',[first,second])).toThrowError('Este servicio ya se agregó para la misma mascota.');
+ });
+ it('exige fecha y hora completas antes de construir las etapas',()=>{
+  const i=item();i.start='2030-07-29T';
+  expect(()=>stageInputs(i)).toThrowError('Indica fecha y hora de inicio para cada servicio.');
+ });
 });

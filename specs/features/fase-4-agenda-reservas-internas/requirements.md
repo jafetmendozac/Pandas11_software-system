@@ -120,3 +120,10 @@ El usuario solicita conservar el estilo del calendario TailAdmin y autoriza los 
 - Conservar filtros, eventos por etapa, zona America/Lima, finales después18, permisos y formulario operativo de citas. Las selecciones de día sin hora deben abrir el formulario con fecha/hora local válida.
 - Conservar la representación segura de nombres como texto y los estados identificables por texto además del color. No usar eventos de ejemplo ni publicar notas internas.
 - Mantener `/calendar` intacto y conservar los contratos RPC, validación de solapamientos, empleados disponibles y modelo de datos aprobados (F4-02/03/08/12).
+
+## Controles reutilizables y servicios de una misma mascota — 2026-11-06
+
+El usuario solicitó usar los controles reutilizables equivalentes en el formulario de citas y facilitar varios servicios para un mismo perro; aprobó el plan ampliado mediante «Claro haber dale».
+
+- F4-UI-01 (RN-01, RN-13; F4-02/F4-07/F4-11): usar selectores, fecha, hora, texto, número y casilla reutilizables conservando edición, lectura, permisos y tiempos de Lima con segundos. El selector de trabajador respeta las opciones no habilitadas.
+- F4-UI-02 (RN-03, RN-11/RN-12, RN-14/RN-15; F4-02/F4-04/F4-05/F4-06): permitir añadir otro servicio a la mascota elegida y sugerir el inicio tras el último servicio cuando sus duraciones estén disponibles. Cada servicio conserva cotización y etapas; se impide repetir la misma combinación de mascota y servicio y el servidor valida continuidad y disponibilidad al guardar.

@@ -23,8 +23,14 @@ import { decimalLabel } from '../../shared/services/service-pricing.models';
 import { workError, limaDateTime } from '../../shared/services/work-calendar.service';
 import { Appointment, AppointmentStatus, DraftItem, ReservationAvailability, STATUS_LABELS, STAGE_LABELS, StageInput, addLocalMinutes, appointmentInput, draftItem, stageInputs } from '../../shared/services/appointment.models';
 import { calendarAppearance } from './calendar-appearance';
+import { CustomSelectComponent, CustomSelectOption } from '../../shared/components/form/custom-select/custom-select.component';
+import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
+import { TextAreaComponent } from '../../shared/components/form/input/text-area.component';
+import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { TimePickerComponent } from '../../shared/components/form/time-picker/time-picker.component';
 
-@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent],templateUrl:'./calendario.component.html'})
+@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,InputFieldComponent,TextAreaComponent,CheckboxComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
@@ -116,9 +122,34 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
  changeClient():void{this.items.set([]);this.touch();}
  filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
- addItem():void{
+ clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''}`.trim()}));}
+ petOptions():CustomSelectOption[]{return this.filteredPets().map(p=>({value:p.id,label:p.name}));}
+ serviceOptions(item:DraftItem):CustomSelectOption[]{return this.services().map(s=>({value:s.id,label:s.name,disabled:!!item.pet_id&&this.items().some(other=>other!==item&&other.pet_id===item.pet_id&&other.service_id===s.id)}));}
+ employeeOptions(item:DraftItem,index:number):CustomSelectOption[]{
+  const stage=item.stages[index], candidates=this.candidates(item,index);
+  const rows:CustomSelectOption[]=candidates.map(e=>({value:e.id,label:`${e.employee_name} · ${this.availabilityLabel(item,index,e.id)}`,disabled:this.unavailable(item,index,e.id)}));
+  if(stage.employee_id&&!candidates.some(e=>e.id===stage.employee_id))rows.unshift({value:stage.employee_id,label:`${this.assignedName(item,index)} · No habilitado`,disabled:true});
+  return rows;
+ }
+ setClient(value:string|number|null):void{this.clientId=String(value??'');this.changeClient();}
+ setPet(item:DraftItem,value:string|number|null):void{item.pet_id=String(value??'');item.pet_name=this.pets().find(p=>p.id===item.pet_id)?.name??'';void this.quote(item);}
+ setService(item:DraftItem,value:string|number|null):void{item.service_id=String(value??'');void this.quote(item);}
+ setEmployee(item:DraftItem,index:number,value:string|number|null):void{item.stages[index].employee_id=String(value??'');this.touch();}
+ setMinutes(item:DraftItem,index:number,value:string|number):void{item.stages[index].minutes=value===''?null:Number(value);this.touch();}
+ itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
+ itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
+ setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.touch();}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha del servicio.');return;}item.start=`${date}T${time}`;this.touch();}
+ addItem(petId='',start?:string):void{
   if(!this.canEdit||!this.clientId)return;
-  this.items.update(rows=>[...rows,{key:crypto.randomUUID(),pet_id:'',service_id:'',pet_name:'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start:this.suggestedStart||this.nextStart(),stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0}]);this.touch();
+  this.items.update(rows=>[...rows,{key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start:start??(this.suggestedStart||this.nextStart()),stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0}]);this.touch();
+ }
+ addServiceForPet(item:DraftItem):void{
+  if(!this.canEdit||!item.pet_id)return;
+  const related=this.items().filter(i=>i.pet_id===item.pet_id);
+  let next='';
+  try{if(related.every(i=>i.start&&i.duration_minutes>0&&!i.quoting))next=related.map(i=>addLocalMinutes(i.start,i.duration_minutes)).sort().at(-1)??'';}catch{next='';}
+  this.addItem(item.pet_id,next);
  }
  removeItem(key:string):void{if(!this.canEdit)return;this.items.update(rows=>rows.filter(i=>i.key!==key));this.touch();}
  async quote(item:DraftItem):Promise<void>{

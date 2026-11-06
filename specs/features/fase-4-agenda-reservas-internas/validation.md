@@ -104,3 +104,11 @@ Sin cambios de SQL, modelo, servicios, RLS, dependencias o base de datos. No se 
 ## Consulta histórica de Actividad 3.5 — 2026-10-21
 
 Alcance confirmado: consultar citas pasadas y canceladas. Dos nuevas regresiones de FullCalendar y siete comprobaciones API de consulta/persistencia, sin cambios productivos. Suite Angular completa 92/92 y API de agenda 82 comprobaciones correctas; build correcto con advertencia CSS en portada no modificada. Conciliación, comandos, entorno y límites en [validación actual](../revision-modelo-base-datos/validation.md). Falta recorrido humano y aceptación; no se requiere auditoría por modificación.
+
+## Controles y varios servicios por mascota — 2026-11-06
+
+F4-UI-01/F4-UI-02: la ficha usa componentes compartidos para seleccionar cliente, mascota, servicio y trabajador, fecha/hora, texto, minutos y relevo. El selector compartido admite opciones deshabilitadas; los selectores de fecha/hora conservan valores controlados, segundos de Lima y se cierran al deshabilitarse durante un guardado. Sus paneles se abren sobre el modal. La lectura de observaciones internas mantiene el estado de solo lectura para STAFF.
+
+Una acción añade un servicio para la misma mascota y propone el fin calculado del último servicio como inicio. Sin duración o fecha disponible deja el inicio vacío. El formulario evita repetir la misma combinación mascota/servicio y mantiene la validación definitiva de continuidad, permisos y disponibilidad en servidor (RN-01/RN-03/RN-11/RN-12/RN-13/RN-14/RN-15).
+
+Resultados: 29/29 pruebas focalizadas de agenda, modelos, selector y simulador en ChromeHeadless; 16/16 de agenda con launcher configurado a 375 × 667 px, incluyendo apertura sobre el modal y cierre al guardar; `npx ngc -p tsconfig.app.json --noEmit`, TypeScript de specs y build correctos. El build advierte sobre el presupuesto CSS previo de Inicio y el módulo CommonJS de idioma español de Flatpickr. `git diff --check` correcto. No se hizo una revisión visual manual ni un recorrido con Supabase desde navegador, y no se ejecutaron migraciones ni cambios remotos. Se conservó el cambio preexistente de `personalized-table.component.html`.

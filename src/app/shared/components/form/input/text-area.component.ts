@@ -8,11 +8,15 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   template: `
     <div class="relative">
       <textarea
+        [id]="id"
+        [name]="name"
         [placeholder]="placeholder"
         [rows]="rows"
         [value]="value"
         (input)="onInput($event)"
         [disabled]="disabled"
+        [readOnly]="readOnly"
+        [attr.aria-label]="ariaLabel || null"
         [ngClass]="textareaClasses"
       ></textarea>
       @if (hint) {
@@ -33,6 +37,10 @@ export class TextAreaComponent {
   @Input() value = '';
   @Input() className = '';
   @Input() disabled = false;
+  @Input() readOnly = false;
+  @Input() id = '';
+  @Input() name = '';
+  @Input() ariaLabel = '';
   @Input() error = false;
   @Input() hint = '';
 
