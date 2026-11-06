@@ -14,7 +14,7 @@ export class TarifasComponent implements OnInit {
   private readonly prices=inject(TarifasService);private readonly services=inject(ServiciosService);private readonly petBreeds=inject(PetBreedsService);
   @ViewChild('table') table?:PersonalizedTable;
   readonly tableData=signal<ServicePrice[]>([]);readonly total=signal(0);readonly loading=signal(false);readonly errorMessage=signal('');
-  private query:PageQuery={search:'',page:1,size:5};private revision=0;
+  private query:PageQuery={search:'',page:1,size:10};private revision=0;
   columns: TableColumn[] = [
     {
       key: 'service_id',

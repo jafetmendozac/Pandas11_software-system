@@ -8,13 +8,14 @@ import { MascotasTableComponent } from './mascotas-table.component';
 
 describe('MascotasTableComponent: formulario', () => {
   it('muestra una sola raza y los tres campos booleanos como radio', async () => {
+    const pets = { search: jasmine.createSpy().and.resolveTo({ rows: [], total: 0 }) };
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: AuthorizationService, useValue: { has: () => true } },
         { provide: ClientesService, useValue: { getAll: async () => [] } },
         { provide: PetBreedsService, useValue: { getAll: async () => [{ id: 'breed-1', name: 'Pomerania' }] } },
-        { provide: MascotasService, useValue: { search: async () => ({ rows: [], total: 0 }) } },
+        { provide: MascotasService, useValue: pets },
       ],
     });
     const fixture = TestBed.createComponent(MascotasTableComponent);
@@ -27,5 +28,6 @@ describe('MascotasTableComponent: formulario', () => {
     expect(columns.find(column => column.key === 'breed_id')?.options?.[1]).toEqual({ label: 'Pomerania', value: 'breed-1' });
     expect(columns.filter(column => column.control === 'radio').map(column => column.key))
       .toEqual(['allergies', 'bites', 'active']);
+    expect(pets.search).toHaveBeenCalledWith({ search: '', page: 1, size: 10 }, false);
   });
 });

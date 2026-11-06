@@ -16,7 +16,7 @@ export class EmpleadosComponent implements OnInit,OnDestroy {
   readonly tableData=signal<Employee[]>([]); readonly total=signal(0); readonly loading=signal(false); readonly errorMessage=signal('');
   readonly selected=signal<Employee|null>(null);
   readonly profilesReady=signal(false);
-  private query:PageQuery={search:'',page:1,size:5}; private revision=0;
+  private query:PageQuery={search:'',page:1,size:10}; private revision=0;
   columns:TableColumn[]=[
     {key:'employee_name',label:'Nombre',editable:false},
     {key:'profile_id',label:'Perfil vinculado',createOnly:true,options:[{label:'Selecciona un perfil activo',value:''}],helpText:'Se fija al crear. No concede roles ni acceso al panel.'},

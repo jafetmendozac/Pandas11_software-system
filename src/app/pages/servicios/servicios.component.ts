@@ -11,7 +11,7 @@ export class ServiciosComponent implements OnInit {
   private readonly services=inject(ServiciosService);
   @ViewChild('table') table?:PersonalizedTable;
   readonly tableData=signal<Service[]>([]);readonly total=signal(0);readonly loading=signal(false);readonly errorMessage=signal('');
-  private query:PageQuery={search:'',page:1,size:5}; private revision=0;
+  private query:PageQuery={search:'',page:1,size:10}; private revision=0;
   columns: TableColumn[] = [
     {
       key: 'name',

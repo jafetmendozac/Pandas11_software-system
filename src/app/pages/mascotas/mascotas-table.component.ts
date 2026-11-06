@@ -23,7 +23,7 @@ export class MascotasTableComponent implements OnInit {
     errorMessage = '';
     loading = false;
     selectedPet: Pet | null = null;
-    query: PageQuery = { search: '', page: 1, size: 5 };
+    query: PageQuery = { search: '', page: 1, size: 10 };
     private revision = 0;
     columns: TableColumn[] = [
         {

@@ -30,8 +30,8 @@ export class ClientesTableComponent implements OnInit {
     selectedClientPets: Pet[] = [];
     petsErrorMessage = '';
     petsTotal = 0;
-    query: PageQuery = { search: '', page: 1, size: 5 };
-    petQuery: PageQuery = { search: '', page: 1, size: 5 };
+    query: PageQuery = { search: '', page: 1, size: 10 };
+    petQuery: PageQuery = { search: '', page: 1, size: 10 };
     private revision = 0;
     private petRevision = 0;
     petColumns: TableColumn[] = [
@@ -191,7 +191,7 @@ export class ClientesTableComponent implements OnInit {
         }
         await this.loadClients();
     };
-    async openPets(row: TableRow): Promise<void> { this.selectedClient = row as Client; this.selectedPet = null; this.petQuery = { search: '', page: 1, size: 5 }; await this.loadPets(); }
+    async openPets(row: TableRow): Promise<void> { this.selectedClient = row as Client; this.selectedPet = null; this.petQuery = { search: '', page: 1, size: 10 }; await this.loadPets(); }
     closePets(): void { this.petRevision++; this.selectedClient = null; this.selectedPet = null; this.selectedClientPets = []; }
     async loadPets(query = this.petQuery): Promise<void> {
         this.petQuery = query;
