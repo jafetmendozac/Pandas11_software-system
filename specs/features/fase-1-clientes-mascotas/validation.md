@@ -53,6 +53,12 @@ UI-01: el encabezado de `PersonalizedTable` conserva el fondo de la tabla; desta
 
 UI-02: en móvil el nombre es el título de la tarjeta y ya no aparece de nuevo en el detalle; si no existe columna de nombre se usa la primera. Las etiquetas restantes usan el mismo peso y contraste, los valores tienen peso normal y pueden ocupar varias líneas. Las pruebas DOM de servicios y clientes verificaron que el nombre no se duplica y que «Perfil relacionado» no sustituye al título del cliente. `npx ngc -p tsconfig.app.json --noEmit`, `npx tsc -p tsconfig.spec.json --noEmit`, `npm run build` y `git diff --check` pasaron. La prueba focalizada ejecutó 7 casos: 6 correctos y un fallo previo de paginación (espera tamaño 5, recibe 10); los dos casos nuevos pasaron. El build mantiene la advertencia CSS previa de la portada. No hubo inspección visual en navegador.
 
+## Ficha de mascota por ruta — 2026-11-06
+
+UI-03 / F1-02, F1-05, F1-06 y F1-08: «Ver antecedentes» de `/mascotas` ahora navega a la ruta protegida `/mascotas/:id` y conserva búsqueda/página/archivo al volver. La ficha muestra el nombre, propietario, alertas operativas y datos de la mascota antes de reutilizar el componente de vacunas, observaciones del cliente y notas internas. `MascotasService.get` devuelve una fila solo si coincide con el modo operativo o archivo y Supabase mantiene la decisión final mediante RLS. Para ausencia o denegación se muestra un único mensaje sin divulgar datos. No hubo SQL, migraciones, RLS ni cambios remotos.
+
+Validación: `npx ngc -p tsconfig.app.json --noEmit`, `npx tsc -p tsconfig.spec.json --noEmit` y `git diff --check` correctos. ChromeHeadless ejecutó 7/7 pruebas focalizadas: navegación y contexto del listado, carga de ficha, estado no disponible y regresiones de antecedentes. Falta una revisión manual visual con una sesión conectada a Supabase; no se afirma como realizada.
+
 ## Corrección del formulario de mascotas — 2026-11-05
 
 Alcance F1-02/F1-04: se retiró la columna de texto `breed`, que duplicaba «Raza» y no existe en `pets`; queda el selector `breed_id` cargado desde `pet_breeds`. Alergias, Muerde y Estado usan el control de radio existente de la tabla, ahora extraído como componente reutilizable `RadioOptionsComponent` con grupo etiquetado por `fieldset`/`legend`. Conserva los valores iniciales No, No y Activo y los booleanos al editar. Servicios sigue usando el mismo control de radio sin cambiar opciones ni persistencia. No se alteraron esquema, RLS ni permisos; RN-03/RN-04/RN-05/RN-07 permanecen sin cambios.

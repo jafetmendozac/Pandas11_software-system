@@ -69,3 +69,7 @@ El usuario autorizó proceder con la propuesta: OWNER/ADMIN editan; STAFF consul
 El usuario pidió que los encabezados de las tablas resalten y aclaró que no quiere un fondo de color. Criterio UI-01: la fila de títulos de `PersonalizedTable` se distingue de los datos mediante texto con mayor contraste y peso y una línea inferior discreta, sin fondo propio, en tema claro y oscuro. El ajuste se aplica a clientes, mascotas y a las demás pantallas que reutilizan la tabla; no cambia datos, permisos ni comportamiento.
 
 UI-02: en las tarjetas móviles de la tabla compartida, el valor principal aparece una sola vez como título. Si existe columna de nombre, tiene prioridad sobre una primera columna de vínculo como «Perfil relacionado». Los demás campos muestran etiquetas con el mismo peso visual y valores diferenciados; los valores largos pueden ocupar varias líneas. Se conservan los indicadores y acciones disponibles.
+
+## Ficha de mascota por ruta — 2026-11-06
+
+UI-03 (F1-02, F1-05, F1-06, F1-08): desde el listado operativo, «Ver antecedentes» abre `/mascotas/:id`, una ficha directa y recargable. La URL contiene el identificador técnico, pero la interfaz usa el nombre de la mascota. La ficha muestra datos de identificación, observaciones del cliente, vacunas y notas internas únicamente según los permisos existentes. Si no existe, fue retirada o no es visible por RLS, comunica el estado sin filtrar información. Volver conserva búsqueda, página y consulta del archivo del listado. No añade historial de citas, Storage, permisos ni cambios de esquema.

@@ -75,6 +75,12 @@ export const routes: Routes = [
         title:'Angular Clientes Table | TailAdmin - Angular Admin Dashboard Template'
       },
       {
+        path:'mascotas/:id',
+        data: { permission: 'pets.read' },
+        loadComponent: () => import('./pages/mascotas/pet-detail.component').then(m => m.PetDetailComponent),
+        title:'Ficha de mascota | Spa & Boutique Pandas 11'
+      },
+      {
         path:'mascotas',
         data: { permission: 'pets.read' },
         component:MascotasTableComponent,

@@ -1,0 +1,28 @@
+<app-page-breadcrumb [pageTitle]="pet ? 'Ficha de ' + pet.name : 'Ficha de mascota'" />
+
+<div class="space-y-5">
+  <a routerLink="/mascotas" [queryParams]="returnQueryParams" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5">
+    <span aria-hidden="true">←</span> Volver a mascotas
+  </a>
+
+  @if (loading) {
+    <p role="status" class="text-gray-600 dark:text-gray-300">Cargando ficha de la mascota…</p>
+  } @else if (error) {
+    <section class="rounded-xl border border-error-200 bg-error-50 p-5 text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400" role="alert">
+      <p>{{ error }}</p>
+    </section>
+  } @else if (pet) {
+    <app-component-card [title]="pet.name" [desc]="pet.client_name ? 'Mascota de ' + pet.client_name : 'Ficha de mascota'">
+      <dl class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div><dt class="text-gray-500 dark:text-gray-400">Raza</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.breed_name || 'No indicada' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Tamaño</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.pet_size || 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Peso</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.weight_kg ? pet.weight_kg + ' kg' : 'No indicado' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Alergias</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.allergies ? 'Sí' : 'No' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Muerde</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.bites ? 'Sí' : 'No' }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">Estado</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.active ? 'Activo' : 'Inactivo' }}</dd></div>
+      </dl>
+    </app-component-card>
+
+    <app-record-details [pet]="pet" [archived]="archived" />
+  }
+</div>

@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ComponentCardComponent } from '../../shared/components/common/component-card/component-card.component';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
@@ -6,13 +7,14 @@ import { ClientesService, PageQuery } from '../../shared/services/clientes.servi
 import { MascotasService, Pet } from '../../shared/services/mascotas.service';
 import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
-import { RecordDetailsComponent } from '../../shared/components/records/record-details/record-details.component';
 @Component({ selector: 'app-mascotas-table', standalone: true,
-    imports: [ComponentCardComponent, PageBreadcrumbComponent, PersonalizedTable, RecordDetailsComponent], templateUrl: './mascotas-table.component.html' })
+    imports: [ComponentCardComponent, PageBreadcrumbComponent, PersonalizedTable], templateUrl: './mascotas-table.component.html' })
 export class MascotasTableComponent implements OnInit {
     readonly authorization = inject(AuthorizationService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly pets = inject(MascotasService);
+    private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly clients = inject(ClientesService);
     private readonly petBreeds = inject(PetBreedsService);
     @ViewChild('petsTable')
@@ -22,7 +24,6 @@ export class MascotasTableComponent implements OnInit {
     archived = false;
     errorMessage = '';
     loading = false;
-    selectedPet: Pet | null = null;
     query: PageQuery = { search: '', page: 1, size: 10 };
     private revision = 0;
     columns: TableColumn[] = [
@@ -138,6 +139,13 @@ export class MascotasTableComponent implements OnInit {
         },
     ];
     async ngOnInit(): Promise<void> {
+        const page = Number(this.route.snapshot.queryParamMap.get('page'));
+        this.archived = this.route.snapshot.queryParamMap.get('archived') === '1';
+        this.query = {
+            search: this.route.snapshot.queryParamMap.get('q') ?? '',
+            page: Number.isInteger(page) && page > 0 ? page : 1,
+            size: 10,
+        };
         if (this.authorization.has('pets.manage')) {
             try {
                 const clients = await this.clients.getAll();
@@ -178,14 +186,16 @@ export class MascotasTableComponent implements OnInit {
             this.cdr.markForCheck();
         }
     }
-    async toggleArchive(): Promise<void> { this.archived = !this.archived; this.selectedPet = null; if (this.petsTable)
+    async toggleArchive(): Promise<void> { this.archived = !this.archived; if (this.petsTable)
         this.petsTable.currentPage = 1; await this.loadPets({ ...this.query, page: 1 }); }
-    selectPet(row: TableRow): void { this.selectedPet = row as Pet; }
+    selectPet(row: TableRow): void {
+        const pet = row as Pet;
+        void this.router.navigate(['/mascotas', pet.id], { queryParams: { q: this.query.search || undefined, page: this.query.page, archived: this.archived ? '1' : undefined } });
+    }
     readonly savePet = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
         if (this.archived || !this.authorization.has('pets.manage'))
             throw new Error('Operación no permitida.');
         await (mode === 'create' ? this.pets.create(row) : mode === 'update' ? this.pets.update(row) : this.pets.remove(row));
-        this.selectedPet = null;
         if (mode !== 'update') {
             this.query = { ...this.query, page: 1 };
             if (this.petsTable)

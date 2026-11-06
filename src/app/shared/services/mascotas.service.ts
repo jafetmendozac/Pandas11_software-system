@@ -24,6 +24,12 @@ export interface Pet extends TableRow {
     updated_at: string;
     client_name?: string;
 }
+
+interface PetDetailRow extends Omit<Pet, 'breed_name' | 'client_name'> {
+    pet_breeds: { name: string } | null;
+    clients: { first_name: string; last_name: string | null; deleted_at: string | null } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MascotasService {
     constructor(private readonly supabase: SupabaseService) { }
@@ -43,6 +49,24 @@ export class MascotasService {
             if (rows.length >= result.total || !result.rows.length)
                 return rows;
         }
+    }
+    async get(id: string, archived = false): Promise<Pet | null> {
+        const { data, error } = await this.supabase.client.from('pets')
+            .select('id,client_id,name,breed_id,pet_sex,pet_size,weight_kg,allergies,bites,client_notes,birth_date,death_date,active,deleted_at,created_at,updated_at,pet_breeds(name),clients!inner(first_name,last_name,deleted_at)')
+            .eq('id', id).maybeSingle();
+        if (error)
+            throw error;
+        if (!data)
+            return null;
+        const row = data as unknown as PetDetailRow;
+        if (Boolean(row['deleted_at'] || row.clients?.deleted_at) !== archived)
+            return null;
+        const { pet_breeds, clients, ...pet } = row;
+        return {
+            ...pet,
+            breed_name: pet_breeds?.name ?? null,
+            client_name: clients ? `${clients.first_name} ${clients.last_name ?? ''}`.trim() : undefined,
+        } as Pet;
     }
     private payload(pet: TableRow): Record<string, unknown> {
         const name = String(pet['name'] ?? '').trim();
