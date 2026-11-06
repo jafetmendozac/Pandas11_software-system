@@ -26,14 +26,13 @@ import { calendarAppearance } from './calendar-appearance';
 import { CustomSelectComponent, CustomSelectOption } from '../../shared/components/form/custom-select/custom-select.component';
 import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
 import { TextAreaComponent } from '../../shared/components/form/input/text-area.component';
-import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { TimePickerComponent } from '../../shared/components/form/time-picker/time-picker.component';
 import { MultiSelectComponent, Option as MultiSelectOption } from '../../shared/components/form/multi-select/multi-select.component';
 
 interface PetGroup { key:string; pet_id:string; pet_name:string; items:DraftItem[]; }
 
-@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,MultiSelectComponent,InputFieldComponent,TextAreaComponent,CheckboxComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
+@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,MultiSelectComponent,InputFieldComponent,TextAreaComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
@@ -159,6 +158,26 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   return options;
  }
  selectedServices(group:PetGroup):string[]{return group.items.map(item=>item.service_id).filter(Boolean);}
+ groupEmployeeId(group:PetGroup):string{
+  const ids=group.items.flatMap(item=>item.stages.map(stage=>stage.employee_id)).filter(Boolean);
+  return ids.length>0&&ids.every(id=>id===ids[0])?ids[0]:'';
+ }
+ groupEmployeeOptions(group:PetGroup):CustomSelectOption[]{
+  const candidates=this.employees().filter(employee=>group.items.every(item=>item.stages.every((_,index)=>this.candidates(item,index).some(candidate=>candidate.id===employee.id))));
+  return candidates.map(employee=>({value:employee.id,label:`${employee.employee_name} · Sin verificar`}));
+ }
+ setGroupEmployee(group:PetGroup,value:string|number|null):void{
+  if(!this.canEdit)return;
+  const employeeId=String(value??'');
+  for(const item of group.items)for(const stage of item.stages)stage.employee_id=employeeId;
+  this.touch();
+ }
+ groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.duration_minutes||0),0);}
+ groupInterval(group:PetGroup):StageInput|null{
+  const first=group.items.find(item=>item.service_id);const minutes=this.groupDuration(group);
+  if(!first?.start||!minutes||group.items.some(item=>item.quoting))return null;
+  try{return {stage:'SERVICE',employee_id:this.groupEmployeeId(group),starts_local:first.start,ends_local:addLocalMinutes(first.start,minutes)};}catch{return null;}
+ }
  employeeOptions(item:DraftItem,index:number):CustomSelectOption[]{
   const stage=item.stages[index], candidates=this.candidates(item,index);
   const rows:CustomSelectOption[]=candidates.map(e=>({value:e.id,label:`${e.employee_name} · ${this.availabilityLabel(item,index,e.id)}`,disabled:this.unavailable(item,index,e.id)}));
@@ -201,8 +220,8 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  setMinutes(item:DraftItem,index:number,value:string|number):void{item.stages[index].minutes=value===''?null:Number(value);this.touch();}
  itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
  itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
- setItemDate(item:DraftItem,date:string):void{this.automaticStarts.delete(item.key);item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();}
- setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha del servicio.');return;}this.automaticStarts.delete(item.key);item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();}
+ setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();}
  private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
  addItem():void{
   if(!this.canEdit||!this.clientId)return;
@@ -213,11 +232,11 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   this.items.update(rows=>rows.filter(item=>!group.items.includes(item)));this.touch();
  }
  private reflowPet(petId:string):void{
-  if(!petId)return;let ready=true;const ends:string[]=[];
-  for(const item of this.items().filter(i=>i.pet_id===petId&&i.service_id)){
-   if(this.automaticStarts.has(item.key))item.start=ready&&ends.length?[...ends].sort().at(-1)??'':'';
+  if(!petId)return;let ready=true;let cursor='';
+  for(const [index,item] of this.items().filter(i=>i.pet_id===petId&&i.service_id).entries()){
+   if(index>0)item.start=ready?cursor:'';
    if(!item.start||!item.duration_minutes||item.quoting){ready=false;continue;}
-   try{ends.push(addLocalMinutes(item.start,item.duration_minutes));}catch{ready=false;}
+   try{cursor=addLocalMinutes(item.start,item.duration_minutes);}catch{ready=false;}
   }
  }
  async quote(item:DraftItem):Promise<void>{

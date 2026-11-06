@@ -168,7 +168,8 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(root.querySelectorAll('form fieldset > section').length).toBe(1);
   expect(c.items().map(item=>item.pet_id)).toEqual(['pet','pet']);
   expect(c.items()[1].start).toBe('2030-07-29T09:00:00');
-  for(const item of c.items())item.stages[0].employee_id='e';
+  c.setGroupEmployee(c.petGroups()[0],'e');
+  expect(c.items().every(item=>item.stages[0].employee_id==='e')).toBeTrue();
   await c.save();
   const saved=api.save.calls.mostRecent().args[0];
   expect(saved.items.map((item:{service_id:string})=>item.service_id)).toEqual(['service','corte']);
@@ -189,7 +190,7 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.items()[1].start).toBe('2030-07-29T09:00:00');
   c.setItemTime(c.items()[0],'10:00:00');expect(c.items()[1].start).toBe('2030-07-29T11:00:00');
   c.setItemTime(c.items()[1],'12:00:00');c.setItemTime(c.items()[0],'09:00:00');
-  expect(c.items()[1].start).toBe('2030-07-29T12:00:00');
+  expect(c.items()[1].start).toBe('2030-07-29T10:00:00');
  });
 
  it('crea otra tarjeta solo para otra mascota y conserva servicios históricos al editar',async()=>{

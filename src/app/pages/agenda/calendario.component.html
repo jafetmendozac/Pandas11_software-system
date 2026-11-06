@@ -66,33 +66,42 @@
                 <div><span class="mb-1 block">Mascota</span><app-custom-select [options]="petOptions(group)" [value]="group.pet_id" [disabled]="pending() || !canEdit || group.items.some(i=>!!i.id)" (valueChange)="setGroupPet(group,$event)" placeholder="Selecciona mascota del cliente" [ariaLabel]="'Mascota ' + (group.pet_name || '')" /></div>
                 <app-multi-select [options]="serviceOptions(group)" [selected]="selectedServices(group)" [disabled]="pending() || !canEdit || !group.pet_id" [label]="'Servicios para ' + (group.pet_name || 'esta mascota')" placeholder="Selecciona uno o varios servicios" (selectionChange)="setGroupServices(group,$event)" />
               </div>
-              @for(item of group.items;track item.key){
-              @if(item.service_id){
-              <div class="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-              <h3 class="font-semibold">{{ item.service_name || 'Servicio seleccionado' }} @if(item.id){<span class="text-sm font-normal">(tarifa conservada)</span>}</h3>
-              @if(item.quoting){<p role="status">Calculando tarifa…</p>}
-              @if(item.duration_minutes){<p>S/ {{ money(item.price) }} · {{ item.duration_minutes }} minutos en total. El servidor confirma tarifa y cobertura al guardar.</p>}
-              <div class="grid gap-3 sm:grid-cols-2">
-                <app-date-picker [id]="'date-'+item.key" label="Fecha del servicio (Lima)" placeholder="Selecciona fecha" [value]="itemDate(item)" [disabled]="pending() || !canEdit" [required]="true" [spanish]="true" [customOnMobile]="true" [aboveModal]="true" (dateChange)="setItemDate(item,$event.dateStr)" />
-                <app-time-picker [id]="'time-'+item.key" label="Hora de inicio (Lima)" placeholder="Selecciona hora" [value]="itemTime(item)" [disabled]="pending() || !canEdit" [required]="true" [enableSeconds]="true" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setItemTime(item,$event)" />
-              </div>
-              @if(item.specialist){<app-checkbox [id]="'split-'+item.key" label="Desglosar baño y corte con relevo (define ambos tiempos)" [checked]="item.stages.length===2" [disabled]="pending() || !canEdit" (checkedChange)="split(item,$event)" />}
-              @for(stage of item.stages;track $index;let index=$index){
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <div><span class="mb-1 block">{{ stages[stage.stage] }} · minutos</span><app-input-field type="number" [name]="'minutes-'+item.key+'-'+index" [ariaLabel]="stages[stage.stage] + ' minutos'" min="1" [step]="1" [value]="stage.minutes ?? ''" [preserveEmpty]="true" [readOnly]="item.stages.length===1" [inputRequired]="true" [disabled]="pending() || !canEdit" (valueChange)="setMinutes(item,index,$event)" /></div>
-                  <div><span class="mb-1 block">Trabajador</span><app-custom-select [options]="employeeOptions(item,index)" [value]="stage.employee_id" [disabled]="pending() || !canEdit" (valueChange)="setEmployee(item,index,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para ' + stages[stage.stage]" /></div>
-                  @if(interval(item,index);as range){<p class="sm:col-span-2">{{ range.starts_local.replace('T',' ') }} — {{ range.ends_local.replace('T',' ') }} (Lima)</p>}
+              @if(group.pet_id && group.items[0];as firstItem){
+                <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/60">
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Inicio de atención para {{ group.pet_name || 'la mascota' }}</p>
+                  <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    <app-date-picker [id]="'date-'+firstItem.key" label="Fecha de la atención (Lima)" placeholder="Selecciona fecha" [value]="itemDate(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [spanish]="true" [customOnMobile]="true" [aboveModal]="true" (dateChange)="setItemDate(firstItem,$event.dateStr)" />
+                    <app-time-picker [id]="'time-'+firstItem.key" label="Hora de inicio (Lima)" placeholder="Selecciona hora" [value]="itemTime(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [enableSeconds]="true" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setItemTime(firstItem,$event)" />
+                  </div>
+                  <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">La duración de la atención se calcula automáticamente a partir de los servicios seleccionados.</p>
+                  @if(group.items.some(item=>item.service_id)){
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div><span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Trabajador para toda la atención</span><app-custom-select [options]="groupEmployeeOptions(group)" [value]="groupEmployeeId(group)" [disabled]="pending() || !canEdit" (valueChange)="setGroupEmployee(group,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para toda la atención de ' + (group.pet_name || 'la mascota')" /></div>
+                      @if(groupInterval(group);as total){<p class="self-end text-sm text-gray-600 dark:text-gray-400">Duración total: {{ groupDuration(group) }} minutos<br />{{ total.starts_local.replace('T',' ') }} — {{ total.ends_local.replace('T',' ') }} (Lima)</p>}
+                    </div>
+                  }
                 </div>
               }
-              <div><span class="mb-1 block">Observaciones del servicio</span><app-input-field [name]="'item-notes-'+item.key" ariaLabel="Observaciones del servicio" [value]="item.notes" [disabled]="pending() || !canEdit" (valueChange)="item.notes=''+$event; touch()" /></div>
-              </div>
-              }
+              @if(group.items.some(item=>item.service_id)){
+                <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">Servicios incluidos</div>
+                  <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @for(item of group.items;track item.key){
+                      @if(item.service_id){
+                        <div class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                          <span class="min-w-0 font-medium text-gray-800 dark:text-white/90">{{ item.service_name || 'Servicio seleccionado' }}</span>
+                          @if(item.quoting){<span role="status" class="shrink-0 text-gray-500 dark:text-gray-400">Calculando…</span>} @else {<span class="shrink-0 text-gray-600 dark:text-gray-400">S/ {{ money(item.price) }} · {{ item.duration_minutes }} min</span>}
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
               }
               @if(canEdit){<button type="button" (click)="removePetGroup(group)" class="text-error-600 dark:text-error-400">Quitar mascota de la cita</button>}
             </section>
           }
           @if(canEdit){<button type="button" [disabled]="!clientId" (click)="addItem()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Añadir mascota</button>}
-          @if(items().length){<p class="text-sm text-gray-600 dark:text-gray-400">Los servicios de una misma mascota deben ser consecutivos. Puedes ajustar la hora sugerida.</p>}
+          @if(items().length){<p class="text-sm text-gray-600 dark:text-gray-400">Los servicios de una misma mascota forman una sola atención. La duración total y el horario se calculan automáticamente.</p>}
         </fieldset>
         @if(canEdit){
           <div class="flex flex-wrap gap-3">
