@@ -97,3 +97,36 @@ describe('PersonalizedTable: opciones de radio', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[name="bites"][value="true"]')?.checked).toBeTrue();
   });
 });
+
+describe('PersonalizedTable: formulario largo', () => {
+  it('mantiene las acciones visibles y permite llegar al último campo sin taparlo', () => {
+    const fixture = TestBed.createComponent(PersonalizedTable);
+    const table = fixture.componentInstance;
+    table.columns = Array.from({ length: 24 }, (_, index) => ({ key: `field_${index}`, label: `Campo ${index}` }));
+    table.openCreateForm();
+    fixture.detectChanges();
+
+    const modal = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('app-modal .modal > .relative');
+    expect(modal).not.toBeNull();
+    expect(modal?.clientHeight).toBeLessThan(window.innerHeight);
+    if (modal) {
+      expect(modal.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
+      expect(modal.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
+      const fields = modal.querySelector<HTMLElement>('form > div:first-of-type');
+      const footer = modal.querySelector<HTMLElement>('form > div:last-child');
+      const saveButton = modal.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const cancelButton = Array.from(modal.querySelectorAll('button')).find(button => button.textContent?.trim() === 'Cancelar');
+      expect(fields?.scrollHeight).toBeGreaterThan(fields?.clientHeight ?? 0);
+      expect(saveButton?.getBoundingClientRect().bottom).toBeLessThanOrEqual(modal.getBoundingClientRect().bottom);
+      expect(cancelButton?.getBoundingClientRect().bottom).toBeLessThanOrEqual(modal.getBoundingClientRect().bottom);
+      if (fields) {
+        fields.scrollTop = fields.scrollHeight;
+        expect(fields.scrollTop).toBeGreaterThan(0);
+      }
+      const lastField = Array.from(fields?.querySelectorAll<HTMLInputElement>('input') ?? []).at(-1);
+      expect(lastField?.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer?.getBoundingClientRect().top ?? 0);
+      expect(saveButton?.textContent?.trim()).toBe('Guardar');
+      expect(saveButton?.getBoundingClientRect().bottom).toBeLessThanOrEqual(modal.getBoundingClientRect().bottom);
+    }
+  });
+});
