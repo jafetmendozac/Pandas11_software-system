@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
 import { PageQuery, PageResult } from './clientes.service';
+import { PetPhotosService } from './pet-photos.service';
 export type PetSex = 'MALE' | 'FEMALE' | 'UNKNOWN';
 export type PetSize = 'TOY' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
 export interface Pet extends TableRow {
@@ -22,6 +23,8 @@ export interface Pet extends TableRow {
     deleted_at: string | null;
     created_at: string;
     updated_at: string;
+    photo_url: string | null;
+    photo_signed_url?: string | null;
     client_name?: string;
 }
 
@@ -32,14 +35,15 @@ interface PetDetailRow extends Omit<Pet, 'breed_name' | 'client_name'> {
 
 @Injectable({ providedIn: 'root' })
 export class MascotasService {
-    constructor(private readonly supabase: SupabaseService) { }
+    constructor(private readonly supabase: SupabaseService, private readonly photos: PetPhotosService) { }
     async search(query: PageQuery, archived = false, clientId: string | null = null): Promise<PageResult<Pet>> {
         const { data, error } = await this.supabase.client.rpc('search_pets', {
             p_search: query.search, p_page: query.page, p_size: query.size, p_archived: archived, p_client: clientId,
         });
         if (error)
             throw error;
-        return data as PageResult<Pet>;
+        const result = data as PageResult<Pet>;
+        return { ...result, rows: await Promise.all(result.rows.map(pet => this.withPhotoUrl(pet))) };
     }
     async getAll(): Promise<Pet[]> {
         const rows: Pet[] = [];
@@ -52,7 +56,7 @@ export class MascotasService {
     }
     async get(id: string, archived = false): Promise<Pet | null> {
         const { data, error } = await this.supabase.client.from('pets')
-            .select('id,client_id,name,breed_id,pet_sex,pet_size,weight_kg,allergies,bites,client_notes,birth_date,death_date,active,deleted_at,created_at,updated_at,pet_breeds(name),clients!inner(first_name,last_name,deleted_at)')
+            .select('id,client_id,name,breed_id,photo_url,pet_sex,pet_size,weight_kg,allergies,bites,client_notes,birth_date,death_date,active,deleted_at,created_at,updated_at,pet_breeds(name),clients!inner(first_name,last_name,deleted_at)')
             .eq('id', id).maybeSingle();
         if (error)
             throw error;
@@ -62,11 +66,15 @@ export class MascotasService {
         if (Boolean(row['deleted_at'] || row.clients?.deleted_at) !== archived)
             return null;
         const { pet_breeds, clients, ...pet } = row;
-        return {
+        return this.withPhotoUrl({
             ...pet,
             breed_name: pet_breeds?.name ?? null,
             client_name: clients ? `${clients.first_name} ${clients.last_name ?? ''}`.trim() : undefined,
-        } as Pet;
+        } as Pet);
+    }
+    private async withPhotoUrl(pet: Pet): Promise<Pet> {
+        try { return { ...pet, photo_signed_url: await this.photos.signedUrl(pet.photo_url) }; }
+        catch { return { ...pet, photo_signed_url: null }; }
     }
     private payload(pet: TableRow): Record<string, unknown> {
         const name = String(pet['name'] ?? '').trim();

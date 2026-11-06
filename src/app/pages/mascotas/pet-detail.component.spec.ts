@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { MascotasService } from '../../shared/services/mascotas.service';
+import { PetPhotosService } from '../../shared/services/pet-photos.service';
 import { RecordsService } from '../../shared/services/records.service';
 import { PetDetailComponent } from './pet-detail.component';
 
@@ -21,6 +22,7 @@ describe('PetDetailComponent', () => {
       provideRouter([]),
       { provide: AuthorizationService, useValue: { has: (permission: string) => permission === 'vaccinations.read' } },
       { provide: RecordsService, useValue: { vaccinations: jasmine.createSpy().and.resolveTo([]), note: jasmine.createSpy().and.resolveTo(null) } },
+      { provide: PetPhotosService, useValue: { signedUrl: jasmine.createSpy().and.resolveTo(null), replace: jasmine.createSpy(), remove: jasmine.createSpy() } },
     ],
   }));
 

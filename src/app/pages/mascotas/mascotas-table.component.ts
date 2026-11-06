@@ -27,6 +27,7 @@ export class MascotasTableComponent implements OnInit {
     query: PageQuery = { search: '', page: 1, size: 10 };
     private revision = 0;
     columns: TableColumn[] = [
+        { key: 'photo_signed_url', label: 'Foto', editable: false, display: 'image', hideHeader: true },
         {
             key: 'name',
             label: 'Nombre',

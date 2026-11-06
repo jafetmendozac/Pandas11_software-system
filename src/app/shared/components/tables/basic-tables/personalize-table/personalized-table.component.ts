@@ -18,7 +18,8 @@ export interface TableColumn {
   helpText?: string;
   type?: 'text' | 'number' | 'date' | 'time' | 'datetime-local';
   control?: 'radio';
-  display?: 'status-indicator' | 'visibility-indicator' | 'date-short';
+  display?: 'status-indicator' | 'visibility-indicator' | 'date-short' | 'image';
+  hideHeader?: boolean;
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
 }
@@ -140,6 +141,19 @@ export class PersonalizedTable {
     }
     if (typeof value === 'boolean') return value ? 'Sí' : 'No';
     return String(value ?? '');
+  }
+
+  get mobileImageColumn(): TableColumn | undefined {
+    return this.columns.find((column) => column.display === 'image');
+  }
+
+  getImageTitle(row: TableRow): string {
+    const title = this.getCellValue(row, this.mobileTitleColumn?.key || '');
+    return title || 'mascota';
+  }
+
+  getImageInitial(row: TableRow): string {
+    return this.getImageTitle(row).slice(0, 1).toUpperCase();
   }
 
   getFormValue(key: string): string {

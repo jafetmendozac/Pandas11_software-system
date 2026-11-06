@@ -13,6 +13,24 @@
     </section>
   } @else if (pet) {
     <app-component-card [title]="pet.name" [desc]="pet.client_name ? 'Mascota de ' + pet.client_name : 'Ficha de mascota'">
+      <div class="mb-6 flex flex-wrap items-center gap-4">
+        @if (pet.photo_signed_url) {
+        <img [src]="pet.photo_signed_url" [alt]="'Foto de ' + pet.name" class="size-24 rounded-full object-cover" />
+        } @else {
+        <span class="flex size-24 items-center justify-center rounded-full bg-brand-50 text-3xl font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-400" [attr.aria-label]="'Sin foto de ' + pet.name">{{ pet.name.slice(0, 1).toUpperCase() }}</span>
+        }
+        @if (!archived && authorization.has('pets.manage')) {
+        <div class="flex flex-wrap gap-2">
+          <label class="inline-flex cursor-pointer items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600" [class.opacity-50]="photoSaving">
+            {{ pet.photo_url ? 'Cambiar foto' : 'Añadir foto' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" [disabled]="photoSaving" (change)="selectPhoto($event)" />
+          </label>
+          @if (pet.photo_url) { <button type="button" (click)="removePhoto()" [disabled]="photoSaving" class="rounded-lg border border-error-300 px-4 py-2 text-sm font-medium text-error-600 disabled:opacity-50 dark:border-error-500/40 dark:text-error-400">Quitar foto</button> }
+        </div>
+        }
+        @if (photoError) { <p role="alert" class="basis-full text-error-600 dark:text-error-400">{{ photoError }}</p> }
+        @if (photoNotice) { <p role="status" class="basis-full text-success-600 dark:text-success-400">{{ photoNotice }}</p> }
+      </div>
       <dl class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <div><dt class="text-gray-500 dark:text-gray-400">Raza</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.breed_name || 'No indicada' }}</dd></div>
         <div><dt class="text-gray-500 dark:text-gray-400">Tamaño</dt><dd class="mt-1 font-medium text-gray-800 dark:text-white/90">{{ pet.pet_size || 'No indicado' }}</dd></div>

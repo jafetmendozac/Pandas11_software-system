@@ -39,6 +39,7 @@ export class ClientDetailComponent implements OnInit {
   };
   private petQuery: PageQuery = { search: '', page: 1, size: 10 };
   petColumns: TableColumn[] = [
+    { key: 'photo_signed_url', label: 'Foto', editable: false, display: 'image', hideHeader: true },
     { key: 'name', label: 'Nombre', placeholder: 'Ej. Max' },
     { key: 'breed_id', label: 'Raza', required: false, options: [] },
     { key: 'pet_sex', label: 'Sexo', required: false, options: [{ label: 'No especificado', value: '' }, { label: 'Macho', value: 'MALE' }, { label: 'Hembra', value: 'FEMALE' }, { label: 'Desconocido', value: 'UNKNOWN' }] },
