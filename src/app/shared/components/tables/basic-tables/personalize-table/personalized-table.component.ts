@@ -6,6 +6,7 @@ import { TableDropdownComponent } from '../../../common/table-dropdown/table-dro
 import { BadgeComponent } from '../../../ui/badge/badge.component';
 import { ModalComponent } from '../../../ui/modal/modal.component';
 import { CustomSelectComponent } from '../../../form/custom-select/custom-select.component';
+import { RadioOptionsComponent } from '../../../form/input/radio-options.component';
 export type TableRow = Record<string, unknown>;
 
 export interface TableColumn {
@@ -34,6 +35,7 @@ type PaginationItem = number | 'ellipsis';
     BadgeComponent,
     ModalComponent,
     CustomSelectComponent,
+    RadioOptionsComponent,
   ],
   templateUrl: './personalized-table.component.html',
   styles: ``

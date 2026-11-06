@@ -19,7 +19,7 @@ describe('PersonalizedTable: persistencia confirmada',()=>{
     const emit=spyOn(table.rowCreated,'emit');table.openCreateForm();table.formData['name']='Nueva';await table.saveRow();expect(emit).toHaveBeenCalled();expect(table.isFormOpen).toBeFalse();
   });
   it('emite página y búsqueda al servidor sin filtrar solo filas locales',()=>{
-    table.serverTotal=25;table.searchKey='name';const emit=spyOn(table.queryChanged,'emit');table.onSearch("O'Connor");expect(emit).toHaveBeenCalledWith({search:"O'Connor",page:1,size:5});expect(table.currentItems.length).toBe(1);expect(table.totalPages).toBe(5);
+    table.serverTotal=25;table.searchKey='name';table.itemsPerPage=5;const emit=spyOn(table.queryChanged,'emit');table.onSearch("O'Connor");expect(emit).toHaveBeenCalledWith({search:"O'Connor",page:1,size:5});expect(table.currentItems.length).toBe(1);expect(table.totalPages).toBe(5);
   });
 });
 
@@ -58,5 +58,42 @@ describe('PersonalizedTable: tarjetas móviles', () => {
     expect(card?.querySelector('h3')?.textContent?.trim()).toBe('Lucía');
     expect(Array.from(card?.querySelectorAll('dt') ?? []).map(label => label.textContent?.trim()))
       .toEqual(['Perfil relacionado', 'Apellido']);
+  });
+});
+
+describe('PersonalizedTable: opciones de radio', () => {
+  it('muestra los valores iniciales y permite cambiarlos antes de guardar', async () => {
+    const fixture = TestBed.createComponent(PersonalizedTable);
+    const table = fixture.componentInstance;
+    table.columns = [
+      { key: 'name', label: 'Nombre' },
+      { key: 'allergies', label: 'Alergias', control: 'radio', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
+      { key: 'active', label: 'Estado', control: 'radio', options: [{ label: 'Activo', value: 'true' }, { label: 'Inactivo', value: 'false' }] },
+    ];
+    const save = jasmine.createSpy().and.resolveTo();
+    table.saveAction = save;
+    table.openCreateForm();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector<HTMLInputElement>('input[name="allergies"][value="false"]')?.checked).toBeTrue();
+    expect(root.querySelector<HTMLInputElement>('input[name="active"][value="true"]')?.checked).toBeTrue();
+    root.querySelector<HTMLInputElement>('input[name="allergies"][value="true"]')?.click();
+    expect(table.formData['allergies']).toBe('true');
+    table.formData['name'] = 'Luna';
+    await table.saveRow();
+    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({ allergies: 'true', active: 'true' }), 'create');
+  });
+
+  it('marca el valor booleano existente al editar', () => {
+    const fixture = TestBed.createComponent(PersonalizedTable);
+    const table = fixture.componentInstance;
+    table.columns = [{ key: 'bites', label: 'Muerde', control: 'radio', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] }];
+    const row = { bites: true };
+    table.tableData = [row];
+    table.openEditForm(row);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[name="bites"][value="true"]')?.checked).toBeTrue();
   });
 });

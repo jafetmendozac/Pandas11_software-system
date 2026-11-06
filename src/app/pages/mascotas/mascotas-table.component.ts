@@ -39,13 +39,6 @@ export class MascotasTableComponent implements OnInit {
             options: [],
         },
         {
-            key: 'breed',
-            label: 'Raza',
-            placeholder: 'Ej. Pomerania',
-            helpText: 'Indica la raza, si la conoces.',
-            required: false,
-        },
-        {
             key: 'pet_sex',
             label: 'Sexo',
             helpText: 'Define el sexo de la mascota.',
@@ -89,6 +82,7 @@ export class MascotasTableComponent implements OnInit {
         {
             key: 'allergies',
             label: 'Alergias',
+            control: 'radio',
             options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }],
             helpText: 'Indica si tiene alergias. Los detalles se registran en notas internas.',
             required: false,
@@ -96,6 +90,7 @@ export class MascotasTableComponent implements OnInit {
         {
             key: 'bites',
             label: 'Muerde',
+            control: 'radio',
             helpText: 'Indica si la mascota tiende a morder.',
             required: false,
             options: [
@@ -127,6 +122,7 @@ export class MascotasTableComponent implements OnInit {
         {
             key: 'active',
             label: 'Estado',
+            control: 'radio',
             display: 'status-indicator',
             helpText: 'Define si la mascota sigue activa en el negocio.',
             options: [
