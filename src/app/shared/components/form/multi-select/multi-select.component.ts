@@ -54,10 +54,15 @@ export class MultiSelectComponent {
     this.selectionChange.emit(this.selectedOptions);
   }
 
-  removeOption(value: string) {
+  removeOption(event: Event, value: string) {
+    event.stopPropagation();
     if (this.disabled) return;
     this.selectedOptions = this.selectedOptions.filter(opt => opt !== value);
     this.selectionChange.emit(this.selectedOptions);
+  }
+
+  optionText(value: string): string {
+    return this.options.find(option => option.value === value)?.text || '';
   }
 
   get selectedValuesText(): string[] {
