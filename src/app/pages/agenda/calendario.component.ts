@@ -172,7 +172,9 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   for(const item of group.items)for(const stage of item.stages)stage.employee_id=employeeId;
   this.touch();
  }
- groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.duration_minutes||0),0);}
+  groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.duration_minutes||0),0);}
+  groupTotalPrice(group:PetGroup):number{return group.items.filter(item=>!!item.service_id).reduce((sum,item)=>sum+Number(item.price||0),0);}
+  formatPrice(value:number):string{try{return this.money(String(value));}catch{return value.toFixed(2);}}
  groupInterval(group:PetGroup):StageInput|null{
   const first=group.items.find(item=>item.service_id);const minutes=this.groupDuration(group);
   if(!first?.start||!minutes||group.items.some(item=>item.quoting))return null;

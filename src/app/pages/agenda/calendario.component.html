@@ -83,19 +83,36 @@
                 </div>
               }
               @if(group.items.some(item=>item.service_id)){
-                <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">Servicios incluidos</div>
+                <section class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-bold text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300 uppercase tracking-wider">Servicios incluidos</div>
                   <div class="divide-y divide-gray-100 dark:divide-gray-800">
                     @for(item of group.items;track item.key){
                       @if(item.service_id){
-                        <div class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                          <span class="min-w-0 font-medium text-gray-800 dark:text-white/90">{{ item.service_name || 'Servicio seleccionado' }}</span>
-                          @if(item.quoting){<span role="status" class="shrink-0 text-gray-500 dark:text-gray-400">Calculando…</span>} @else {<span class="shrink-0 text-gray-600 dark:text-gray-400">S/ {{ money(item.price) }} · {{ item.duration_minutes }} min</span>}
+                        <div class="flex items-center justify-between gap-3 px-4 py-3.5 text-sm">
+                          <div class="min-w-0 flex items-center gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 font-bold text-[10px] dark:bg-brand-900/30 dark:text-brand-400">✂️</span>
+                            <div>
+                              <span class="block text-sm font-medium text-gray-800 dark:text-white/90">{{ item.service_name || 'Servicio' }}</span>
+                              <span class="text-[11px] text-gray-400 dark:text-gray-500">S/ {{ formatPrice(Number(item.price||0)) }} · {{ item.duration_minutes }} min</span>
+                            </div>
+                          </div>
+                          <div class="flex items-end gap-2 text-right">
+                            @if(item.quoting){<span class="inline-flex items-center gap-1 animate-pulse rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-bold text-warning-600 dark:bg-warning-900/30 dark:text-warning-400 shadow-sm">Calculando…</span>} @else {<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-bold text-success-600 dark:bg-success-900/30 dark:text-success-400 shadow-sm"><span class="h-1 w-1 rounded-full bg-success-500 dark:bg-success-400"></span>Listo</span>}
+                          </div>
                         </div>
                       }
                     }
                   </div>
-                </div>
+                  <div class="border-t border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900/30">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Total</span>
+                      <div class="text-right">
+                        <span class="block text-lg font-bold text-brand-700 dark:text-brand-400">S/ {{ formatPrice(groupTotalPrice(group)) }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ groupDuration(group) }} min en total</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
               }
               @if(canEdit){<button type="button" (click)="removePetGroup(group)" class="flex items-center gap-1.5 rounded-lg border border-error-200 bg-error-50 px-3 py-2 text-sm font-medium text-error-700 hover:bg-error-100 focus-visible:outline-2 focus-visible:outline-error-500 dark:border-error-900/30 dark:bg-error-900/10 dark:text-error-400 dark:hover:bg-error-900/20" [title]="'Quitar ' + (group.pet_name || 'mascota') + ' de la cita'"><span>🗑️</span>Quitar mascota</button>}
             </section>
