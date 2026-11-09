@@ -6,7 +6,7 @@
 
   <header class="site-header fixed inset-x-0 top-0 z-40 shadow-theme-xs" (keydown.escape)="closeMenu(true)">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
-      <a routerLink="/" aria-label="Spa Boutique Pandas 11, inicio" class="flex shrink-0 items-center gap-3 rounded-lg">
+      <a #siteHome routerLink="/" aria-label="Spa Boutique Pandas 11, inicio" class="flex shrink-0 items-center gap-3 rounded-lg">
         <img src="/images/logo/Logo.png" alt="" width="56" height="56" class="h-12 w-12 object-contain sm:h-14 sm:w-14" />
         <span><span class="block text-xl font-semibold tracking-tight sm:text-2xl">Pandas<span class="teal-text">11</span></span><span class="muted block text-xs tracking-widest uppercase">Spa · Boutique</span></span>
       </a>
@@ -125,3 +125,15 @@
     <p class="font-medium">Spa Boutique Pandas 11 <span class="muted mt-1 block text-xs">De todo para tus engreídos.</span></p><p class="muted">© {{ year }} Pandas 11 · Trujillo</p><a routerLink="/signin" class="nav-link rounded-lg font-medium">Acceder a mi cuenta <span aria-hidden="true">↗</span></a>
   </footer>
 </div>
+
+@if (welcomeVisible()) {
+  <section class="w-screen fixed inset-0 z-[60] grid place-items-center overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="welcome-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+    <img src="/images/inicio/apertura/portada.webp" alt="Pandas11 Spa Boutique, de todo para tus mascotas" class="w-cover absolute inset-0 h-full w-full object-contain" />
+    <div class="w-curtain w-curtain-left" aria-hidden="true"><span></span></div>
+    <div class="w-curtain w-curtain-right" aria-hidden="true"><span></span></div>
+    <img src="/images/inicio/apertura/logo.webp" alt="" class="w-logo absolute" />
+    <img src="/images/inicio/apertura/pandita.png" alt="" class="w-panda absolute" />
+    <h2 id="welcome-title" class="sr-only">Bienvenida a Spa Boutique Pandas 11</h2>
+    <button cdkFocusInitial type="button" (click)="skipWelcome()" class="w-skip absolute end-4 top-4 rounded-full px-4 py-2 text-sm font-semibold sm:end-6 sm:top-6">Omitir bienvenida</button>
+  </section>
+}

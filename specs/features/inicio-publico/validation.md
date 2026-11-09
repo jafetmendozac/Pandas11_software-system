@@ -63,3 +63,22 @@ Header público cambiado de sticky a fixed, con espacio superior reservado81px e
 - Chrome sobre build a1440px y390px: header con position fixed y top0 en scroll0,650 y1800. Altura89px/81px respectivamente; inicio y sección Servicios sin quedar cubiertos. Menú móvil y anclas operativos, sin desbordes LTR/RTL ni excepciones; WhatsApp permanece en su posición anterior.
 - Revisión temporal y capturas: `/private/tmp/pandas11-public-review-OxksCL/`. Cero solicitudes Supabase y ningún mensaje enviado.
 - `git diff --check`: correcto.
+## Bienvenida animada — 2026-11-09
+
+Implementada en `InicioComponent` con los cuatro recursos autorizados en `public/images/inicio/apertura/`. La capa de bienvenida se muestra antes del panfleto semanal, desaparece sola en seis segundos o mediante «Omitir bienvenida» y registra únicamente `pandas11-welcome-seen` en `sessionStorage`. La preferencia de movimiento reducido la omite. No hubo consultas ni cambios de datos, Supabase, permisos, rutas o dependencias.
+
+| Criterio | Evidencia |
+|---|---|
+| IP-13 | Overlay de pantalla completa con portada, logo, panda y dos paneles animados; al cerrarlo se mantiene intacta la portada pública existente. |
+| IP-14 | Prueba agregada comprueba aparición, botón de omisión y persistencia de la marca de sesión. El control tiene foco inicial, trampa de foco y devuelve el foco al enlace principal. |
+| IP-15 | `prefers-reduced-motion` evita iniciar el overlay. El panfleto conserva su z-index existente y queda debajo de la bienvenida mientras esta se muestra. |
+
+### Comprobaciones ejecutadas
+
+- `npx tsc --noEmit -p tsconfig.app.json`: correcto.
+- `git diff --check`: correcto.
+- Verificación de los cuatro recursos copiados: formatos y dimensiones esperados.
+- `npm run build`: bloqueado por un error preexistente ajeno en `src/app/pages/agenda/calendario.component.html`: la plantilla usa `Number`, que no pertenece al contexto de `CalendarioComponent`.
+- Prueba focalizada de inicio: bloqueada antes de ejecutar casos porque la compilación global encuentra un error preexistente en `src/app/shared/components/form/multi-select/multi-select.component.spec.ts`; llama `removeOption` con un argumento y el método actual requiere dos.
+
+No se realizó recorrido visual en navegador porque la compilación Angular no completó. Las comprobaciones bloqueadas no modificaron archivos ajenos.

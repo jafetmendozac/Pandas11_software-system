@@ -89,6 +89,21 @@
 .flyer-dialog-close:hover { background: var(--color-brand-600); transform: rotate(90deg); }
 .flyer-dialog-image { border-radius: 1.25rem; }
 
+.w-screen { background: linear-gradient(145deg, #b0eaf9, #fee2f2 75%, #d7bdf4); }
+.w-cover { z-index: 0; }
+.w-curtain { position: absolute; z-index: 1; inset-block: 0; width: 50%; background-image: url('/images/inicio/apertura/fondo.webp'); background-repeat: no-repeat; background-size: 200% 100%; will-change: transform; }
+.w-curtain::after { content: ''; position: absolute; inset-block: 0; width: 11px; background: linear-gradient(90deg, #fff, #64d5e4, #fff); opacity: .9; filter: drop-shadow(0 0 12px #72dcea); }
+.w-curtain-left { inset-inline-start: 0; background-position: 0 50%; animation: welcome-open-left 1.75s 4.15s cubic-bezier(.22, .65, .1, 1) forwards; }
+.w-curtain-right { inset-inline-end: 0; background-position: 100% 50%; animation: welcome-open-right 1.75s 4.15s cubic-bezier(.22, .65, .1, 1) forwards; }
+.w-curtain-left::after { inset-inline-end: 0; border-radius: 15px 0 0 15px; }
+.w-curtain-right::after { inset-inline-start: 0; border-radius: 0 15px 15px 0; }
+.w-logo, .w-panda { z-index: 2; inset-inline-start: 50%; inset-block-start: 50%; height: auto; max-width: 82vw; user-select: none; will-change: transform, opacity; }
+.w-logo { width: min(44vw, 420px); opacity: 0; filter: drop-shadow(0 12px 16px #449ba922); animation: welcome-logo 6s linear both; }
+.w-panda { width: min(34vw, 345px); max-width: 65vw; opacity: 0; filter: drop-shadow(0 14px 12px #217e9c35); animation: welcome-panda 6s linear both; }
+.w-skip { z-index: 3; color: #17677e; border: 1px solid #69c7d4; background: #fffefc; box-shadow: 0 4px 18px #155f7e2b; }
+.w-skip:hover { background: #f1faff; }
+.w-skip:focus-visible { outline: 3px solid #17677e; outline-offset: 3px; }
+
 @keyframes flyer-water-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -107,6 +122,28 @@
   100% { opacity: 0; transform: scale(1.35); }
 }
 
+@keyframes welcome-open-left { from { transform: translateX(0); } to { transform: translateX(-103%); } }
+@keyframes welcome-open-right { from { transform: translateX(0); } to { transform: translateX(103%); } }
+@keyframes welcome-logo {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  30%, 100% { opacity: 0; transform: translate(-50%, -56%) scale(.73); }
+}
+@keyframes welcome-panda {
+  0%, 26% { opacity: 0; transform: translate(-50%, 36%) scale(.75) rotate(0); }
+  36% { opacity: 1; transform: translate(-50%, -42%) scale(1.08) rotate(0); }
+  43% { opacity: 1; transform: translate(-50%, -45%) scale(1) rotate(-7deg); }
+  50% { opacity: 1; transform: translate(-50%, -41%) scale(1) rotate(7deg); }
+  57% { opacity: 1; transform: translate(-50%, -45%) scale(1) rotate(-5deg); }
+  65% { opacity: 1; transform: translate(-50%, -57%) scale(.7) rotate(0); }
+  69%, 100% { opacity: 0; transform: translate(-50%, -62%) scale(.58); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .flyer-dialog, .flyer-dialog-panel, .flyer-dialog-panel::after { animation: none; }
+  .flyer-dialog, .flyer-dialog-panel, .flyer-dialog-panel::after, .w-curtain, .w-logo, .w-panda { animation: none; }
+}
+@media (width < 640px) {
+  .w-logo { width: 70vw; }
+  .w-panda { width: 64vw; }
 }

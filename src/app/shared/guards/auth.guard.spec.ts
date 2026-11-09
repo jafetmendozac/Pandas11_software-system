@@ -7,10 +7,10 @@ describe('authGuard', () => {
   const route = {} as ActivatedRouteSnapshot;
   const state = { url: '/configuracion' } as RouterStateSnapshot;
   const denied = { denied: true };
-  let authorization: { refresh: jasmine.Spy; has: jasmine.Spy; hasInSelectedRole: jasmine.Spy };
+  let authorization: { isSessionValidated: jasmine.Spy; refresh: jasmine.Spy; has: jasmine.Spy; hasInSelectedRole: jasmine.Spy };
 
   beforeEach(() => {
-    authorization = { refresh: jasmine.createSpy().and.resolveTo(true), has: jasmine.createSpy().and.returnValue(true), hasInSelectedRole: jasmine.createSpy().and.returnValue(true) };
+    authorization = { isSessionValidated: jasmine.createSpy().and.returnValue(false), refresh: jasmine.createSpy().and.resolveTo(true), has: jasmine.createSpy().and.returnValue(true), hasInSelectedRole: jasmine.createSpy().and.returnValue(true) };
     TestBed.configureTestingModule({ providers: [
       { provide: AuthorizationService, useValue: authorization },
       { provide: Router, useValue: { createUrlTree: () => denied } },

@@ -69,3 +69,15 @@ Las preguntas iniciales de servicios/contacto, ciudad/región y horario público
 ## Ajuste solicitado de contacto — 2026-10-18
 
 El usuario pide retirar el número visible y utilizar un botón flotante de WhatsApp abajo a la izquierda. Se conserva el número confirmado exclusivamente como destino del enlace; su presencia en la URL de WhatsApp es necesaria y no se considera un mecanismo para mantenerlo secreto. Se elimina el bloque de llamada y las cifras de texto/aria-label. Los botones de coordinar cita/consultar servicio conservan etiquetas sin número.
+
+## Bienvenida animada — 2026-11-09
+
+El usuario autorizó integrar `Pandas11_apertura_real_para_web.zip` en la portada pública. El ZIP aporta recursos gráficos y una maqueta HTML de referencia; sus comentarios internos no modifican requisitos del proyecto.
+
+| ID | Criterio de aceptación | Reglas relacionadas |
+|---|---|---|
+| IP-13 | La primera visita a `/` durante una pestaña muestra una bienvenida a pantalla completa que revela visualmente la portada de Pandas11; al finalizar, la portada existente continúa disponible. | IP-01, IP-07, IP-10 |
+| IP-14 | La persona puede omitir la bienvenida por teclado o puntero. Al omitirla, el foco pasa al enlace de inicio y no vuelve a mostrarse en esa pestaña. | IP-03, IP-12 |
+| IP-15 | Quien prefiera movimiento reducido no recibe la animación. La carga de un panfleto diario no queda oculta de forma permanente ni compite en prioridad con la bienvenida. | PS-01, PS-06 |
+
+No se agregan formularios, rutas, consultas, datos comerciales, permisos ni cambios de base de datos. RN-01, RN-02, RN-04–RN-06 siguen orientando el contenido existente sin cambios.

@@ -27,7 +27,7 @@ describe('MultiSelectComponent', () => {
     const emit = spyOn(fixture.componentInstance.selectionChange, 'emit');
     fixture.detectChanges();
     fixture.componentInstance.handleSelect('a');
-    fixture.componentInstance.removeOption('a');
+    fixture.componentInstance.removeOption(new Event('click'), 'a');
     expect(emit).not.toHaveBeenCalled();
     expect(fixture.componentInstance.selectedOptions).toEqual(['a']);
   });

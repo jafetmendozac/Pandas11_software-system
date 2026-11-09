@@ -8,12 +8,13 @@ import { HomeFlyersService } from '../../shared/services/home-flyers.service';
 import { InicioComponent } from './inicio.component';
 
 describe('Inicio público y separación del panel', () => {
-  let authorization: { refresh: jasmine.Spy; has: jasmine.Spy };
+  let authorization: { isSessionValidated: jasmine.Spy; refresh: jasmine.Spy; has: jasmine.Spy };
   let createSupabase: jasmine.Spy;
   let flyers: { today: jasmine.Spy; signedUrl: jasmine.Spy };
 
   beforeEach(() => {
-    authorization = { refresh: jasmine.createSpy().and.resolveTo(false), has: jasmine.createSpy().and.returnValue(false) };
+    sessionStorage.setItem('pandas11-welcome-seen', 'true');
+    authorization = { isSessionValidated: jasmine.createSpy().and.returnValue(false), refresh: jasmine.createSpy().and.resolveTo(false), has: jasmine.createSpy().and.returnValue(false) };
     createSupabase = jasmine.createSpy('Supabase factory').and.returnValue({ signOut: async () => {} });
     flyers = {
       today: jasmine.createSpy().and.resolveTo(null),
@@ -25,6 +26,19 @@ describe('Inicio público y separación del panel', () => {
       { provide: SupabaseService, useFactory: createSupabase },
       { provide: HomeFlyersService, useValue: flyers },
     ] });
+  });
+
+  it('muestra la bienvenida una vez por pestaña y permite omitirla', async () => {
+    sessionStorage.removeItem('pandas11-welcome-seen');
+    const harness = await RouterTestingHarness.create('/');
+    const welcome = harness.routeNativeElement?.querySelector<HTMLElement>('[aria-labelledby="welcome-title"]');
+    expect(welcome).not.toBeNull();
+    const skip = welcome?.querySelector<HTMLButtonElement>('button');
+    expect(skip?.textContent).toContain('Omitir bienvenida');
+    skip?.click();
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('[aria-labelledby="welcome-title"]')).toBeNull();
+    expect(sessionStorage.getItem('pandas11-welcome-seen')).toBe('true');
   });
 
   it('abre la raíz anónima y conserva el contenido si falta un panfleto', async () => {

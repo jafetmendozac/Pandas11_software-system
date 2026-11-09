@@ -76,3 +76,14 @@ Actualizar la prueba existente de portada para comprobar ausencia de cifras/enla
 Solicitud de presentación del usuario: sustituir sticky por posición fixed respecto a la ventana, manteniendo logo, enlaces y menú móvil disponibles al bajar. Reservar81px en móvil y89px desde sm según las dimensiones existentes de logo/fila, para que el contenido no quede debajo; la franja informativa pasa a estar bajo el encabezado. Mantener margen de anclas y añadirlo al salto de contenido. No cambiar estilos globales de overflow ni el shell privado.
 
 Validar compilación y pruebas existentes de portada; comprobar en Chrome que el rectángulo del header permanece en top0 al bajar a distintos puntos, que el menú móvil sigue abriendo/cerrando y que las anclas no quedan cubiertas. Sin cambios de datos o dependencias.
+
+## Bienvenida animada — plan aprobado el 2026-11-09
+
+1. Copiar `fondo.webp`, `logo.webp`, `pandita.png` y `portada.webp` del ZIP autorizado a `public/images/inicio/apertura/`, sin importar su `index.html` como una página independiente.
+2. Extender `InicioComponent` con un overlay local a `/`, logo y panda animados, dos paneles que revelan la portada gráfica y una duración máxima de seis segundos. El contenido de la portada y sus rutas no cambian.
+3. Persistir solamente la marca `pandas11-welcome-seen` en `sessionStorage`: se muestra una vez por pestaña, se registra al terminar u omitir y no crea datos de negocio. Si Storage falla, se mantiene la opción de omitir.
+4. Incluir un botón visible «Omitir bienvenida», trampa de foco, nombre accesible y devolución de foco al enlace del inicio. `prefers-reduced-motion` evita mostrar la animación.
+5. Mantener la bienvenida con prioridad visual temporal sobre el diálogo de panfleto diario. Cuando termina u omite, el diálogo existente puede mostrarse con su comportamiento actual.
+6. Añadir una prueba de componente para aparición, omisión y persistencia de sesión. Ejecutar tipos, prueba focalizada, suite Angular y build; documentar el resultado.
+
+No hay cambios de `Pandas11.sql`, migraciones, RLS, servicios de Supabase, permisos, dependencias ni despliegue. El usuario aprobó explícitamente este plan mediante «Siiiii lo permito, implementalo».

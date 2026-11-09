@@ -17,11 +17,14 @@ export class InicioComponent implements OnInit, OnDestroy {
   constructor(_theme: ThemeService) {}
 
   @ViewChild('menuToggle') private menuToggle?: ElementRef<HTMLButtonElement>;
+  @ViewChild('siteHome') private siteHome?: ElementRef<HTMLAnchorElement>;
   private readonly flyerApi = inject(HomeFlyersService);
   private readonly zone = inject(NgZone);
   private flyerRevision = 0;
   private dayTimer?: ReturnType<typeof setInterval>;
+  private welcomeTimer?: ReturnType<typeof setTimeout>;
   readonly menuOpen = signal(false);
+  readonly welcomeVisible = signal(false);
   readonly activeFlyer = signal<{ row: HomeFlyer; url: string } | null>(null);
   readonly flyerExpanded = signal(false);
   readonly flyerDays = HOME_FLYER_DAYS;
@@ -50,6 +53,7 @@ export class InicioComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    this.startWelcome();
     void this.loadFlyer();
     this.zone.runOutsideAngular(() => {
       this.dayTimer = setInterval(() => {
@@ -68,6 +72,40 @@ export class InicioComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.flyerRevision++;
     if (this.dayTimer) clearInterval(this.dayTimer);
+    if (this.welcomeTimer) clearTimeout(this.welcomeTimer);
+  }
+
+  skipWelcome(): void {
+    this.finishWelcome(true);
+  }
+
+  private startWelcome(): void {
+    const storageKey = 'pandas11-welcome-seen';
+    try {
+      if (sessionStorage.getItem(storageKey) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        sessionStorage.setItem(storageKey, 'true');
+        return;
+      }
+    } catch {
+      // Si el navegador bloquea Storage, la bienvenida sigue siendo omitible.
+    }
+
+    this.welcomeVisible.set(true);
+    this.zone.runOutsideAngular(() => {
+      this.welcomeTimer = setTimeout(() => this.zone.run(() => this.finishWelcome()), 6_000);
+    });
+  }
+
+  private finishWelcome(restoreFocus = false): void {
+    if (!this.welcomeVisible()) return;
+    if (this.welcomeTimer) clearTimeout(this.welcomeTimer);
+    this.welcomeVisible.set(false);
+    try {
+      sessionStorage.setItem('pandas11-welcome-seen', 'true');
+    } catch {
+      // No se requiere persistencia para navegar por la portada.
+    }
+    if (restoreFocus) setTimeout(() => this.siteHome?.nativeElement.focus());
   }
 
   private async loadFlyer(): Promise<void> {
