@@ -81,7 +81,6 @@
 .product-number { background: var(--p-teal-soft); color: var(--p-teal); }
 .pickup-panel { background: var(--p-purple-soft); }
 .pickup-panel .icon-disc { color: var(--p-purple); background: var(--p-paper); }
-.pickup-note { background: var(--p-paper); color: var(--p-purple); }
 .contact-divider { border-block-start: 1px solid var(--p-line); }
 @media (width < 640px) {
   .brand-scene { min-height: 340px; max-width: 380px; }
