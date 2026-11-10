@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthorizationService } from '../services/authorization.service';
-import { authGuard, selectedRoleGuard } from './auth.guard';
+import { authGuard, guestGuard, selectedRoleGuard } from './auth.guard';
 
 describe('authGuard', () => {
   const route = {} as ActivatedRouteSnapshot;
@@ -13,7 +13,7 @@ describe('authGuard', () => {
     authorization = { isSessionValidated: jasmine.createSpy().and.returnValue(false), refresh: jasmine.createSpy().and.resolveTo(true), has: jasmine.createSpy().and.returnValue(true), hasInSelectedRole: jasmine.createSpy().and.returnValue(true) };
     TestBed.configureTestingModule({ providers: [
       { provide: AuthorizationService, useValue: authorization },
-      { provide: Router, useValue: { createUrlTree: () => denied } },
+      { provide: Router, useValue: { createUrlTree: jasmine.createSpy().and.returnValue(denied) } },
     ] });
   });
 
@@ -57,6 +57,23 @@ describe('authGuard', () => {
     const target = { url: '/configuracion/panfletos' } as RouterStateSnapshot;
     expect(TestBed.runInInjectionContext(() => selectedRoleGuard(protectedRoute, target))).toBe(denied as never);
     expect(authorization.has).toHaveBeenCalledWith('home_flyers.manage');
+  });
+
+  it('redirige al panel cuando una sesión activa visita signin', async () => {
+    const signinRoute = { queryParamMap: { get: () => null } } as unknown as ActivatedRouteSnapshot;
+    const router = TestBed.inject(Router) as unknown as { createUrlTree: jasmine.Spy };
+    router.createUrlTree.and.callFake((commands: string[]) => commands);
+
+    const result = await TestBed.runInInjectionContext(() => guestGuard(signinRoute, state));
+
+    expect(result as unknown as string[]).toEqual(['/panel']);
+  });
+
+  it('permite signin cuando no existe una sesión activa', async () => {
+    authorization.refresh.and.resolveTo(false);
+    const signinRoute = { queryParamMap: { get: () => null } } as unknown as ActivatedRouteSnapshot;
+
+    expect(await TestBed.runInInjectionContext(() => guestGuard(signinRoute, state))).toBeTrue();
   });
 
 });

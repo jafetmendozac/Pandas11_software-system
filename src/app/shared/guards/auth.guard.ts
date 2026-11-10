@@ -17,6 +17,20 @@ export const profileGuard: CanActivateFn = async () => {
   return (authorization.isSessionValidated() || await authorization.refresh()) ? true : router.createUrlTree(['/signin']);
 };
 
+export const guestGuard: CanActivateFn = async (route) => {
+  const authorization = inject(AuthorizationService);
+  const router = inject(Router);
+  const active = authorization.isSessionValidated() || await authorization.refresh();
+
+  if (!active) return true;
+
+  const requested = route.queryParamMap.get('redirect');
+  const internalRedirect = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\')
+    ? requested : null;
+  const redirect = internalRedirect || (authorization.has('panel.access') ? '/panel' : '/mi-perfil');
+  return router.createUrlTree([redirect]);
+};
+
 // La vista de rol limita la navegación visible; el permiso real sigue validándose en authGuard y RLS.
 export const selectedRoleGuard: CanActivateFn = (route, state) => {
   const authorization = inject(AuthorizationService);

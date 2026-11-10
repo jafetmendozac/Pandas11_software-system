@@ -26,7 +26,7 @@ import { MascotasTableComponent } from './pages/mascotas/mascotas-table.componen
 import { ServiciosComponent } from './pages/servicios/servicios.component';
 import { TarifasComponent } from './pages/tarifas/tarifas.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
-import { authGuard, profileGuard, selectedRoleGuard } from './shared/guards/auth.guard';
+import { authGuard, guestGuard, profileGuard, selectedRoleGuard } from './shared/guards/auth.guard';
 
 import { salesGuard } from './shared/guards/sales.guard';
 
@@ -205,6 +205,7 @@ export const routes: Routes = [
   {
     path:'signin',
     component:SignInComponent,
+    canActivate: [guestGuard],
     title:'Iniciar sesión | Spa Boutique Pandas 11'
   },
   {
