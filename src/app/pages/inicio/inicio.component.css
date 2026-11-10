@@ -11,6 +11,10 @@
   --p-pink-soft: #fcf0f5;
   --p-purple: #765095;
   --p-purple-soft: #f3eff8;
+  --p-mint: #257a67;
+  --p-mint-soft: #e8f6f0;
+  --p-gold: #9a6915;
+  --p-gold-soft: #fff5d9;
   display: block;
 }
 :host-context(.dark) {
@@ -25,6 +29,10 @@
   --p-pink-soft: #342635;
   --p-purple: #c6a8e7;
   --p-purple-soft: #2c2a40;
+  --p-mint: #8edbc3;
+  --p-mint-soft: #193b36;
+  --p-gold: #f2ca73;
+  --p-gold-soft: #40351d;
 }
 .public-site { color: var(--p-ink); background: var(--p-background); }
 .public-site :is(a, button, select):focus-visible { outline: 3px solid var(--p-teal); outline-offset: 4px; }
@@ -61,11 +69,13 @@
 .dot-two { inset-block-end: 20%; inset-inline-start: 15px; width: 8px; height: 8px; }
 .section-shell { scroll-margin-block-start: 100px; }
 .section-title { font-size: clamp(2rem, 3.5vw, 3rem); line-height: 1.15; font-weight: 600; letter-spacing: -.035em; }
-.service-card { border: 1px solid var(--p-line); background: var(--p-paper); }
-.service-card.pink { background: var(--p-pink-soft); border-color: transparent; }
-.service-card.purple { background: var(--p-purple-soft); border-color: transparent; }
-.service-card.pink .icon-disc { background: var(--p-paper); color: var(--p-pink); }
-.service-card.purple .icon-disc { background: var(--p-paper); color: var(--p-purple); }
+.service-card { --service-bg: var(--p-paper); --service-accent: var(--p-teal); border: 1px solid var(--p-line); background: var(--service-bg); }
+.service-card.pink { --service-bg: var(--p-pink-soft); --service-accent: var(--p-pink); }
+.service-card.purple { --service-bg: var(--p-purple-soft); --service-accent: var(--p-purple); }
+.service-card.mint { --service-bg: var(--p-mint-soft); --service-accent: var(--p-mint); }
+.service-card.gold { --service-bg: var(--p-gold-soft); --service-accent: var(--p-gold); }
+.service-card:is(.pink, .purple, .mint, .gold) { border-color: transparent; }
+.service-card .icon-disc { color: var(--service-accent); }
 .boutique-panel, .visit-section { background: var(--p-teal-soft); }
 .product-row, .contact-card { background: var(--p-paper); border: 1px solid var(--p-line); }
 .product-number { background: var(--p-teal-soft); color: var(--p-teal); }
