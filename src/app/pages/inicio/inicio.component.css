@@ -76,6 +76,7 @@
 .service-card.gold { --service-bg: var(--p-gold-soft); --service-accent: var(--p-gold); }
 .service-card:is(.pink, .purple, .mint, .gold) { border-color: transparent; }
 .service-card .icon-disc { color: var(--service-accent); }
+.service-price { color: var(--service-accent); }
 .boutique-panel, .visit-section { background: var(--p-teal-soft); }
 .product-row, .contact-card { background: var(--p-paper); border: 1px solid var(--p-line); }
 .product-number { background: var(--p-teal-soft); color: var(--p-teal); }

@@ -6,18 +6,19 @@ import { ComponentCardComponent } from '../../shared/components/common/component
 import { ThemeService } from '../../shared/services/theme.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { RoleSettingsComponent } from '../../shared/components/settings/role-settings/role-settings.component';
+import { PetBreedsSettingsComponent } from '../../shared/components/settings/pet-breeds-settings/pet-breeds-settings.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent, RoleSettingsComponent],
+  imports: [FormsModule, RouterLink, PageBreadcrumbComponent, ComponentCardComponent, RoleSettingsComponent, PetBreedsSettingsComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent implements OnDestroy {
   readonly authorization = inject(AuthorizationService);
   private readonly themeService = inject(ThemeService);
   theme: 'light' | 'dark' = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  section: 'home' | 'appearance' | 'roles' = 'home';
+  section: 'home' | 'appearance' | 'roles' | 'pet-breeds' = 'home';
   message = '';
   error = false;
 
