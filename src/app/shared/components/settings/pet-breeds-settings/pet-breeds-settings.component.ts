@@ -20,6 +20,8 @@ export class PetBreedsSettingsComponent {
   readonly busy = signal(false);
   readonly notice = signal('');
   readonly failed = signal(false);
+  readonly confirmingBreedId = signal<string | null>(null);
+  readonly confirmingBreedName = signal('');
   showBreedForm = false;
   editingId = '';
   breed: { name: string; active: boolean } = { name: '', active: true };
@@ -70,13 +72,32 @@ export class PetBreedsSettingsComponent {
     this.breed = { name: '', active: true };
   }
 
-  async toggleActive(breed: PetBreed): Promise<void> {
+  async confirmDelete(breed: PetBreed): Promise<void> {
+    this.confirmingBreedId.set(breed.id);
+    this.confirmingBreedName.set(breed.name);
+  }
+
+  async executeDelete(): Promise<void> {
+    const id = this.confirmingBreedId();
+    if (!id) return;
+    const breed = this.breedsList().find(item => item.id === id);
+    if (!breed) { this.cancelDelete(); return; }
+    await this.deleteBreed(breed);
+    this.cancelDelete();
+  }
+
+  cancelDelete(): void {
+    this.confirmingBreedId.set(null);
+    this.confirmingBreedName.set('');
+  }
+
+  async deleteBreed(breed: PetBreed): Promise<void> {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.breeds.update({ id: breed.id, name: breed.name, active: !breed.active } as PetBreed);
-      this.breedsList.update(items => items.map(item => item.id === breed.id ? { ...item, active: !item.active } : item));
-      this.notice.set(breed.active ? 'Raza eliminada de forma lógica.' : 'Raza restaurada.');
+      await this.breeds.remove({ id: breed.id } as PetBreed);
+      this.breedsList.update(items => items.filter(item => item.id !== breed.id));
+      this.notice.set('Raza eliminada.');
     } catch (error) {
       this.failed.set(true);
       this.notice.set(error instanceof Error ? error.message : 'No se pudo completar la solicitud.');
@@ -85,10 +106,15 @@ export class PetBreedsSettingsComponent {
     }
   }
 
+  private formatName(value: string): string {
+    return value.trim().split(/\s+/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  }
+
   async saveBreed(): Promise<void> {
     if (this.busy()) return;
-    const name = this.breed.name.trim();
+    const name = this.formatName(this.breed.name);
     if (!name) return this.showError('El nombre de la raza es obligatorio.');
+    this.breed.name = name;
     this.busy.set(true);
     try {
       const payload = { id: this.editingId || '', name, active: this.breed.active } as PetBreed;
