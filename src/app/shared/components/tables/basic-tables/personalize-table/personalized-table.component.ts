@@ -22,6 +22,8 @@ export interface TableColumn {
   hideHeader?: boolean;
   createOnly?: boolean;
   options?: Array<{ label: string; value: string }>;
+  showWhen?: (formData: TableRow) => boolean;
+  formOnly?: boolean;
 }
 
 type PaginationItem = number | 'ellipsis';
@@ -42,7 +44,7 @@ type PaginationItem = number | 'ellipsis';
   styles: ``
 })
 export class PersonalizedTable {
-  constructor(@Optional() private readonly cdr?: ChangeDetectorRef) {}
+  constructor(@Optional() readonly cdr?: ChangeDetectorRef) {}
   @Input() serverTotal: number | null = null;
   @Input() saveAction?: (row: TableRow, mode: 'create' | 'update' | 'delete') => Promise<void>;
   @Output() queryChanged = new EventEmitter<{ search: string; page: number; size: number }>();
@@ -264,7 +266,11 @@ export class PersonalizedTable {
 
   private createEmptyRow(): TableRow {
     return this.columns.reduce((row, column) => {
-      row[column.key] = column.options?.[0]?.value ?? '';
+      if (column.showWhen) {
+        row[column.key] = null;
+      } else {
+        row[column.key] = column.options?.[0]?.value ?? '';
+      }
       return row;
     }, {} as TableRow);
   }

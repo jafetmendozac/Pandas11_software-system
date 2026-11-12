@@ -5,7 +5,7 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { ClientesService, PageQuery } from '../../shared/services/clientes.service';
 import { MascotasService, Pet } from '../../shared/services/mascotas.service';
-import { PetBreedsService } from '../../shared/services/pet-breeds.service';
+import { PetBreed, PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 @Component({ selector: 'app-mascotas-table', standalone: true,
     imports: [ComponentCardComponent, PageBreadcrumbComponent, PersonalizedTable], templateUrl: './mascotas-table.component.html' })
@@ -72,6 +72,15 @@ export class MascotasTableComponent implements OnInit {
             helpText: 'Selecciona la raza de la mascota.',
             required: false,
             options: [],
+        },
+        {
+            key: 'breed_custom_name',
+            label: 'Otra raza',
+            helpText: 'Escribe el nombre de la raza si no está en la lista.',
+            placeholder: 'Ej. Shitzu, Poodle, Labrador',
+            required: false,
+            showWhen: (row: TableRow) => row['breed_id'] === '',
+            formOnly: true,
         },
         {
             key: 'weight_kg',
@@ -158,7 +167,7 @@ export class MascotasTableComponent implements OnInit {
         }
         try {
             const breedRows = await this.petBreeds.getAll();
-            this.columns = this.columns.map(c => c.key === 'breed_id' ? { ...c, options: [{ label: 'No especificada', value: '' }, ...breedRows.map(b => ({ label: b.name, value: b.id }))] } : c);
+            this.columns = this.columns.map(c => c.key === 'breed_id' ? { ...c, options: [{ label: 'Otro', value: '' }, ...breedRows.map(b => ({ label: b.name, value: b.id }))] } : c);
         }
         catch {
             this.errorMessage = 'No se pudieron cargar las razas.';
@@ -196,6 +205,20 @@ export class MascotasTableComponent implements OnInit {
     readonly savePet = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
         if (this.archived || !this.authorization.has('pets.manage'))
             throw new Error('Operación no permitida.');
+        if (mode === 'create' || mode === 'update') {
+            const breedId = row['breed_id'] ?? '';
+            const customName = this.formatName(String(row['breed_custom_name'] ?? ''));
+            if (!breedId && customName) {
+                try {
+                    const created = await this.petBreeds.create({ name: customName, active: true } as PetBreed);
+                    (row as Pet).breed_id = created.id;
+                }
+                catch {
+                    throw new Error('No se pudo crear la raza. Inténtalo de nuevo.');
+                }
+            }
+            delete row['breed_custom_name'];
+        }
         await (mode === 'create' ? this.pets.create(row) : mode === 'update' ? this.pets.update(row) : this.pets.remove(row));
         if (mode !== 'update') {
             this.query = { ...this.query, page: 1 };
@@ -203,5 +226,18 @@ export class MascotasTableComponent implements OnInit {
                 this.petsTable.currentPage = 1;
         }
         await this.loadPets();
+        await this.reloadBreedOptions();
     };
+
+    private async reloadBreedOptions(): Promise<void> {
+        try {
+            const breedRows = await this.petBreeds.getAll();
+            this.columns = this.columns.map(c => c.key === 'breed_id' ? { ...c, options: [{ label: 'Otro', value: '' }, ...breedRows.map(b => ({ label: b.name, value: b.id }))] } : c);
+        }
+        catch { /* no bloquea si falla la recarga de opciones */ }
+    }
+
+    private formatName(value: string): string {
+        return value.trim().split(/\s+/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+    }
 }

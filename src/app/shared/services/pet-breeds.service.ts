@@ -32,11 +32,12 @@ export class PetBreedsService {
       name, active: row['active'] !== false && row['active'] !== 'false',
     };
   }
-  async create(row: TableRow): Promise<void> {
+  async create(row: TableRow): Promise<PetBreed> {
     const payload = this.payload(row);
-    const { data, error } = await this.supabase.client.from('pet_breeds').insert(payload).select('id').single();
+    const { data, error } = await this.supabase.client.from('pet_breeds').insert(payload).select('id, name, active, created_at, updated_at').single();
     if (error) throw error;
     if (!data) throw new Error('No se creó la raza.');
+    return data as PetBreed;
   }
   async update(row: TableRow): Promise<void> {
     const payload = this.payload(row);
