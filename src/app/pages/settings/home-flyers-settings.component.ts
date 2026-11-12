@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { HomeFlyersService } from '../../shared/services/home-flyers.service';
 import { HOME_FLYER_DAYS, HomeFlyer, weekdayInLima } from '../../shared/services/home-flyers.models';
@@ -28,6 +28,7 @@ export class HomeFlyersSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
   @ViewChild('chooseFileButton') private chooseFileButton?: ElementRef<HTMLButtonElement>;
   private readonly api = inject(HomeFlyersService);
+  readonly router = inject(Router);
   readonly auth = inject(AuthorizationService);
   readonly days = HOME_FLYER_DAYS;
   readonly rows = signal<HomeFlyer[]>([]);
