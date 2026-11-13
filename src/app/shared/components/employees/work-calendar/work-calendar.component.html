@@ -2,7 +2,7 @@
   @if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{ error() }}</p>}
   @if(loading()){<p role="status">Cargando calendario laboral…</p>}
   @if(employee; as person){
-    <app-component-card [title]="'Turnos de ' + (person.employee_name || 'empleado')" desc="Turnos semanales en hora de Lima. Se admiten turnos partidos y consecutivos, sin cruces de medianoche. El fin después de las 18:00 debe estar cubierto por un turno explícito.">
+    <app-component-card [title]="'Turnos de ' + (person.employee_name || 'empleado')" desc="Turnos semanales. Se admiten turnos partidos y consecutivos, sin cruces de medianoche. El fin después de las 18:00 debe estar cubierto por un turno explícito.">
       <app-personalized-table #shiftTable [columns]="periodColumns" [tableData]="data().schedules" [saveAction]="saveShift"
         [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
         addLabel="Añadir turno" createTitle="Añadir turno" editTitle="Editar turno" />
@@ -16,16 +16,16 @@
       addLabel="Añadir tramo comercial" createTitle="Añadir tramo comercial" editTitle="Editar horario del local" />
   </app-component-card>
   <div class = 'py-1'></div>
-  <app-component-card title="Ausencias y bloqueos" desc="Hora de Lima. Sin empleado seleccionado ves los bloqueos del local; al seleccionar uno, también aparecen sus ausencias. Los recojos se registran manualmente aquí.">
+  <app-component-card title="Ausencias y bloqueos" desc="Sin empleado seleccionado ves los bloqueos del local; al seleccionar uno, también aparecen sus ausencias. Los recojos se registran manualmente aquí.">
     <app-personalized-table #blockTable [columns]="blockColumns" [tableData]="data().blocks" [saveAction]="saveBlock"
       [allowCreate]="authorization.has('time_blocks.manage')" [allowEdit]="authorization.has('time_blocks.manage')" [allowDelete]="authorization.has('time_blocks.manage')"
       searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />
   </app-component-card>
   @if(employee && authorization.has('availability.read')){
-    <app-component-card title="Consultar horario habilitado" desc="Zona: America/Lima. No reserva ni verifica automáticamente ocupación por citas y recojos. Último inicio de servicio: 17:00.">
+    <app-component-card title="Consultar horario habilitado" desc="No reserva ni verifica automáticamente ocupación por citas y recojos. Último inicio de servicio: 17:00.">
       <form (ngSubmit)="calculate()" class="space-y-4">
         <div class="grid gap-4 sm:grid-cols-3">
-          <label>Fecha (Lima)<input type="date" name="date" [(ngModel)]="date" (ngModelChange)="invalidate()" required class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
+          <label>Fecha<input type="date" name="date" [(ngModel)]="date" (ngModelChange)="invalidate()" required class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
           <label>Inicio opcional<input type="time" name="start" [(ngModel)]="start" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
           <label>Fin opcional<input type="time" name="end" [(ngModel)]="end" (ngModelChange)="invalidate()" class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
         </div>
@@ -41,7 +41,7 @@
           @if(available.interval_covered !== null){<p>Cobertura laboral del intervalo: {{ available.interval_covered ? 'Sí' : 'No' }}.</p>}
           @for(reason of available.reasons;track reason){<p>{{ reasonLabel(reason) }}</p>}
           <ul class="space-y-1">
-            @for(window of available.windows;track window.starts_at){<li>{{ label(window.starts_at) }} — {{ label(window.ends_at) }} (Lima)</li>}
+            @for(window of available.windows;track window.starts_at){<li>{{ label(window.starts_at) }} — {{ label(window.ends_at) }}</li>}
             @empty{<li>No hay ventanas laborales habilitadas para este empleado.</li>}
           </ul>
         </div>

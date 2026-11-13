@@ -30,8 +30,8 @@ export class WorkCalendarComponent implements OnChanges,OnDestroy {
     this.data.set({schedules:[],business:[],blocks:[]});this.invalidate();
     this.blockColumns=[
       {key:'employee_id',label:'Ámbito',required:false,options:[{value:'',label:'Todo el local'},...(this.employee?[{value:this.employee.id,label:this.employee.employee_name||'Empleado seleccionado'}]:[])]},
-      {key:'starts_local',label:'Inicio (Lima)',type:'datetime-local'},
-      {key:'ends_local',label:'Fin (Lima)',type:'datetime-local'},
+      {key:'starts_local',label:'Inicio',type:'datetime-local'},
+      {key:'ends_local',label:'Fin',type:'datetime-local'},
       {key:'reason',label:'Motivo',helpText:'Ej. descanso, ausencia o recojo; bloquea todo el intervalo.'},
     ];
     void this.load();
