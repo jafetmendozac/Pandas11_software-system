@@ -359,8 +359,7 @@ CREATE TABLE "services" (
 CREATE TABLE "service_prices" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "service_id" uuid NOT NULL,
-  "pet_size" pet_size,
-  "pet_breed_id" uuid REFERENCES public.pet_breeds(id),
+  "pet_size" pet_size NOT NULL,
   "price" numeric NOT NULL,
   "duration_minutes" integer NOT NULL,
   CONSTRAINT "chk_sp_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
@@ -703,8 +702,7 @@ CREATE INDEX ON "pet_dewormings" ("pet_id");
 
 -- SOLUCIÓN AL ERROR EN POSTGRESQL 15+:
 CREATE UNIQUE INDEX "uq_service_prices_rule"
-ON "service_prices" ("service_id", "pet_size", "pet_breed_id")
-NULLS NOT DISTINCT;
+ON "service_prices" ("service_id", "pet_size");
 
 CREATE INDEX ON "appointments" ("starts_at", "ends_at");
 

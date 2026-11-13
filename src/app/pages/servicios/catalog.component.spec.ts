@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ClientesService } from '../../shared/services/clientes.service';
 import { MascotasService } from '../../shared/services/mascotas.service';
-import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { SupabaseService } from '../../shared/services/supabase.service';
 import { ServiciosService } from '../../shared/services/servicios.service';
 import { TarifasService } from '../../shared/services/tarifas.service';
@@ -25,7 +24,6 @@ describe('Catálogo para clientes', () => {
       providers: [
         provideRouter([]),
         { provide: SupabaseService, useValue: mockSupabase },
-        { provide: PetBreedsService, useValue: { getAll: async () => [{ id: '00000000-0000-4000-8000-000000000001', name: 'Poodle', active: true }] } },
         { provide: ServiciosService, useValue: { getAll } },
         { provide: ClientesService, useValue: { own: () => Promise.resolve({ rows: [{ id: 'client-1' }], total: 1 }) } },
         { provide: MascotasService, useValue: { search: () => Promise.resolve({ rows: [{ id: 'pet-1', name: 'Luna', active: true, pet_size: 'SMALL', breed_id: '00000000-0000-4000-8000-000000000001' }], total: 1 }) } },
@@ -34,7 +32,7 @@ describe('Catálogo para clientes', () => {
     });
   });
 
-  it('muestra solo catálogo visible y cotiza con las dimensiones de la mascota propia', async () => {
+  it('muestra solo catálogo visible y cotiza con el tamaño de la mascota propia', async () => {
     const fixture = TestBed.createComponent(ServiceCatalogComponent);
     fixture.autoDetectChanges();
     await fixture.whenStable();
@@ -46,7 +44,7 @@ describe('Catálogo para clientes', () => {
     fixture.componentInstance.selectPet('pet-1');
     await fixture.componentInstance.calculate();
     await fixture.whenStable();
-    expect(quote).toHaveBeenCalledOnceWith('bath', 'SMALL', '00000000-0000-4000-8000-000000000001');
+    expect(quote).toHaveBeenCalledOnceWith('bath', 'SMALL');
     expect(fixture.nativeElement.textContent).toContain('S/ 55.00 · 60 minutos');
   });
 

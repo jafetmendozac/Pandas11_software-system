@@ -1,9 +1,9 @@
 <app-page-breadcrumb pageTitle="Razas de mascota" />
 <div class="space-y-6">
-  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Gestiona las razas de mascota que se pueden asignar en el registro de mascotas y en las tarifas de servicios. Añade, edita o desactiva razas según lo que atienda tu negocio.</p>
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Gestiona las razas que se pueden asignar al registrar mascotas. Añade, edita o desactiva opciones según lo que atienda tu negocio.</p>
   @if(errorMessage()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando razas…</p>}
-  <app-component-card title="Razas de mascota" desc="Listado de razas disponibles. Cada regla de tarifa puede aplicar a una raza concreta o a «Todas las razas».">
+  <app-component-card title="Razas de mascota" desc="Listado de razas disponibles para las fichas de mascotas.">
     <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
       (queryChanged)="loadBreeds($event)" [saveAction]="saveBreed"
       [allowCreate]="authorization.has('service_prices.manage')" [allowEdit]="authorization.has('service_prices.manage')" [allowDelete]="authorization.has('service_prices.manage')"

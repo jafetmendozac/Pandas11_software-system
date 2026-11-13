@@ -5,12 +5,15 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../shared/component
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import type { PageQuery } from '../../shared/services/clientes.service';
-@Component({selector:'app-servicios',standalone:true,imports:[ComponentCardComponent,PageBreadcrumbComponent,PersonalizedTable],templateUrl:'./servicios.component.html'})
+import { ServiceSimulatorComponent } from '../../shared/components/services/service-simulator/service-simulator.component';
+import { ServicePricingEditorComponent } from '../../shared/components/services/service-pricing-editor/service-pricing-editor.component';
+@Component({selector:'app-servicios',standalone:true,imports:[ComponentCardComponent,PageBreadcrumbComponent,PersonalizedTable,ServiceSimulatorComponent,ServicePricingEditorComponent],templateUrl:'./servicios.component.html'})
 export class ServiciosComponent implements OnInit {
   readonly authorization=inject(AuthorizationService);
   private readonly services=inject(ServiciosService);
   @ViewChild('table') table?:PersonalizedTable;
   readonly tableData=signal<Service[]>([]);readonly total=signal(0);readonly loading=signal(false);readonly errorMessage=signal('');
+  readonly selectedService=signal<Service|null>(null);
   private query:PageQuery={search:'',page:1,size:10}; private revision=0;
   columns: TableColumn[] = [
     {
@@ -83,4 +86,6 @@ export class ServiciosComponent implements OnInit {
     if(mode==='create'){this.query={...this.query,page:1};if(this.table)this.table.currentPage=1;}
     await this.loadServices();
   };
+  openPricing(row:TableRow):void{this.selectedService.set(row as Service);}
+  closePricing():void{this.selectedService.set(null);}
 }

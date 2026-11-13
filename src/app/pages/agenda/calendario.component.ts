@@ -271,7 +271,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   const pet=this.pets().find(p=>p.id===item.pet_id),service=this.services().find(s=>s.id===item.service_id);
   if(!pet||!service){item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);return;}
   try{
-   const q=await this.pricing.quote(service.id,pet.pet_size,pet.breed_id);
+   const q=await this.pricing.quote(service.id,pet.pet_size);
    if(item.quoteRevision!==token||!this.items().includes(item))return;
    item.price=q.price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
    item.stages=[{stage:'SERVICE',employee_id:'',minutes:q.duration_minutes}];

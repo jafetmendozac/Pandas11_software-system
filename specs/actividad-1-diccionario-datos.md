@@ -257,7 +257,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `created_at` | `timestamptz` | Sí | — | `now()` |
 | `updated_at` | `timestamptz` | Sí | — | `now()` |
 
-### `service_prices` — Tarifas por tamaño y raza
+### `service_prices` — Tarifas por tamaño
 
 **Estado:** con migración local.
 
@@ -265,10 +265,11 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 |---|---|---|---|---|
 | `id` | `uuid` | Sí | PK | `gen_random_uuid()` |
 | `service_id` | `uuid` | Sí | FK | — |
-| `pet_size` | `pet_size` | No | — | — |
-| `pet_breed_id` | `uuid` | No | FK pet_breeds | — |
+| `pet_size` | `pet_size` | Sí | — | — |
 | `price` | `numeric` | Sí | — | — |
 | `duration_minutes` | `integer` | Sí | — | — |
+
+Cada servicio puede tener como máximo una tarifa por tamaño. Si no existe una tarifa para el tamaño consultado, se usan `services.base_price` y `services.base_duration_minutes`. La raza se conserva como dato de la mascota, pero no interviene en precios.
 
 ### `appointments` — Cabecera de cita
 

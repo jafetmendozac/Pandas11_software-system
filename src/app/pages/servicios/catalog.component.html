@@ -3,7 +3,7 @@
     <header>
       <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">Para tu mascota</p>
       <h1 class="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Servicios y precios</h1>
-      <p class="mt-2 max-w-2xl text-gray-600 dark:text-gray-300">Explora los servicios disponibles y calcula el precio y tiempo según el tamaño y la raza de tu mascota.</p>
+      <p class="mt-2 max-w-2xl text-gray-600 dark:text-gray-300">Explora los servicios disponibles y calcula el precio y tiempo según el tamaño de tu mascota.</p>
     </header>
 
     @if (loading()) { <p role="status" class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">Cargando servicios…</p> }
@@ -27,9 +27,9 @@
       @if (selectedService(); as service) {
         <section aria-labelledby="quote-title" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-8">
           <h2 id="quote-title" class="text-xl font-semibold">Calcula la tarifa de {{ service.name }}</h2>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Puedes elegir una de tus mascotas o indicar tamaño y raza manualmente.</p>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Puedes elegir una de tus mascotas o indicar el tamaño manualmente.</p>
           @if (petNotice()) { <p role="status" class="mt-4 text-sm text-warning-700 dark:text-warning-400">{{ petNotice() }}</p> }
-          <div class="mt-6 grid gap-5 sm:grid-cols-3">
+          <div class="mt-6 grid gap-5 sm:grid-cols-2">
             <label class="block text-sm font-medium">Mi mascota
               <select #petSelect [value]="selectedPetId()" (change)="selectPet(petSelect.value)" class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 <option value="">Indicar datos manualmente</option>
@@ -39,11 +39,6 @@
             <label class="block text-sm font-medium">Tamaño
               <select #sizeSelect [value]="size() ?? ''" (change)="setSize(sizeSelect.value)" class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 <option value="">No indicado</option><option value="TOY">Miniatura</option><option value="SMALL">Pequeño</option><option value="MEDIUM">Mediano</option><option value="LARGE">Grande</option><option value="EXTRA_LARGE">Extra grande</option>
-              </select>
-            </label>
-            <label class="block text-sm font-medium">Raza
-              <select #breedSelect [value]="breed() ?? ''" (change)="setBreed(breedSelect.value)" class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                <option value="">No indicado</option>@for (opt of breedOptions; track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
               </select>
             </label>
           </div>

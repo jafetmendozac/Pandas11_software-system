@@ -24,7 +24,6 @@ import { CalendarioComponent } from './pages/agenda/calendario.component';
 import { ClientesTableComponent } from './pages/clientes/clientes-table.component';
 import { MascotasTableComponent } from './pages/mascotas/mascotas-table.component';
 import { ServiciosComponent } from './pages/servicios/servicios.component';
-import { TarifasComponent } from './pages/tarifas/tarifas.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { authGuard, guestGuard, profileGuard, selectedRoleGuard } from './shared/guards/auth.guard';
 
@@ -93,16 +92,20 @@ export const routes: Routes = [
         title:'Mascotas | Spa & Boutique Pandas 11'
       },
       {
-        path:'servicios',
+        path:'servicios-y-tarifas',
         data: { permission: 'services.read' },
         component:ServiciosComponent,
-        title:'Servicios | Spa & Boutique Pandas 11'
+        title:'Servicios y tarifas | Spa & Boutique Pandas 11'
+      },
+      {
+        path:'servicios',
+        redirectTo:'servicios-y-tarifas',
+        pathMatch:'full'
       },
       {
         path:'tarifas',
-        data: { permission: 'service_prices.read' },
-        component:TarifasComponent,
-        title:'Tarifas | Spa & Boutique Pandas 11'
+        redirectTo:'servicios-y-tarifas',
+        pathMatch:'full'
       },
       {
         path:'razas',

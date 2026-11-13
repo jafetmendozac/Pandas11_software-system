@@ -36,12 +36,12 @@ export class AppSidebarComponent {
   get visibleNavItems(): NavItem[] {
     if (this.mode === 'client') return this.clientNavItems;
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados-y-horarios':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios-y-tarifas':'services.read','/empleados-y-horarios':'employees.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
     const visible = (path?:string):boolean => (path !== '/configuracion' || this.authorization.hasInSelectedRole('panel.access'))
       && (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess())
       && (path !== '/reportes' || ['OWNER', 'ADMIN'].includes(this.authorization.selectedRole()?.code ?? ''))
       && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
-    const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados-y-horarios', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
+    const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados-y-horarios', '/servicios-y-tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
     return this.navItems.filter(item=>item.path ? order.includes(item.path) : !!item.subItems?.some(sub=>order.includes(sub.path)))
       .filter(item=>visible(item.path))
       .map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>order.includes(sub.path) && visible(sub.path))}:item)
@@ -109,14 +109,9 @@ export class AppSidebarComponent {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.25 10.25C6.15 10.25 5.25 9.35 5.25 8.25C5.25 7.15 6.15 6.25 7.25 6.25C8.35 6.25 9.25 7.15 9.25 8.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path><path d="M16.75 10.25C15.65 10.25 14.75 9.35 14.75 8.25C14.75 7.15 15.65 6.25 16.75 6.25C17.85 6.25 18.75 7.15 18.75 8.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path><path d="M12 20.5C8.55 20.5 6 18.35 6 15.35C6 12.45 8.55 10.5 12 10.5C15.45 10.5 18 12.45 18 15.35C18 18.35 15.45 20.5 12 20.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><path d="M9.5 15.25H9.51M14.5 15.25H14.51M10.25 17.5C11.2 18.15 12.8 18.15 13.75 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>`,
     },
     {
-      name: "Servicios",
-      path: "/servicios",
+      name: "Servicios y tarifas",
+      path: "/servicios-y-tarifas",
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.75 3.75H8.5C7.39543 3.75 6.5 4.64543 6.5 5.75V19.25C6.5 20.3546 7.39543 21.25 8.5 21.25H17.5C18.6046 21.25 19.5 20.3546 19.5 19.25V5.75C19.5 4.64543 18.6046 3.75 17.5 3.75H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path><path d="M9.75 3.75C9.75 2.92157 10.4216 2.25 11.25 2.25H14.75C15.5784 2.25 16.25 2.92157 16.25 3.75V5.25H9.75V3.75Z" stroke="currentColor" stroke-width="1.5"></path><path d="M10 10H16M10 14H16M10 18H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>`,
-    },
-    {
-      name: "Tarifas",
-      path: "/tarifas",
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.75 6.75C3.75 5.64543 4.64543 4.75 5.75 4.75H11.4475C11.978 4.75 12.4867 4.96079 12.8587 5.33277L20.0868 12.5609C20.8679 13.342 20.8679 14.6084 20.0868 15.3895L15.3895 20.0868C14.6084 20.8679 13.342 20.8679 12.5609 20.0868L5.33277 12.8587C4.96079 12.4867 4.75 11.978 4.75 11.4475V6.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="8.5" cy="8.5" r="1.25" stroke="currentColor" stroke-width="1.5"></circle></svg>`,
     },
     {
       name: "Empleados y horarios",

@@ -1,9 +1,9 @@
 <app-page-breadcrumb pageTitle="Tarifas" />
 <div class="space-y-6">
-  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Define el precio y el tiempo de cada servicio según el tamaño y la raza. Luego comprueba el resultado antes de usarlo en una cita.</p>
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Define el precio y el tiempo de cada servicio según el tamaño. Luego comprueba el resultado antes de usarlo en una cita.</p>
   @if(errorMessage()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando tarifas…</p>}
-  <app-component-card title="Precios por servicio" desc="Añade una tarifa para una combinación concreta o deja tamaño y raza en «Todos» para una tarifa general. Cada regla define precio y duración.">
+  <app-component-card title="Precios por servicio" desc="Añade una tarifa para un tamaño concreto. Cada regla define precio y duración; los demás tamaños usan los valores base.">
     <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
       (queryChanged)="loadTarifas($event)" [saveAction]="savePrice"
       [allowCreate]="authorization.has('service_prices.manage')" [allowEdit]="authorization.has('service_prices.manage')" [allowDelete]="authorization.has('service_prices.manage')"

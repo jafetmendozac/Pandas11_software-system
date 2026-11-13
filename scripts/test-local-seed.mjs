@@ -54,7 +54,7 @@ try {
     'Servicios demo anteriores archivados para conservar citas');
   ok((await value(root.from('service_prices').select('id').in('service_id', [301,302,303,304].map(id)))).length === 0,
     'Tarifas demo anteriores eliminadas');
-  const bathQuote = await value(owner.rpc('quote_service', {p_service_id: id(305), p_size: 'TOY', p_breed: null}));
+  const bathQuote = await value(owner.rpc('quote_service', {p_service_id: id(305), p_size: 'TOY'}));
   ok(bathQuote.source === 'BASE' && Number(bathQuote.price) === 25 && bathQuote.duration_minutes === 30,
     'Baño estético usa precio y minutos sintéticos del flujo comercial');
   ok(demoServices.filter(row => [id(308), id(309)].includes(row.id)).every(row => row.requires_specialist),

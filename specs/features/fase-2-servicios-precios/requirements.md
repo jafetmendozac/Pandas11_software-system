@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-17. Estado: aprobado por el usuario el 2026-10-17; implementado localmente.
 
+> Documento histórico. El modelo de tarifas por raza y reglas comodín quedó reemplazado el 2026-11-13 por [Servicios y tarifas unificados](../servicios-tarifas-unificados/requirements.md): las tarifas vigentes varían solo por tamaño y usan los valores base del servicio como respaldo.
+
 ## Objetivo
 
 Configurar servicios, duración, precio base y tarifas por tamaño/raza. Resolver de manera determinista el costo y duración de un servicio, indicando la tarifa utilizada. Reutilizar las pantallas existentes.

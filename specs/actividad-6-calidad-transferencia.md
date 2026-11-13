@@ -31,7 +31,7 @@ Este cuadro es una **plantilla de ejecución futura**, no un registro de pruebas
 |---|---|---|
 | Registrar/confirmar cuenta, entrar y salir; comprobar denegación del panel al cliente | CLIENT | Fecha, versión, entorno, captura o log, aprobado/fallido |
 | Crear cliente y mascota, consultar ficha/vacunas y comprobar separación de notas internas | OWNER/ADMIN y CLIENT vinculado | Fecha, versión, entorno, captura o log, aprobado/fallido |
-| Configurar servicio/tarifa; cotizar por tamaño/raza | OWNER/ADMIN; STAFF solo lectura | Fecha, versión, entorno, precio esperado/obtenido, aprobado/fallido |
+| Configurar servicio/tarifa; cotizar por tamaño con respaldo en el precio base | OWNER/ADMIN; STAFF solo lectura | Fecha, versión, entorno, precio esperado/obtenido, aprobado/fallido |
 | Configurar trabajador/turno, crear cita con varias mascotas y relevo; rechazar un conflicto; cambiar estado y consultar antecedentes | OWNER/ADMIN; STAFF solo lectura | Fecha, versión, entorno, caso esperado/obtenido, aprobado/fallido |
 | Registrar cobro de cita completada y verificarlo; comprobar saldo y denegación a STAFF | OWNER/ADMIN registra; OWNER verifica | Fecha, versión, entorno, importes esperados/obtenidos, aprobado/fallido |
 | Revisar móvil, oscuro/RTL, navegación y contraste de pantallas entregadas | Usuario evaluador | Dispositivos/tamaños, observaciones, aprobado/fallido |

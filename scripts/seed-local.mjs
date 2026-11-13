@@ -134,7 +134,7 @@ async function main() {
     {id: id(312), name: 'Corte de uñas', base_price: '0.00', base_duration_minutes: 15},
   ], 'name');
   fixture('service_prices', [
-    {id: id(402), service_id: id(301), pet_size: 'TOY', pet_breed_id: null, price: '25.00', duration_minutes: 30},
+    {id: id(402), service_id: id(301), pet_size: 'TOY', price: '25.00', duration_minutes: 30},
   ], 'service_id');
   fixtures.push(`insert into public.pet_breeds(name) values ('Mestiza') on conflict do nothing;`);
   fixtures.push(`update public.pets p set breed_id=b.id from public.pet_breeds b

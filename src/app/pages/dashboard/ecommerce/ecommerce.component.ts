@@ -19,7 +19,7 @@ const PANEL_LINKS: PanelLink[] = [
   { label: 'Agenda', path: '/calendario', permission: 'appointments.read', description: 'Consultar las citas y su estado.' },
   { label: 'Clientes', path: '/clientes', permission: 'clients.read', description: 'Consultar las fichas de clientes.' },
   { label: 'Mascotas', path: '/mascotas', permission: 'pets.read', description: 'Consultar las fichas de mascotas.' },
-  { label: 'Servicios', path: '/servicios', permission: 'services.read', description: 'Consultar el catálogo de servicios.' },
+  { label: 'Servicios y tarifas', path: '/servicios-y-tarifas', permission: 'services.read', description: 'Consultar servicios y administrar sus tarifas.' },
 ];
 
 @Component({

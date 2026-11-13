@@ -1,11 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Client, ClientesService } from '../../shared/services/clientes.service';
 import { MascotasService, Pet, PetSize } from '../../shared/services/mascotas.service';
-import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { Service, ServiciosService } from '../../shared/services/servicios.service';
 import { ServiceQuote, TarifasService } from '../../shared/services/tarifas.service';
 import { decimalLabel } from '../../shared/services/service-pricing.models';
-import { CustomSelectOption } from '../../shared/components/form/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-service-catalog',
@@ -17,7 +15,6 @@ export class ServiceCatalogComponent implements OnInit {
   private readonly catalogue = inject(ServiciosService);
   private readonly clients = inject(ClientesService);
   private readonly petsService = inject(MascotasService);
-  private readonly petBreeds = inject(PetBreedsService);
   private readonly pricing = inject(TarifasService);
   private revision = 0;
 
@@ -29,8 +26,6 @@ export class ServiceCatalogComponent implements OnInit {
   readonly selectedServiceId = signal('');
   readonly selectedPetId = signal('');
   readonly size = signal<PetSize | null>(null);
-  readonly breed = signal<string | null>(null);
-  breedOptions: CustomSelectOption[] = [{ value: '', label: 'No indicado' }];
   readonly calculating = signal(false);
   readonly calculationError = signal('');
   readonly result = signal<ServiceQuote | null>(null);
@@ -48,13 +43,6 @@ export class ServiceCatalogComponent implements OnInit {
     }
 
     try {
-      const breedRows = await this.petBreeds.getAll(true);
-      this.breedOptions = [{ value: '', label: 'No indicado' }, ...breedRows.map(b => ({ value: b.id, label: b.name }))];
-    } catch {
-      this.petNotice.set('No pudimos cargar las razas. Vuelve a intentarlo más tarde.');
-    }
-
-    try {
       const own = await this.clients.own({ search: '', page: 1, size: 1 });
       const client: Client | undefined = own.rows[0];
       if (!client) return;
@@ -66,7 +54,7 @@ export class ServiceCatalogComponent implements OnInit {
       }
       this.pets.set(pets);
     } catch {
-      this.petNotice.set('No pudimos cargar tus mascotas. Puedes indicar tamaño y raza manualmente.');
+      this.petNotice.set('No pudimos cargar tus mascotas. Puedes indicar el tamaño manualmente.');
     }
   }
 
@@ -79,12 +67,10 @@ export class ServiceCatalogComponent implements OnInit {
     this.selectedPetId.set(id);
     const pet = this.pets().find(item => item.id === id);
     this.size.set(pet?.pet_size ?? null);
-    this.breed.set(pet?.breed_id ?? null);
     this.invalidate();
   }
 
   setSize(value: string): void { this.size.set(value ? value as PetSize : null); this.invalidate(); }
-  setBreed(value: string): void { this.breed.set(value ? value : null); this.invalidate(); }
 
   async calculate(): Promise<void> {
     if (!this.selectedServiceId() || this.calculating()) return;
@@ -93,7 +79,7 @@ export class ServiceCatalogComponent implements OnInit {
     this.result.set(null);
     this.calculationError.set('');
     try {
-      const result = await this.pricing.quote(this.selectedServiceId(), this.size(), this.breed());
+      const result = await this.pricing.quote(this.selectedServiceId(), this.size());
       if (revision === this.revision) this.result.set(result);
     } catch {
       if (revision === this.revision) this.calculationError.set('No pudimos calcular esta tarifa. Revisa el servicio e inténtalo de nuevo.');

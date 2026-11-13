@@ -38,6 +38,13 @@ describe('Menú de agenda por permiso',()=>{
   expect(names).not.toContain('Forms');
   expect(names).not.toContain('Charts');
  });
+ it('unifica servicios y tarifas en una sola entrada',()=>{
+  allowed.add('services.read'); allowed.add('service_prices.read');
+  const items=TestBed.createComponent(AppSidebarComponent).componentInstance.visibleNavItems;
+  expect(items.filter(item=>item.path==='/servicios-y-tarifas').map(item=>item.name)).toEqual(['Servicios y tarifas']);
+  expect(items.some(item=>item.path==='/servicios')).toBeFalse();
+  expect(items.some(item=>item.path==='/tarifas')).toBeFalse();
+ });
  it('oculta Configuración en la vista Cliente aunque la cuenta tenga acceso al panel',()=>{
   const auth=TestBed.inject(AuthorizationService);
   spyOn(auth,'hasInSelectedRole').and.callFake((permission:string)=>permission!=='panel.access');

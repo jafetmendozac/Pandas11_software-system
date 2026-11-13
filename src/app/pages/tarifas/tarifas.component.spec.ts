@@ -4,7 +4,6 @@ import { TarifasComponent } from './tarifas.component';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { ServiciosService } from '../../shared/services/servicios.service';
 import { TarifasService } from '../../shared/services/tarifas.service';
-import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { SupabaseService } from '../../shared/services/supabase.service';
 
 const mockSupabase = { client: { from: () => ({ select: () => ({ ilike: () => ({ order: () => ({ range: () => Promise.resolve({ data: [], error: null, count: 0 }) }) }) }) }) } };
@@ -14,14 +13,13 @@ describe('Tarifas de solo lectura', () => {
     const serviceId = 'd0400000-0000-4000-8000-000000000301';
     const prices = { search: jasmine.createSpy().and.resolveTo({
       rows: [{ id: 'tarifa', service_id: serviceId, service_name: 'DEMO Baño',
-        pet_size: null, pet_breed_id: null, price: '40.00', duration_minutes: 60 }], total: 1,
+        pet_size: 'SMALL', price: '40.00', duration_minutes: 60 }], total: 1,
     }) };
     const services = { getAll: jasmine.createSpy().and.resolveTo([]) };
     TestBed.configureTestingModule({
       imports: [TarifasComponent],
       providers: [provideRouter([]),
         { provide: SupabaseService, useValue: mockSupabase },
-        { provide: PetBreedsService, useValue: { getAll: async () => [] } },
         { provide: AuthorizationService, useValue: { has: (permission: string) => permission.endsWith('.read') } },
         { provide: ServiciosService, useValue: services },
         { provide: TarifasService, useValue: prices }],

@@ -1,11 +1,16 @@
-<app-page-breadcrumb pageTitle="Servicios" />
-<div class="space-y-5">
+<app-page-breadcrumb pageTitle="Servicios y tarifas" />
+<div class="space-y-6">
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Administra el catálogo y define precios por tamaño desde un mismo lugar. Si un tamaño no tiene una tarifa particular, se usan el precio y la duración base del servicio.</p>
   @if(errorMessage()){<p role="alert" class="text-error-600 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando servicios…</p>}
-  <app-component-card title="Servicios del negocio" desc="Desactivar conserva las tarifas. Puedes cambiar el estado de forma explícita al editar.">
+  <app-component-card title="Servicios del negocio" desc="Edita los datos generales o abre «Ver tarifas» para configurar precios por tamaño.">
     <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
       (queryChanged)="loadServices($event)" [saveAction]="saveService"
       [allowCreate]="authorization.has('services.manage')" [allowEdit]="authorization.has('services.manage')" [allowDelete]="authorization.has('services.manage')"
+      [detailsLabel]="authorization.has('service_prices.read') ? 'Ver tarifas' : ''" (rowDetails)="openPricing($event)"
       addLabel="Añadir servicio" createTitle="Añadir servicio" editTitle="Editar servicio" searchPlaceholder="Buscar por nombre o descripción..." />
   </app-component-card>
+  <app-service-simulator />
 </div>
+
+<app-service-pricing-editor [service]="selectedService()" [open]="!!selectedService()" (closed)="closePricing()" />

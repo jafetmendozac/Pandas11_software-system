@@ -4,14 +4,13 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
 import { PersonalizedTable, TableColumn, TableRow } from '../../shared/components/tables/basic-tables/personalize-table/personalized-table.component';
 import { ServiciosService } from '../../shared/services/servicios.service';
 import { ServicePrice, TarifasService } from '../../shared/services/tarifas.service';
-import { PetBreedsService } from '../../shared/services/pet-breeds.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
 import { ServiceSimulatorComponent } from '../../shared/components/services/service-simulator/service-simulator.component';
 import type { PageQuery } from '../../shared/services/clientes.service';
 @Component({selector:'app-tarifas',standalone:true,imports:[ComponentCardComponent,PageBreadcrumbComponent,PersonalizedTable,ServiceSimulatorComponent],templateUrl:'./tarifas.component.html'})
 export class TarifasComponent implements OnInit {
   readonly authorization=inject(AuthorizationService);
-  private readonly prices=inject(TarifasService);private readonly services=inject(ServiciosService);private readonly petBreeds=inject(PetBreedsService);
+  private readonly prices=inject(TarifasService);private readonly services=inject(ServiciosService);
   @ViewChild('table') table?:PersonalizedTable;
   readonly tableData=signal<ServicePrice[]>([]);readonly total=signal(0);readonly loading=signal(false);readonly errorMessage=signal('');
   private query:PageQuery={search:'',page:1,size:10};private revision=0;
@@ -23,23 +22,17 @@ export class TarifasComponent implements OnInit {
       options: [],
     },
     {
-      key: 'pet_size', required: false,
+      key: 'pet_size',
       label: 'Tamaño',
-      helpText: 'Elige un tamaño o «Todos los tamaños» si la regla se aplica a cualquiera.',
+      helpText: 'Elige el tamaño al que se aplica esta tarifa.',
       options: [
-        { label: 'Todos los tamaños', value: '' },
+        { label: 'Selecciona un tamaño', value: '' },
         { label: 'Miniatura', value: 'TOY' },
         { label: 'Pequeño', value: 'SMALL' },
         { label: 'Mediano', value: 'MEDIUM' },
         { label: 'Grande', value: 'LARGE' },
         { label: 'Extra grande', value: 'EXTRA_LARGE' },
       ],
-    },
-    {
-      key: 'pet_breed_id', required: false,
-      label: 'Raza',
-      helpText: 'Elige una raza o «Todas las razas» si la regla se aplica a cualquiera.',
-      options: [],
     },
     {
       key: 'price',
@@ -61,8 +54,6 @@ export class TarifasComponent implements OnInit {
     if(this.authorization.has('service_prices.manage')){
       try{const services=await this.services.getAll();this.columns=this.columns.map(c=>c.key==='service_id'?{...c,options:[{label:'Selecciona un servicio',value:''},...services.map(s=>({label:s.name+(s.active?'':' (inactivo)'),value:s.id}))]}:c);}
       catch{this.errorMessage.set('No se pudieron cargar los servicios seleccionables.');}
-      try{const breedRows=await this.petBreeds.getAll();this.columns=this.columns.map(c=>c.key==='pet_breed_id'?{...c,options:[{label:'Todas las razas',value:''},...breedRows.map(b=>({label:b.name,value:b.id}))]}:c);}
-      catch{this.errorMessage.set('No se pudieron cargar las razas.');}
     }
     await this.loadTarifas();
   }
