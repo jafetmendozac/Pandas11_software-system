@@ -111,10 +111,10 @@ export const routes: Routes = [
         title:'Razas de mascota | Spa & Boutique Pandas 11'
       },
       {
-        path:'empleados',
+        path:'empleados-y-horarios',
         data: { permission: 'employees.read' },
         component:EmpleadosComponent,
-        title:'Empleados | Spa & Boutique Pandas 11'
+        title:'Empleados y horarios | Spa & Boutique Pandas 11'
       },
       {
         path:'calendar',

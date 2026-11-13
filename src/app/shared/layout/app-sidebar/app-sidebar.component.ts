@@ -36,12 +36,12 @@ export class AppSidebarComponent {
   get visibleNavItems(): NavItem[] {
     if (this.mode === 'client') return this.clientNavItems;
     if (!this.authorization.has('panel.access')) return [];
-    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
+    const permission: Record<string,string> = {'/clientes':'clients.read','/mascotas':'pets.read','/servicios':'services.read','/empleados-y-horarios':'employees.read','/tarifas':'service_prices.read','/calendario':'appointments.read','/pagos':'payments.read','/ventas':'sales.read','/productos':'products.read','/caja':'cash.read','/por-contactar':'contacts.read','/reportes':'analytics.read'};
     const visible = (path?:string):boolean => (path !== '/configuracion' || this.authorization.hasInSelectedRole('panel.access'))
       && (!['/ventas','/productos','/caja'].includes(path ?? '') || this.commercialAccess())
       && (path !== '/reportes' || ['OWNER', 'ADMIN'].includes(this.authorization.selectedRole()?.code ?? ''))
       && (!path || !permission[path] || this.authorization.hasInSelectedRole(permission[path]));
-    const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
+    const order = ['/panel', '/reportes', '/calendario', '/por-contactar', '/clientes', '/mascotas', '/empleados-y-horarios', '/servicios', '/tarifas', '/productos', '/ventas', '/caja', '/pagos', '/configuracion'];
     return this.navItems.filter(item=>item.path ? order.includes(item.path) : !!item.subItems?.some(sub=>order.includes(sub.path)))
       .filter(item=>visible(item.path))
       .map(item=>item.subItems?{...item,subItems:item.subItems.filter(sub=>order.includes(sub.path) && visible(sub.path))}:item)
@@ -119,8 +119,8 @@ export class AppSidebarComponent {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.75 6.75C3.75 5.64543 4.64543 4.75 5.75 4.75H11.4475C11.978 4.75 12.4867 4.96079 12.8587 5.33277L20.0868 12.5609C20.8679 13.342 20.8679 14.6084 20.0868 15.3895L15.3895 20.0868C14.6084 20.8679 13.342 20.8679 12.5609 20.0868L5.33277 12.8587C4.96079 12.4867 4.75 11.978 4.75 11.4475V6.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="8.5" cy="8.5" r="1.25" stroke="currentColor" stroke-width="1.5"></circle></svg>`,
     },
     {
-      name: "Empleados",
-      path: "/empleados",
+      name: "Empleados y horarios",
+      path: "/empleados-y-horarios",
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
     },
     {
