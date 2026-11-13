@@ -20,8 +20,8 @@ describe('PetDetailComponent', () => {
     imports: [PetDetailComponent],
     providers: [
       provideRouter([]),
-      { provide: AuthorizationService, useValue: { has: (permission: string) => permission === 'vaccinations.read' } },
-      { provide: RecordsService, useValue: { vaccinations: jasmine.createSpy().and.resolveTo([]), note: jasmine.createSpy().and.resolveTo(null) } },
+      { provide: AuthorizationService, useValue: { has: (permission: string) => permission === 'dewormings.read' } },
+      { provide: RecordsService, useValue: { dewormings: jasmine.createSpy().and.resolveTo([]), note: jasmine.createSpy().and.resolveTo(null) } },
       { provide: PetPhotosService, useValue: { signedUrl: jasmine.createSpy().and.resolveTo(null), replace: jasmine.createSpy(), remove: jasmine.createSpy() } },
     ],
   }));

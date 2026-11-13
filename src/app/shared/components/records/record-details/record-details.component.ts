@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthorizationService } from '../../../services/authorization.service';
-import { RecordsService, InternalNote, Vaccination } from '../../../services/records.service';
+import { RecordsService, InternalNote, Deworming } from '../../../services/records.service';
 import { Client } from '../../../services/clientes.service';
 import { Pet } from '../../../services/mascotas.service';
 import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tables/personalize-table/personalized-table.component';
@@ -24,11 +24,11 @@ import { PersonalizedTable, TableColumn, TableRow } from '../../tables/basic-tab
           <dt>Fallecimiento</dt><dd>{{ pet.death_date || 'No indicado' }}</dd>
         </dl> }
         <h4 class="font-medium">Observaciones visibles al cliente</h4><p class="whitespace-pre-wrap">{{ pet.client_notes || 'Sin observaciones.' }}</p>
-        <h4 class="font-medium">Vacunas</h4>
-        <app-personalized-table [tableData]="vaccines" [columns]="vaccineColumns"
-          [allowCreate]="!archived && authorization.has('vaccinations.manage')"
-          [allowEdit]="!archived && authorization.has('vaccinations.manage')" [allowDelete]="false"
-          [saveAction]="saveVaccine" addLabel="Registrar vacuna" createTitle="Registrar vacuna" editTitle="Corregir vacuna" />
+        <h4 class="font-medium">Desparasitaciones</h4>
+        <app-personalized-table [tableData]="dewormings" [columns]="dewormingColumns"
+          [allowCreate]="!archived && authorization.has('dewormings.manage')"
+          [allowEdit]="!archived && authorization.has('dewormings.manage')" [allowDelete]="false"
+          [saveAction]="saveDeworming" addLabel="Registrar desparasitación" createTitle="Registrar desparasitación" editTitle="Corregir desparasitación" />
       }
       @if (authorization.has('internal.read')) {
         <h4 class="font-medium">Notas internas · solo personal autorizado</h4>
@@ -66,10 +66,10 @@ export class RecordDetailsComponent implements OnChanges {
     notice = '';
     notes = '';
     note: InternalNote | null = null;
-    vaccines: Vaccination[] = [];
-    vaccineColumns: TableColumn[] = [
-        { key: 'vaccine', label: 'Vacuna' }, { key: 'applied_on', label: 'Aplicada el', type: 'date' },
-        { key: 'valid_until', label: 'Válida hasta', type: 'date', required: false },
+    dewormings: Deworming[] = [];
+    dewormingColumns: TableColumn[] = [
+        { key: 'treatment', label: 'Producto o tratamiento' }, { key: 'applied_on', label: 'Aplicada el', type: 'date' },
+        { key: 'next_due_on', label: 'Próxima fecha', type: 'date', required: false },
     ];
     ngOnChanges(): void { void this.load(); }
     private async load(): Promise<void> {
@@ -80,19 +80,19 @@ export class RecordDetailsComponent implements OnChanges {
         this.notice = '';
         this.notes = '';
         this.note = null;
-        this.vaccines = [];
+        this.dewormings = [];
         if (!id) {
             this.loading = false;
             return;
         }
         try {
-            const [vaccines, note] = await Promise.all([
-                this.pet ? this.service.vaccinations(id) : Promise.resolve([]),
+            const [dewormings, note] = await Promise.all([
+                this.pet ? this.service.dewormings(id) : Promise.resolve([]),
                 this.authorization.has('internal.read') ? this.service.note(this.pet ? 'pet' : 'client', id) : Promise.resolve(null),
             ]);
             if (revision !== this.revision)
                 return;
-            this.vaccines = vaccines;
+            this.dewormings = dewormings;
             this.note = note;
             this.notes = note?.notes ?? '';
         }
@@ -106,14 +106,14 @@ export class RecordDetailsComponent implements OnChanges {
             this.cdr.markForCheck();
         }
     }
-    readonly saveVaccine = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
-        if (!this.pet || this.archived || !this.authorization.has('vaccinations.manage') || mode === 'delete')
+    readonly saveDeworming = async (row: TableRow, mode: 'create' | 'update' | 'delete'): Promise<void> => {
+        if (!this.pet || this.archived || !this.authorization.has('dewormings.manage') || mode === 'delete')
             throw new Error('Operación no permitida.');
         const id = this.pet.id, revision = this.revision;
-        await this.service.saveVaccination(id, row, mode === 'update');
-        const vaccines = await this.service.vaccinations(id);
+        await this.service.saveDeworming(id, row, mode === 'update');
+        const dewormings = await this.service.dewormings(id);
         if (revision === this.revision)
-            this.vaccines = vaccines;
+            this.dewormings = dewormings;
         this.cdr.markForCheck();
     };
     async saveNotes(): Promise<void> {

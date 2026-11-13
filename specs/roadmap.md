@@ -18,7 +18,7 @@ No se clasifica ninguna funcionalidad de negocio como validada de extremo a extr
 | Agenda | Carga, creación y edición | Resolver contrato SQL, estados, atomicidad y disponibilidad |
 | Apariencia | Tema y dirección locales | Validación de regresiones cuando se modifique |
 | Dashboard y facturas | Pantallas de demostración | Decidir si se conectan a datos del negocio |
-| Pagos, notificaciones, vacunas, horarios, bloqueos y auditoría | Modelo SQL local | Confirmar alcance; sin flujo conectado identificado |
+| Pagos, notificaciones, horarios, bloqueos y auditoría | Modelo SQL local | Confirmar alcance; sin flujo conectado identificado |
 
 ## Etapas propuestas
 
@@ -56,7 +56,7 @@ Dependencias: decisiones de etapa 1 y tarifas acordadas. Criterio de salida: pru
 
 ### Etapa 5: ampliaciones de negocio
 
-Evaluar pagos, notificaciones, facturación, portal público, vacunas, reportes y auditoría solo si el usuario confirma su prioridad. Estar modelado en SQL no constituye una aprobación de implementación.
+Evaluar pagos, notificaciones, facturación, portal público, reportes y auditoría solo si el usuario confirma su prioridad. Estar modelado en SQL no constituye una aprobación de implementación. El usuario descartó vacunas como funcionalidad del negocio el 2026-11-13.
 
 ## Flujo obligatorio por funcionalidad
 
@@ -96,7 +96,7 @@ Plan aprobado e identidad implementada localmente con migración, RLS, permisos,
 
 ## Avance Fase 1 — 2026-10-17
 
-Plan aprobado e implementado localmente: clientes, mascotas, vacunas, notas internas, RLS de dominio, búsqueda/paginación y archivo de lectura. Cliente autenticado consulta datos propios desde /mis-datos; OWNER/ADMIN editan y STAFF consulta. Detalle de alergias interno y nota editable 1:1. Sin reset ni adopción remota. Storage, historia clínica/revisiones y otras fases siguen pendientes. Resultados en features/fase-1-clientes-mascotas/validation.md.
+Plan de Fase 1 aprobado e implementado localmente: clientes, mascotas, notas internas, RLS de dominio, búsqueda/paginación y archivo de lectura. Cliente autenticado consulta datos propios desde /mis-datos; OWNER/ADMIN editan y STAFF consulta. La vacunación de esa fase fue sustituida el 2026-11-13 por antecedentes de desparasitación y se retiró la tabla local de vacunas; ver [cambio SDD](features/desparasitacion-mascotas/validation.md). Detalle de alergias interno y nota editable 1:1. Sin reset ni adopción remota. Storage, historia clínica/revisiones y otras fases siguen pendientes.
 
 ## Avance Fase 2 — 2026-10-17
 

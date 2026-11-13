@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { TableRow } from '../components/tables/basic-tables/personalize-table/personalized-table.component';
-export interface Vaccination extends TableRow {
+export interface Deworming extends TableRow {
     id: string;
     pet_id: string;
-    vaccine: string;
+    treatment: string;
     applied_on: string;
-    valid_until: string | null;
+    next_due_on: string | null;
     created_at: string;
 }
 export interface InternalNote {
@@ -17,36 +17,36 @@ export interface InternalNote {
 @Injectable({ providedIn: 'root' })
 export class RecordsService {
     private readonly client = inject(SupabaseService).client;
-    async vaccinations(petId: string): Promise<Vaccination[]> {
-        const rows: Vaccination[] = [];
+    async dewormings(petId: string): Promise<Deworming[]> {
+        const rows: Deworming[] = [];
         for (let offset = 0;; offset += 100) {
-            const { data, error } = await this.client.from('pet_vaccinations')
-                .select('id,pet_id,vaccine,applied_on,valid_until,created_at').eq('pet_id', petId)
+            const { data, error } = await this.client.from('pet_dewormings')
+                .select('id,pet_id,treatment,applied_on,next_due_on,created_at').eq('pet_id', petId)
                 .order('applied_on', { ascending: false }).order('id').range(offset, offset + 99);
             if (error)
                 throw error;
-            rows.push(...data as Vaccination[]);
+            rows.push(...data as Deworming[]);
             if (data.length < 100)
                 return rows;
         }
     }
-    async saveVaccination(petId: string, row: TableRow, update: boolean): Promise<void> {
-        const vaccine = String(row['vaccine'] ?? '').trim();
+    async saveDeworming(petId: string, row: TableRow, update: boolean): Promise<void> {
+        const treatment = String(row['treatment'] ?? '').trim();
         const applied = String(row['applied_on'] ?? '');
-        const until = String(row['valid_until'] ?? '') || null;
-        if (!vaccine || !applied)
-            throw new Error('Completa vacuna y fecha de aplicación.');
+        const until = String(row['next_due_on'] ?? '') || null;
+        if (!treatment || !applied)
+            throw new Error('Completa el producto o tratamiento y la fecha de aplicación.');
         if (until && until < applied)
-            throw new Error('El vencimiento no puede ser anterior a la aplicación.');
-        const payload = { vaccine, applied_on: applied, valid_until: until };
+            throw new Error('La próxima fecha no puede ser anterior a la aplicación.');
+        const payload = { treatment, applied_on: applied, next_due_on: until };
         const query = update
-            ? this.client.from('pet_vaccinations').update(payload).eq('id', row['id']).eq('pet_id', petId)
-            : this.client.from('pet_vaccinations').insert({ ...payload, pet_id: petId });
+            ? this.client.from('pet_dewormings').update(payload).eq('id', row['id']).eq('pet_id', petId)
+            : this.client.from('pet_dewormings').insert({ ...payload, pet_id: petId });
         const { data, error } = await query.select('id').single();
         if (error)
             throw error;
         if (!data)
-            throw new Error('No se guardó la vacuna.');
+            throw new Error('No se guardó la desparasitación.');
     }
     async note(kind: 'client' | 'pet', id: string): Promise<InternalNote | null> {
         const { data, error } = await this.client.from(kind === 'client' ? 'client_internal' : 'pet_internal')

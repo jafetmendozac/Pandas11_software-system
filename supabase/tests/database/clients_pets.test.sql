@@ -14,7 +14,7 @@ insert into public.clients(id,profile_id,first_name) values(current_setting('tes
 insert into public.pets(id,client_id,name,pet_size,allergies,breed_id) values(current_setting('test.pet')::uuid,current_setting('test.client_record')::uuid,'Mini','TOY',true,current_setting('test.breed')::uuid);
 select is((select allergies from public.pets where id=current_setting('test.pet')::uuid),true,'Alergias boolean');
 select throws_ok($$insert into public.pets(client_id,name,weight_kg) values(current_setting('test.client_record')::uuid,'Peso',-1)$$,'23514',null,'Peso inválido');
-select throws_ok($$insert into public.pet_vaccinations(pet_id,vaccine,applied_on,valid_until) values(current_setting('test.pet')::uuid,'Vacuna','2026-01-02','2026-01-01')$$,'23514',null,'Vigencia inválida');
+select throws_ok($$insert into public.pet_dewormings(pet_id,treatment,applied_on,next_due_on) values(current_setting('test.pet')::uuid,'Tratamiento','2026-01-02','2026-01-01')$$,'23514',null,'Próxima fecha inválida');
 select set_config('request.jwt.claim.sub',current_setting('test.owner'),true);
 set local role authenticated;
 select is((public.search_pets('',1,10,false,current_setting('test.client_record')::uuid)->'rows'->0->>'breed_name'),'Fixture raza','Ficha devuelve nombre de raza sin mostrar UUID');

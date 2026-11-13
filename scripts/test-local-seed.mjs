@@ -38,7 +38,7 @@ try {
   for (const table of ['client_internal', 'pet_internal', 'appointment_internal']) {
     ok((await value(client.from(table).select('*'))).length === 0, `CLIENT sin notas de ${table}`);
   }
-  ok((await value(owner.from('pet_vaccinations').select('id').in('id', [id(251), id(252)]))).length === 2, 'Dos antecedentes de vacunas');
+  ok((await value(owner.from('pet_dewormings').select('id').in('id', [id(251), id(252)]))).length === 2, 'Dos antecedentes de desparasitación');
   const serviceNames = [
     'Baño estético', 'Baño medicado para piel delicada', 'Baño medicado para parásitos externos',
     'Corte de pelo simple', 'Corte de pelo de raza', 'Desparasitación', 'Cepillados', 'Corte de uñas',

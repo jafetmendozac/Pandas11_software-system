@@ -21,7 +21,7 @@ describe('ClientDetailComponent', () => {
     providers: [
       provideRouter([]),
       { provide: AuthorizationService, useValue: { has: (permission: string) => permission === 'pets.manage' || permission === 'internal.read' } },
-      { provide: RecordsService, useValue: { vaccinations: jasmine.createSpy().and.resolveTo([]), note: jasmine.createSpy().and.resolveTo(null) } },
+      { provide: RecordsService, useValue: { dewormings: jasmine.createSpy().and.resolveTo([]), note: jasmine.createSpy().and.resolveTo(null) } },
     ],
   }));
 

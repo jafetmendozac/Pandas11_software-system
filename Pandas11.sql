@@ -312,15 +312,14 @@ CREATE TABLE "pets" (
   CONSTRAINT chk_pet_life CHECK (death_date IS NULL OR birth_date IS NULL OR death_date >= birth_date)
 );
 
-CREATE TABLE "pet_vaccinations" (
+CREATE TABLE "pet_dewormings" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "pet_id" uuid NOT NULL,
-  "vaccine" text NOT NULL CHECK (length(btrim(vaccine)) > 0),
+  "treatment" text NOT NULL CHECK (length(btrim(treatment)) > 0),
   "applied_on" date NOT NULL,
-  "valid_until" date,
-  "document_url" text,
+  "next_due_on" date,
   "created_at" timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT chk_vaccination_dates CHECK (valid_until IS NULL OR valid_until >= applied_on)
+  CONSTRAINT chk_deworming_dates CHECK (next_due_on IS NULL OR next_due_on >= applied_on)
 );
 
 CREATE TABLE "client_internal" (
@@ -700,7 +699,7 @@ CREATE INDEX ON "pets" ("client_id");
 
 CREATE UNIQUE INDEX ON "pets" ("id", "client_id");
 
-CREATE INDEX ON "pet_vaccinations" ("pet_id");
+CREATE INDEX ON "pet_dewormings" ("pet_id");
 
 -- SOLUCIÓN AL ERROR EN POSTGRESQL 15+:
 CREATE UNIQUE INDEX "uq_service_prices_rule"
@@ -765,7 +764,7 @@ ALTER TABLE "clients" ADD FOREIGN KEY ("profile_id") REFERENCES "profiles" ("id"
 
 ALTER TABLE "pets" ADD FOREIGN KEY ("client_id") REFERENCES "clients" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "pet_vaccinations" ADD FOREIGN KEY ("pet_id") REFERENCES "pets" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "pet_dewormings" ADD FOREIGN KEY ("pet_id") REFERENCES "pets" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "client_internal" ADD FOREIGN KEY ("client_id") REFERENCES "clients" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 

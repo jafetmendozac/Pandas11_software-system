@@ -8,19 +8,19 @@ import { MyRecordsComponent } from './my-records.component';
 describe('Consulta propia de datos y mascotas', () => {
   let own: jasmine.Spy;
   let searchPets: jasmine.Spy;
-  let vaccinations: jasmine.Spy;
+  let dewormings: jasmine.Spy;
 
   beforeEach(() => {
     own = jasmine.createSpy().and.resolveTo({ rows: [{ id: 'client-1', first_name: 'Lucía', last_name: 'Herrera' }], total: 1 });
     searchPets = jasmine.createSpy().and.resolveTo({ rows: [{ id: 'pet-1', client_id: 'client-1', name: 'Luna', breed: 'Poodle', pet_size: 'SMALL', active: true, allergies: false, client_notes: 'Sin problemas.' }], total: 1 });
-    vaccinations = jasmine.createSpy().and.resolveTo([{ id: 'vaccine-1', vaccine: 'Rabia', applied_on: '2026-01-01', valid_until: null }]);
+    dewormings = jasmine.createSpy().and.resolveTo([{ id: 'deworming-1', treatment: 'Tratamiento de prueba', applied_on: '2026-01-01', next_due_on: null }]);
     TestBed.configureTestingModule({
       imports: [MyRecordsComponent],
       providers: [
         provideRouter([]),
         { provide: ClientesService, useValue: { own } },
         { provide: MascotasService, useValue: { search: searchPets } },
-        { provide: RecordsService, useValue: { vaccinations } },
+        { provide: RecordsService, useValue: { dewormings } },
       ],
     });
   });
@@ -36,8 +36,8 @@ describe('Consulta propia de datos y mascotas', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Notas internas');
     await fixture.componentInstance.showPet(fixture.componentInstance.pets()[0]);
     await fixture.whenStable();
-    expect(vaccinations).toHaveBeenCalledOnceWith('pet-1');
-    expect(fixture.nativeElement.textContent).toContain('Rabia');
+    expect(dewormings).toHaveBeenCalledOnceWith('pet-1');
+    expect(fixture.nativeElement.textContent).toContain('Tratamiento de prueba');
   });
 
   it('explica cuando la cuenta todavía no tiene ficha vinculada', async () => {

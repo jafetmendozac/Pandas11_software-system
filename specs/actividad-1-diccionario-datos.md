@@ -192,7 +192,7 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 | `created_at` | `timestamptz` | Sí | — | `now()` |
 | `updated_at` | `timestamptz` | Sí | — | `now()` |
 
-### `pet_vaccinations` — Vacunas de mascota
+### `pet_dewormings` — Desparasitaciones de mascota
 
 **Estado:** con migración local.
 
@@ -200,11 +200,12 @@ PK = clave primaria; FK = foránea; UK = unicidad inline. «Obligatorio» indica
 |---|---|---|---|---|
 | `id` | `uuid` | Sí | PK | `gen_random_uuid()` |
 | `pet_id` | `uuid` | Sí | FK | — |
-| `vaccine` | `text` | Sí | — | — |
+| `treatment` | `text` | Sí | — | — |
 | `applied_on` | `date` | Sí | — | — |
-| `valid_until` | `date` | No | — | — |
-| `document_url` | `text` | No | — | — |
+| `next_due_on` | `date` | No | — | — |
 | `created_at` | `timestamptz` | Sí | — | `now()` |
+
+`next_due_on` no puede ser anterior a `applied_on`. La migración de 2026-11-13 retiró `pet_vaccinations` del esquema local tras comprobar que solo contenía los dos fixtures DEMO conocidos. La migración original de Fase 1 se conserva como historial.
 
 ### `client_internal` — Notas privadas de cliente
 

@@ -8,7 +8,7 @@ Preparado el 2026-10-21 (America/Lima) para revisión de Alex y Caro. Versión l
 |---|---|---|
 | 2.2, 2.4 | [CLIENT consulta su ficha](evidencia-2-cliente-propio.png), [CLIENT sin acceso a agenda](evidencia-2-cliente-denegado.png) | Inicio de sesión CLIENT, lectura de ficha vinculada y denegación de `/calendario`. La captura no prueba por sí sola registro, entrega de correo ni todas las políticas RLS. |
 | 3.1 | [Clientes filtrados por DEMO](evidencia-3-1-clientes.png) | STAFF consulta fichas; búsqueda con datos sintéticos. Alta, edición y baja lógica siguen en las pruebas locales previas y requieren recorrido de aceptación. |
-| 3.2 | [Mascotas filtradas por DEMO](evidencia-3-2-mascotas.png) | STAFF consulta mascotas, tamaño y datos visibles. Revisar ficha/vacunas/notas con los dueños. |
+| 3.2 | [Mascotas filtradas por DEMO](evidencia-3-2-mascotas.png) | STAFF consulta mascotas, tamaño y datos visibles. Revisar ficha/desparasitaciones/notas con los dueños. |
 | 3.3 | [Servicios DEMO](evidencia-3-3-servicios.png), [tarifas DEMO](evidencia-3-3-tarifas.png) | STAFF consulta precios y duraciones ficticios. Durante el recorrido se corrigió que Tarifas mostrara UUID en lugar del nombre de servicio; prueba Angular y captura final lo verifican. Los precios reales del negocio no están aprobados. |
 | 3.5 | [Cita pasada completada](evidencia-3-5-completada.png), [cita pasada cancelada](evidencia-3-5-cancelada.png) | STAFF abrió ambas fichas desde el calendario; se ven fecha, estado, cliente, mascota, servicio, precio, duración, trabajador y motivo de cancelación. La completada fue un fixture temporal insertado con SQL privilegiado **solo en la instancia local** y eliminado al terminar; la cancelada proviene del seed DEMO. La transición normal a COMPLETED está validada por las pruebas API, no por la creación de esta captura. |
 
@@ -22,7 +22,7 @@ Las capturas se obtuvieron en Chrome Headless 155, ancho 1440 px, sobre una comp
 | 1.2, 1.4, 1.5 | Revisar [ERD conceptual/físico](actividad-1-modelo-datos.md), [diccionario](actividad-1-diccionario-datos.md) y [conciliación H-03 a H-23](features/revision-modelo-base-datos/conciliation.md). Aceptar o anotar correcciones. | Pendiente de conformidad; el esquema remoto no está acreditado. |
 | 1.3 | Aportar constancias y fechas del proyecto Supabase y repositorio GitHub, sin claves ni datos privados. | Pendiente de evidencia externa. |
 | 2.1–2.4 | Recorrer registro, confirmación de correo, acceso OWNER/ADMIN/STAFF/CLIENT, perfil y salida. Confirmar el alcance de roles y del panel. | Capturas parciales y pruebas técnicas disponibles; aceptación pendiente. |
-| 3.1–3.3 | Revisar alta/edición/baja lógica, ficha, vacunas, notas internas, catálogo y **precios/duraciones comerciales reales**. | Capturas de consulta y pruebas técnicas disponibles; aceptación pendiente. |
+| 3.1–3.3 | Revisar alta/edición/baja lógica, ficha, desparasitaciones, notas internas, catálogo y **precios/duraciones comerciales reales**. | Capturas de consulta y pruebas técnicas disponibles; aceptación pendiente. |
 | 3.4 | Recorrer creación de cita, varias mascotas, relevo, conflicto, reprogramación y cancelación. | Pruebas técnicas previas disponibles; recorrido humano pendiente. |
 | 3.5 | Confirmar que consultar citas pasadas y canceladas con detalle satisface «históricos». | Alcance definido por el usuario y demostrado en navegador local; conformidad de Alex y Caro pendiente. |
 

@@ -77,8 +77,6 @@ async function main() {
     ...[['OWNER','DEMO OWNER','Pruebas locales','Ana','Valdez'],['ADMIN','DEMO ADMIN','Pruebas locales','Diego','Ramos'],
       ['STAFF','DEMO STAFF','Pruebas locales','María','Torres'],['CLIENT','DEMO CLIENT','Pruebas locales','Lucía','Herrera']]
       .map(([role,oldFirst,oldLast,first,last]) => `update public.profiles set first_name=${literal(first)},last_name=${literal(last)} where id=${literal(accounts[role])}::uuid and first_name=${literal(oldFirst)} and last_name=${literal(oldLast)};`),
-    `update public.pet_vaccinations set vaccine='Antirrábica' where id='${id(251)}' and vaccine='DEMO Antirrábica vigente';`,
-    `update public.pet_vaccinations set vaccine='Séxtuple' where id='${id(252)}' and vaccine='DEMO Vacuna vencida';`,
     `update public.client_internal set notes='Confirmar teléfono de contacto antes de la cita.' where client_id='${id(101)}' and notes='DEMO INTERNO: confirmar contacto antes de atender.';`,
     `update public.pet_internal set notes='Rocky puede reaccionar al cepillado; consultar manejo con Mateo.' where pet_id='${id(203)}' and notes='DEMO INTERNO: antecedentes ficticios de mordida; revisar manejo con responsable.';`,
     `update public.services set description='Baño, secado y cepillado.' where id='${id(301)}' and description='Tarifas y minutos ficticios para probar prioridad de reglas.';`,
@@ -113,9 +111,9 @@ async function main() {
     {id: id(203), client_id: id(102), name: 'Rocky', pet_sex: 'MALE', pet_size: 'LARGE', bites: true, weight_kg: 25},
     {id: id(204), client_id: id(103), name: 'Milo', active: false, deleted_at: `${startDate}T00:00:00-05:00`},
   ], 'client_id');
-  fixture('pet_vaccinations', [
-    {id: id(251), pet_id: id(201), vaccine: 'Antirrábica', applied_on: today.subtract({days: 30}).toString(), valid_until: today.add({days: 335}).toString()},
-    {id: id(252), pet_id: id(203), vaccine: 'Séxtuple', applied_on: today.subtract({days: 400}).toString(), valid_until: today.subtract({days: 35}).toString()},
+  fixture('pet_dewormings', [
+    {id: id(251), pet_id: id(201), treatment: 'Desparasitación de ejemplo', applied_on: today.subtract({days: 30}).toString(), next_due_on: today.add({days: 30}).toString()},
+    {id: id(252), pet_id: id(203), treatment: 'Tratamiento antiparasitario de ejemplo', applied_on: today.subtract({days: 90}).toString(), next_due_on: today.subtract({days: 30}).toString()},
   ], 'pet_id');
   fixture('client_internal', [{client_id: id(101), notes: 'Confirmar teléfono de contacto antes de la cita.', updated_by: accounts.OWNER}], 'client_id', 'client_id');
   fixture('pet_internal', [{pet_id: id(203), notes: 'Rocky puede reaccionar al cepillado; consultar manejo con Mateo.', updated_by: accounts.OWNER}], 'pet_id', 'pet_id');

@@ -37,8 +37,8 @@ values(current_setting('test.contact.follow_appointment')::uuid,current_setting(
 
 select set_config('request.jwt.claim.sub',current_setting('test.contact.staff'),true);
 set local role authenticated;
-select is((public.contact_queue()->>'total')::int,1,'STAFF ve una cita de mañana');
-select is((public.contact_queue()->'rows'->0->>'whatsapp_allowed')::boolean,false,'Opt-in legado no prueba consentimiento');
+select is((public.contact_queue(null,'Contacto sintético')->>'total')::int,1,'STAFF ve una cita de mañana');
+select is((public.contact_queue(null,'Contacto sintético')->'rows'->0->>'whatsapp_allowed')::boolean,false,'Opt-in legado no prueba consentimiento');
 select is((public.contact_queue('FOLLOW_UP','Seguimiento',1,10,'2097-10-30'::date)->>'total')::int,0,'A 29 días no hay seguimiento');
 select is((public.contact_queue('FOLLOW_UP','Seguimiento',1,10,'2097-10-31'::date)->>'total')::int,1,'A 30 días hay seguimiento');
 select is((public.contact_queue('FOLLOW_UP','Seguimiento',1,10,'2097-10-31'::date)->'rows'->0->>'appointment_id'),current_setting('test.contact.follow_appointment'),'Seguimiento usa última cita completada');
@@ -64,15 +64,15 @@ reset role;
 select set_config('request.jwt.claim.sub',current_setting('test.contact.owner'),true);
 set local role authenticated;
 select lives_ok($$select public.record_contact_consent(current_setting('test.contact.customer')::uuid,true,'VERBAL')$$,'OWNER registra consentimiento');
-select is((public.contact_queue()->'rows'->0->>'whatsapp_allowed')::boolean,true,'Consentimiento vigente habilita WhatsApp');
+select is((public.contact_queue(null,'Contacto sintético')->'rows'->0->>'whatsapp_allowed')::boolean,true,'Consentimiento vigente habilita WhatsApp');
 select lives_ok($$select public.record_contact_attempt(current_setting('test.contact.customer')::uuid,'APPOINTMENT_REMINDER',current_setting('test.contact.appointment')::uuid,'WHATSAPP','CONTACTED',null,current_setting('test.contact.request')::uuid)$$,
  'Registra contacto una vez');
 select lives_ok($$select public.record_contact_attempt(current_setting('test.contact.customer')::uuid,'APPOINTMENT_REMINDER',current_setting('test.contact.appointment')::uuid,'WHATSAPP','CONTACTED',null,current_setting('test.contact.request')::uuid)$$,
  'Reintento idéntico es idempotente');
 select is((select count(*)::int from public.contact_attempts where request_id=current_setting('test.contact.request')::uuid),1,'Sin duplicado de intento');
-select is((public.contact_queue()->>'total')::int,0,'Contacto cerrado sale de la lista');
+select is((public.contact_queue(null,'Contacto sintético')->>'total')::int,0,'Contacto cerrado sale de la lista');
 select lives_ok($$select public.record_contact_consent(current_setting('test.contact.customer')::uuid,false,'VERBAL')$$,'Revoca consentimiento');
-select is((select public.contact_queue()->'rows'), '[]'::jsonb,'La lista cerrada sigue vacía');
+select is((select public.contact_queue(null,'Contacto sintético')->'rows'), '[]'::jsonb,'La lista cerrada sigue vacía');
 select is((select whatsapp_opt_in from public.clients where id=current_setting('test.contact.customer')::uuid),false,'Revocación sincroniza la ficha');
 reset role;
 select is(private.whatsapp_consent(current_setting('test.contact.customer')::uuid),false,'Revocación deshabilita comprobación de WhatsApp');

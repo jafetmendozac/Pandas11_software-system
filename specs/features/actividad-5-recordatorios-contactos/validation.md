@@ -27,3 +27,7 @@ Fecha: 2026-10-29 (America/Lima). Estado: **implementado y validado en entorno l
 - `npm run build`: correcto fuera del sandbox restringido. El primer intento dentro del sandbox abortó con código 134 sin error de código. Persiste el aviso previo de presupuesto CSS de `src/app/pages/inicio/inicio.component.css` (1,46 kB), ajeno a 5.3.
 
 Se usaron cuentas y fechas sintéticas en SQL con `ROLLBACK`. No se consultó Supabase remoto, no se desplegó ni se enviaron comunicaciones. La revisión visual y la aceptación del negocio siguen pendientes; el flujo manual no acredita entrega de WhatsApp ni cumplimiento legal del consentimiento.
+
+## Corrección de aislamiento — 2026-11-13
+
+Con fixtures DEMO persistentes, las aserciones que llamaban `contact_queue()` sin búsqueda recibían además oportunidades ajenas al caso sintético y leían la primera fila equivocada. La prueba ahora filtra por «Contacto sintético» en las comprobaciones del recordatorio, consentimiento y cierre. No cambia la función ni las reglas RN-37–RN-39. `contact_queue.test.sql`: 26/26; suite SQL completa: 370/370.

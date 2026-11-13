@@ -49,8 +49,9 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');
  readonly current=signal<Appointment|null>(null);readonly items=signal<DraftItem[]>([]);readonly checking=signal(false);
  readonly checks=signal<Record<string,ReservationAvailability>>({});readonly options=signal<CalendarOptions>({});
- readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
- clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
+readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
+readonly newItemError=signal('');readonly newItemValid=signal(false);
+clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
  private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
  private readonly automaticStarts=new Set<string>();
  private readonly removedItems=new Map<string,DraftItem>();
@@ -166,12 +167,12 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   const candidates=this.employees().filter(employee=>group.items.every(item=>item.stages.every((_,index)=>this.candidates(item,index).some(candidate=>candidate.id===employee.id))));
   return candidates.map(employee=>({value:employee.id,label:`${employee.employee_name} · Sin verificar`}));
  }
- setGroupEmployee(group:PetGroup,value:string|number|null):void{
+setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(!this.canEdit)return;
   const employeeId=String(value??'');
   for(const item of group.items)for(const stage of item.stages)stage.employee_id=employeeId;
-  this.touch();
- }
+  this.touch();this.validateNewItem();
+}
   groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.duration_minutes||0),0);}
   groupTotalPrice(group:PetGroup):number{return group.items.filter(item=>!!item.service_id).reduce((sum,item)=>sum+Number(item.price||0),0);}
   formatPrice(value:string|number|null|undefined):string{const amount=Number(value??0);try{return this.money(String(value??0));}catch{return amount.toFixed(2);}}
@@ -179,6 +180,30 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   const first=group.items.find(item=>item.service_id);const minutes=this.groupDuration(group);
   if(!first?.start||!minutes||group.items.some(item=>item.quoting))return null;
   try{return {stage:'SERVICE',employee_id:this.groupEmployeeId(group),starts_local:first.start,ends_local:addLocalMinutes(first.start,minutes)};}catch{return null;}
+ }
+ validateNewItem():void{
+  this.newItemError.set('');this.newItemValid.set(false);
+  const group=this.petGroups().find(g=>g.items.some(item=>!!item.service_id&&!!item.start));
+  if(!group){return;}
+  const first=group.items.find(item=>item.service_id&&item.start);
+  if(!first){return;}
+  const date=first.start.split('T')[0]??'';const time=first.start.split('T')[1]??'';
+  if(!date){this.newItemError.set('Selecciona la fecha de la atención.');return;}
+  if(!time){this.newItemError.set('Selecciona la hora de inicio.');return;}
+  const day=new Date(`${date}T00:00:00`).getUTCDay();
+  const limaDay=((day+6)%7)+1;
+  if(limaDay<1||limaDay>6){this.newItemError.set('El local solo abre de lunes a sábado.');return;}
+  const [h,m]=time.split(':').map(Number);
+  const minutes=h*60+(m??0);
+  if(minutes<7*60){this.newItemError.set('La hora de inicio no puede ser antes de las 07:00.');return;}
+  if(minutes>18*60){this.newItemError.set('La hora de inicio no puede ser después de las 18:00.');return;}
+  if(minutes>=17*60&&minutes<18*60){
+   const dur=this.groupDuration(group);
+   if(dur&&minutes+dur>18*60){this.newItemError.set('El servicio terminaría después de las 18:00 sin turno que lo cubra.');return;}
+  }
+  const emp=this.groupEmployeeId(group);
+  if(!emp){this.newItemError.set('Selecciona un trabajador.');return;}
+  this.newItemValid.set(true);
  }
  employeeOptions(item:DraftItem,index:number):CustomSelectOption[]{
   const stage=item.stages[index], candidates=this.candidates(item,index);
@@ -215,15 +240,15 @@ export class CalendarioComponent implements OnInit,OnDestroy {
   for(const item of live)if(!next.includes(item))this.automaticStarts.delete(item.key);
   const first=all.findIndex(item=>live.includes(item));
   this.items.set([...all.slice(0,first).filter(item=>!live.includes(item)),...next,...all.slice(first).filter(item=>!live.includes(item))]);
-  this.reflowPet(group.pet_id);this.touch();
+  this.reflowPet(group.pet_id);this.touch();this.validateNewItem();
   for(const item of added)void this.quote(item);
  }
  setEmployee(item:DraftItem,index:number,value:string|number|null):void{item.stages[index].employee_id=String(value??'');this.touch();}
  setMinutes(item:DraftItem,index:number,value:string|number):void{item.stages[index].minutes=value===''?null:Number(value);this.touch();}
  itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
  itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
- setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();}
- setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();}
+ setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
  private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
  addItem():void{
   if(!this.canEdit||!this.clientId)return;

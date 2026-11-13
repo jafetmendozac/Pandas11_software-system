@@ -4,12 +4,12 @@ import { RecordsService } from '../../../services/records.service';
 import { AuthorizationService } from '../../../services/authorization.service';
 
 describe('RecordDetailsComponent: separación de información', () => {
-  let records: { vaccinations: jasmine.Spy; note: jasmine.Spy; saveNote: jasmine.Spy };
+  let records: { dewormings: jasmine.Spy; note: jasmine.Spy; saveNote: jasmine.Spy };
   let permissions: string[];
   beforeEach(() => {
     permissions = [];
     records = {
-      vaccinations: jasmine.createSpy().and.resolveTo([]),
+      dewormings: jasmine.createSpy().and.resolveTo([]),
       note: jasmine.createSpy().and.resolveTo({ notes: 'Detalle reservado', updated_by: 'owner', updated_at: '2026-10-17' }),
       saveNote: jasmine.createSpy().and.resolveTo(),
     };
@@ -18,11 +18,11 @@ describe('RecordDetailsComponent: separación de información', () => {
       { provide: AuthorizationService, useValue: { has: (permission: string) => permissions.includes(permission) } },
     ] });
   });
-  it('cliente consulta vacunas y observaciones sin solicitar notas internas', async () => {
+  it('cliente consulta desparasitaciones y observaciones sin solicitar notas internas', async () => {
     const fixture = TestBed.createComponent(RecordDetailsComponent);
     fixture.componentRef.setInput('pet', { id: 'pet', name: 'Toby', client_notes: 'Visible', allergies: true });
     fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
-    expect(records.vaccinations).toHaveBeenCalledWith('pet');
+    expect(records.dewormings).toHaveBeenCalledWith('pet');
     expect(records.note).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Visible');
     expect(fixture.nativeElement.textContent).not.toContain('Detalle reservado');

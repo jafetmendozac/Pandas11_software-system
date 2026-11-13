@@ -49,11 +49,11 @@
             <div><dt class="text-gray-500 dark:text-gray-400">Fecha de nacimiento</dt><dd class="mt-1 font-medium">{{ pet.birth_date || 'No indicada' }}</dd></div>
           </dl>
           <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800"><h3 class="font-semibold">Observaciones para ti</h3><p class="mt-2 whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300">{{ pet.client_notes || 'Sin observaciones.' }}</p></div>
-          <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800"><h3 class="font-semibold">Vacunas</h3>
-            @if (detailsLoading()) { <p role="status" class="mt-2 text-sm">Cargando vacunas…</p> }
+          <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800"><h3 class="font-semibold">Desparasitaciones</h3>
+            @if (detailsLoading()) { <p role="status" class="mt-2 text-sm">Cargando desparasitaciones…</p> }
             @else if (detailsError()) { <p role="alert" class="mt-2 text-sm text-error-600 dark:text-error-400">{{ detailsError() }}</p> }
-            @else if (vaccinations().length === 0) { <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No hay vacunas registradas.</p> }
-            @else { <ul class="mt-3 space-y-2">@for (vaccine of vaccinations(); track vaccine.id) { <li class="rounded-xl bg-gray-50 p-3 text-sm dark:bg-gray-800"><span class="font-medium">{{ vaccine.vaccine }}</span><span class="block text-gray-500 dark:text-gray-400">Aplicada: {{ vaccine.applied_on }} · Válida hasta: {{ vaccine.valid_until || 'No indicada' }}</span></li> }</ul> }
+            @else if (dewormings().length === 0) { <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No hay desparasitaciones registradas.</p> }
+            @else { <ul class="mt-3 space-y-2">@for (deworming of dewormings(); track deworming.id) { <li class="rounded-xl bg-gray-50 p-3 text-sm dark:bg-gray-800"><span class="font-medium">{{ deworming.treatment }}</span><span class="block text-gray-500 dark:text-gray-400">Aplicada: {{ deworming.applied_on }} · Próxima fecha: {{ deworming.next_due_on || 'No indicada' }}</span></li> }</ul> }
           </div>
         </section>
       }

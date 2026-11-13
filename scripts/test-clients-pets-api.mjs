@@ -59,12 +59,12 @@ try{
  await value(owner.from('client_internal').insert({client_id:c1.id,notes:'Reservado cliente'}).select().single());
  check((await value(a.from('client_internal').select('*'))).length===0,'Notas de cliente privadas');
  check(!!(await a.from('client_internal').insert({client_id:c1.id,notes:'Ataque'})).error,'Cliente no escribe notas internas');
- const vaccine=await value(admin.from('pet_vaccinations').insert({pet_id:p1.id,vaccine:'Rabia',applied_on:'2026-01-01',valid_until:'2027-01-01'}).select().single());
- check((await value(a.from('pet_vaccinations').select('id'))).length===1,'Vacunas propias visibles');
- check((await value(b.from('pet_vaccinations').select('id'))).length===0,'Vacunas ajenas ocultas');
- check(!!(await staff.from('pet_vaccinations').insert({pet_id:p1.id,vaccine:'No',applied_on:'2026-01-01'})).error,'STAFF no registra vacunas');
- check(!!(await owner.from('pet_vaccinations').insert({pet_id:p1.id,vaccine:'Error',applied_on:'2026-01-02',valid_until:'2026-01-01'})).error,'Vigencia inválida denegada');
- await value(admin.from('pet_vaccinations').update({vaccine:'Rabia corregida'}).eq('id',vaccine.id).select('id').single());checks++;
+ const deworming=await value(admin.from('pet_dewormings').insert({pet_id:p1.id,treatment:'Tratamiento de prueba',applied_on:'2026-01-01',next_due_on:'2026-03-01'}).select().single());
+ check((await value(a.from('pet_dewormings').select('id'))).length===1,'Desparasitaciones propias visibles');
+ check((await value(b.from('pet_dewormings').select('id'))).length===0,'Desparasitaciones ajenas ocultas');
+ check(!!(await staff.from('pet_dewormings').insert({pet_id:p1.id,treatment:'No',applied_on:'2026-01-01'})).error,'STAFF no registra desparasitaciones');
+ check(!!(await owner.from('pet_dewormings').insert({pet_id:p1.id,treatment:'Error',applied_on:'2026-01-02',next_due_on:'2026-01-01'})).error,'Próxima fecha inválida denegada');
+ await value(admin.from('pet_dewormings').update({treatment:'Tratamiento corregido'}).eq('id',deworming.id).select('id').single());checks++;
  const result=await value(staff.rpc('search_clients',{p_search:"O'Connor",p_page:1,p_size:5}));
  check(result.rows.some(row=>row.id===c1.id),'Búsqueda con apóstrofe');
  const phoneSearch=await value(staff.rpc('search_clients',{p_search:'900111222'}));check(phoneSearch.rows.some(row=>row.id===c1.id),'Búsqueda por teléfono');
@@ -74,9 +74,9 @@ try{
  check(page.total===1002&&page.rows.length===2,'Paginación más allá de límite de 1000');
  await value(owner.rpc('retire_client',{p_id:c1.id}));
  check((await value(a.from('pets').select('id'))).length===0,'Retiro cliente oculta mascotas propias');
- check((await value(a.from('pet_vaccinations').select('id'))).length===0,'Retiro oculta vacunas al cliente');
+ check((await value(a.from('pet_dewormings').select('id'))).length===0,'Retiro oculta desparasitaciones al cliente');
  const archived=await value(staff.rpc('search_pets',{p_search:'Toby',p_archived:true}));check(archived.rows.some(row=>row.id===p1.id),'Personal consulta archivo');
- check((await value(staff.from('pet_vaccinations').select('id').eq('id',vaccine.id))).length===1,'Vacunas preservadas');
+ check((await value(staff.from('pet_dewormings').select('id').eq('id',deworming.id))).length===1,'Desparasitaciones preservadas');
  check((await value(staff.from('pet_internal').select('pet_id').eq('pet_id',p1.id))).length===1,'Notas preservadas');
  const noEdit=await admin.from('pets').update({name:'Archivado'}).eq('id',p1.id).select('id');check(!noEdit.error&&noEdit.data.length===0,'Archivo sin edición');
  check(!!(await owner.from('pets').insert({client_id:c1.id,name:'No permitido'})).error,'No crear mascota en cliente retirado');
@@ -87,7 +87,7 @@ try{
  console.log(`Fase 1 API: ${checks} comprobaciones correctas.`);
 }finally{
  // IDs aleatorios creados en esta ejecución; no reiniciar ni borrar datos del usuario.
- for(const id of pets){sql(`delete from public.pet_internal where pet_id='${id}';delete from public.pet_vaccinations where pet_id='${id}';delete from public.pets where id='${id}'`);}
+ for(const id of pets){sql(`delete from public.pet_internal where pet_id='${id}';delete from public.pet_dewormings where pet_id='${id}';delete from public.pets where id='${id}'`);}
  for(const id of clients){sql(`delete from public.client_internal where client_id='${id}';delete from public.clients where id='${id}'`);}
  sql(`delete from public.clients where first_name like '${bulkPrefix}-%'`);
  if (breedId) sql(`delete from public.pet_breeds where id='${breedId}'`);
