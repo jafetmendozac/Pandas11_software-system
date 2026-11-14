@@ -62,6 +62,8 @@ export class PersonalizedTable {
   @Input() tableData: TableRow[] = [];
   @Input() searchKey = '';
   @Input() searchPlaceholder = 'Buscar...';
+  @Input() showSearch = true;
+  @Input() showPagination = true;
   @Input() detailsLabel = '';
 
   @Input() expandable = false;
@@ -83,6 +85,7 @@ export class PersonalizedTable {
   formData: TableRow = {};
 
   get totalPages(): number {
+    if (!this.showPagination) return 1;
     return Math.ceil((this.serverTotal ?? this.filteredTableData.length) / this.itemsPerPage);
   }
   rowId(item: TableRow): string { return typeof item['id'] === 'string' ? item['id'] : ''; }
@@ -111,6 +114,7 @@ export class PersonalizedTable {
   }
 
   get currentItems(): TableRow[] {
+    if (!this.showPagination) return this.filteredTableData;
     if (this.serverTotal !== null) return this.tableData;
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredTableData.slice(start, start + this.itemsPerPage);

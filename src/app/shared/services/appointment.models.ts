@@ -12,7 +12,7 @@ export interface ReservationAvailability {windows:{starts_at:string;ends_at:stri
 export interface AppointmentNote {notes:string|null;updated_by:string;updated_at:string;}
 export interface DraftStage {stage:StageKind;employee_id:string;minutes:number|null;}
 export interface DraftItem {key:string;id?:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;specialist:boolean;notes:string;weight_kg_at_visit:number|null;start:string;stages:DraftStage[];quoting:boolean;quoteRevision:number;}
-export const STATUS_LABELS:Record<AppointmentStatus,string>={REQUESTED:'Solicitada',PENDING:'Pendiente',CONFIRMED:'Confirmada',IN_PROGRESS:'En atención',COMPLETED:'Completada',CANCELLED:'Cancelada',NO_SHOW:'No asistió'};
+export const STATUS_LABELS:Record<AppointmentStatus,string>={REQUESTED:'Solicitada',PENDING:'Pendiente',CONFIRMED:'Programada',IN_PROGRESS:'Programada',COMPLETED:'Atendida',CANCELLED:'Cancelada',NO_SHOW:'Cancelada'};
 export const STAGE_LABELS:Record<StageKind,string>={SERVICE:'Servicio completo',BATH:'Baño',CUT:'Corte'};
 export const PICKUP_TYPE_LABELS:Record<PickupType,string>={PICKUP_ONLY:'Solo recojo',DROPOFF_ONLY:'Solo regreso',BOTH:'Recojo y regreso',NONE:'Sin transporte'};
 export function localLima(instant:string):string{return Temporal.Instant.from(instant).toZonedDateTimeISO('America/Lima').toPlainDateTime().toString({smallestUnit:'second'});}

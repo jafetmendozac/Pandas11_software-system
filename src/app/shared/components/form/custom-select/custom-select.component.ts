@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 export interface CustomSelectOption {
   value: string | number;
@@ -10,7 +11,7 @@ export interface CustomSelectOption {
 @Component({
   selector: 'app-custom-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './custom-select.component.html',
 })
 export class CustomSelectComponent implements OnInit, OnChanges {
@@ -21,12 +22,15 @@ export class CustomSelectComponent implements OnInit, OnChanges {
   @Input() value: string | number | null = null;
   @Input() disabled = false;
   @Input() ariaLabel = 'Seleccionar una opción';
+  @Input() searchable = false;
+  @Input() searchPlaceholder = 'Buscar...';
   @ViewChild('trigger') private trigger?: ElementRef<HTMLButtonElement>;
 
   @Output() valueChange = new EventEmitter<string | number | null>();
 
   isOpen: boolean = false;
   selectedLabel: string = '';
+  searchTerm = '';
 
   constructor(private elementRef: ElementRef) {}
 
@@ -61,6 +65,7 @@ export class CustomSelectComponent implements OnInit, OnChanges {
   toggleDropdown() {
     if (this.disabled) return;
     this.isOpen = !this.isOpen;
+    if (!this.isOpen) this.searchTerm = '';
   }
 
   selectOption(option: CustomSelectOption) {
@@ -69,6 +74,15 @@ export class CustomSelectComponent implements OnInit, OnChanges {
     this.selectedLabel = option.label;
     this.valueChange.emit(option.value);
     this.isOpen = false;
+    this.searchTerm = '';
+  }
+
+  get visibleOptions(): CustomSelectOption[] {
+    const term = this.searchTerm.trim().toLocaleLowerCase();
+    if (!term || !this.searchable) return this.options;
+    const digits = term.replace(/\D/g, '');
+    return this.options.filter(option => option.label.toLocaleLowerCase().includes(term)
+      || (digits.length > 0 && option.label.replace(/\D/g, '').includes(digits)));
   }
 
   @HostListener('document:keydown.escape', ['$event'])

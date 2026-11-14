@@ -37,7 +37,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
  readonly viewSelectOptions:CustomSelectOption[]=this.viewOptions.map(view=>({value:view.key,label:view.label}));
- readonly statusSelectOptions:CustomSelectOption[]=[{value:'',label:'Todos'},...(['CONFIRMED','IN_PROGRESS','COMPLETED','CANCELLED','NO_SHOW'] as const).map(status=>({value:status,label:STATUS_LABELS[status]}))];
+ readonly statusSelectOptions:CustomSelectOption[]=[{value:'',label:'Todos'},...(['CONFIRMED','COMPLETED','CANCELLED'] as const).map(status=>({value:status,label:STATUS_LABELS[status]}))];
  readonly calendarTitle=signal('');
  readonly currentView=signal('dayGridMonth');
  readonly authorization=inject(AuthorizationService);
@@ -104,7 +104,7 @@ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';emplo
  ngOnDestroy():void{this.revision++;this.formRevision++;this.detailRevision++;}
  async loadRange():Promise<void>{
   if(!this.rangeFrom||!this.rangeUntil)return;const revision=++this.revision;this.loading.set(true);this.error.set('');
-  try{const rows=await this.appointments.range(this.rangeFrom,this.rangeUntil,this.employeeFilter||null,this.statusFilter||null,this.search);if(revision===this.revision){this.rows.set(rows);this.refreshEvents();}}
+  try{const statuses: (AppointmentStatus|null)[]=this.statusFilter==='CONFIRMED'?['CONFIRMED','IN_PROGRESS']:this.statusFilter==='CANCELLED'?['CANCELLED','NO_SHOW']:[this.statusFilter||null];const groups=await Promise.all(statuses.map(status=>this.appointments.range(this.rangeFrom,this.rangeUntil,this.employeeFilter||null,status,this.search)));if(revision===this.revision){this.rows.set(groups.flat());this.refreshEvents();}}
   catch(error){if(revision===this.revision)this.error.set(workError(error));}finally{if(revision===this.revision)this.loading.set(false);}
  }
  private refreshEvents():void{
@@ -138,7 +138,7 @@ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';emplo
  touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
  changeClient():void{this.automaticStarts.clear();this.removedItems.clear();this.items.set([]);this.touch();}
  filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
- clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''}`.trim()}));}
+ clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''} · ${c.whatsapp||c.phone||'Sin WhatsApp'}`.trim()}));}
  petGroups():PetGroup[]{
   const groups:PetGroup[]=[];const byPet=new Map<string,PetGroup>();
   for(const item of this.items()){

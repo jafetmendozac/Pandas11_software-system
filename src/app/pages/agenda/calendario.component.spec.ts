@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { CalendarioComponent } from './calendario.component';
 import { AppointmentsService } from '../../shared/services/appointments.service';
 import { AuthorizationService } from '../../shared/services/authorization.service';
-import { ClientesService } from '../../shared/services/clientes.service';
+import { ClientesService, Client } from '../../shared/services/clientes.service';
 import { MascotasService } from '../../shared/services/mascotas.service';
 import { EmpleadosService } from '../../shared/services/empleados.service';
 import { ServiciosService } from '../../shared/services/servicios.service';
@@ -184,6 +184,15 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   c.setClient('c');expect(c.items().length).toBe(1);expect(c.petGroups().length).toBe(1);
   c.setClient('');expect(c.items()).toEqual([]);
   c.setClient('c');expect(c.items().length).toBe(1);expect(c.petGroups().length).toBe(1);
+ });
+
+ it('incluye el WhatsApp en las opciones del cliente',async()=>{
+  const f=await fixture();const c=f.componentInstance;
+  c.clients.set([
+   {id:'one',first_name:'Ana',last_name:'López',whatsapp:'+51 999-111-222',phone:null} as Client,
+   {id:'two',first_name:'Luis',last_name:'Pérez',whatsapp:'988333444',phone:null} as Client,
+  ]);
+    expect(c.clientOptions()).toEqual([{value:'one',label:'Ana López · +51 999-111-222'},{value:'two',label:'Luis Pérez · 988333444'}]);
  });
 
  it('espera la duración anterior aunque las cotizaciones terminen en distinto orden',async()=>{

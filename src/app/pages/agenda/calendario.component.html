@@ -58,12 +58,16 @@
         @if(a.needs_attention && (a.status==='CONFIRMED' || a.status==='IN_PROGRESS')){<p role="alert" class="text-warning-600 dark:text-warning-400">Revisar disponibilidad: hay trabajadores, perfiles o intervalos sin cobertura. Reasigna o resuelve la incidencia antes de atender.</p>}
         @if(historicalMultiPet){<p role="status" class="rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700 dark:border-warning-500/30 dark:bg-warning-500/10 dark:text-warning-400">Esta cita histórica contiene varias mascotas. Puedes consultarla y cambiar su estado, pero no reprogramarla ni reemplazar sus servicios.</p>}
         @if(a.cancel_reason){<p>Motivo de cancelación: {{ a.cancel_reason }}</p>}
+        @if(a.status==='NO_SHOW'){<p>Motivo de cancelación: No asistió.</p>}
         <button type="button" [disabled]="pending()" (click)="openAppointment(a.id)" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Recargar ficha</button>
       }
       <form (ngSubmit)="save()" class="space-y-5">
         <fieldset [disabled]="pending() || !canEdit" class="space-y-5">
           @if(!current()){
-            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4 dark:border-gray-700 dark:bg-gray-800/40"><span class="mb-1.5 block text-sm font-semibold">Cliente</span><app-custom-select [options]="clientOptions()" [value]="clientId" [disabled]="pending() || !canEdit" (valueChange)="setClient($event)" placeholder="Selecciona cliente" ariaLabel="Cliente" /></div>
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4 dark:border-gray-700 dark:bg-gray-800/40">
+              <span class="mb-1.5 block text-sm font-semibold">Cliente</span>
+              <app-custom-select [options]="clientOptions()" [value]="clientId" [disabled]="pending() || !canEdit" [searchable]="true" searchPlaceholder="Buscar por nombre o WhatsApp" (valueChange)="setClient($event)" placeholder="Selecciona cliente" ariaLabel="Cliente" />
+            </div>
           }
           <div><span class="mb-1.5 block text-sm font-semibold">Notas de la cita (comunicables al cliente)</span><app-text-area name="notes" ariaLabel="Notas de la cita" placeholder="Añade una nota" [value]="notes" [disabled]="pending() || !canEdit" (valueChange)="notes=$event; touch()" /></div>
           @for(group of petGroups();track group.key){
@@ -129,10 +133,10 @@
       @if(current();as a){
         <section class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700">
           @if(a.status==='CONFIRMED'){
-            @if(authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('IN_PROGRESS')" class="me-3 rounded-lg bg-brand-500 px-4 py-2 text-white">Iniciar atención</button><button type="button" [disabled]="pending()" (click)="transition('NO_SHOW')" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Marcar no asistió</button>}
+            @if(authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('COMPLETED')" class="me-3 rounded-lg bg-brand-500 px-4 py-2 text-white">Marcar atendida</button>}
             @if(authorization.has('appointments.cancel')){<div><span class="mb-1 block">Motivo para cancelar</span><app-input-field ariaLabel="Motivo para cancelar" [value]="cancelReason" [disabled]="pending()" (valueChange)="cancelReason=''+$event" /></div><button type="button" [disabled]="pending() || !cancelReason.trim()" (click)="transition('CANCELLED')" class="rounded-lg border border-error-300 px-4 py-2 text-error-600 dark:border-error-500 dark:text-error-400">Cancelar reserva</button>}
           }
-          @if(a.status==='IN_PROGRESS' && authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('COMPLETED')" class="rounded-lg bg-brand-500 px-4 py-2 text-white">Completar atención</button>}
+          @if(a.status==='IN_PROGRESS' && authorization.has('appointments.status')){<button type="button" [disabled]="pending()" (click)="transition('COMPLETED')" class="rounded-lg bg-brand-500 px-4 py-2 text-white">Marcar atendida</button>}
         </section>
         @if(authorization.has('appointment_internal.read')){
           <section class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"><h3 class="font-semibold">Observaciones internas (solo personal autorizado)</h3>

@@ -1,15 +1,14 @@
 <app-page-breadcrumb pageTitle="Empleados y horarios" />
 <div class="space-y-6">
-  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Busca a una persona para consultar sus turnos y ausencias. Haz clic en ▸ para expandir y ver sus horarios.</p>
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Consulta a todo el equipo y expande una fila para ver sus turnos y ausencias.</p>
   @if(errorMessage()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando empleados…</p>}
-  <app-component-card title="Equipo" desc="Busca por nombre o teléfono. Expande una fila para ver y gestionar sus turnos y bloqueos.">
-    <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
-      (queryChanged)="loadEmployees($event)" [saveAction]="saveEmployee"
+  <app-component-card title="Equipo" desc="Expande una fila para ver y gestionar los turnos del empleado.">
+    <app-personalized-table #table [tableData]="tableData()" [columns]="columns"
+      [showSearch]="false" [showPagination]="false" [saveAction]="saveEmployee"
       [allowCreate]="authorization.has('employees.manage') && profilesReady()" [allowEdit]="authorization.has('employees.manage')" [allowDelete]="false"
       addLabel="Añadir empleado" createTitle="Añadir empleado" editTitle="Editar empleado"
-      searchPlaceholder="Buscar por nombre o teléfono…"
-      [expandable]="true" [expandedRowId]="expandedRowId()" (rowToggle)="toggleRow($event)" [expandRowTemplate]="expandRowTemplate" [columnFormatters]="columnFormatters()">
+      [expandable]="true" [expandedRowId]="expandedRowId()" (rowToggle)="toggleRow($event)" [expandRowTemplate]="expandRowTemplate">
       <ng-template #expandRowTemplate let-item>
         <app-work-calendar [employee]="asEmployee(item)" [employeeOnly]="true" />
       </ng-template>
