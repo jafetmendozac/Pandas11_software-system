@@ -17,8 +17,10 @@ export class ProductosComponent implements OnDestroy {
  readonly money = decimalLabel;
  readonly field = 'w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
  readonly button = 'rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-700';
- search = ''; lowOnly = false; page = 1; total = 0; private revision = 0;
- ngOnDestroy() { this.revision++; this.historyRevision++; }
+search = ''; lowOnly = false; page = 1; total = 0; private revision = 0;
+ngOnDestroy() { this.revision++; this.historyRevision++; }
+get pages(): number[] { const totalPages = Math.ceil(this.total / 10) || 1; const out: number[] = []; for (let i = 1; i <= totalPages; i++) out.push(i); return out; }
+get totalPages(): number { return Math.ceil(this.total / 10) || 1; }
  message(e: unknown) { return (e as {message?:string})?.message || 'No se pudo completar la operación.'; }
  rows = signal<Product[]>([]); editing = signal(false);
  id: string | null = null; name = ''; sku = ''; price = ''; active = true; minimum = '';

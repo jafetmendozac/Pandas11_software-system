@@ -1,21 +1,92 @@
 <app-page-breadcrumb pageTitle="Productos" />
-<app-component-card title="Catálogo de artículos"><div class="space-y-4 text-gray-800 dark:text-gray-100">
-<p>Artículos por unidad. Las ventas confirmadas descuentan existencias; los borradores no reservan stock.</p>
-<form (ngSubmit)="load()" class="flex flex-wrap gap-2"><input aria-label="Buscar productos" name="search" [(ngModel)]="search" [class]="field" placeholder="Nombre o SKU"><button [class]="button">Buscar</button>
-@if(auth.has('products.manage')){<button type="button" [class]="button" (click)="edit()">Nuevo producto</button>}</form>
-@if(auth.has('inventory.read')){<label class="flex items-center gap-2"><input type="checkbox" [(ngModel)]="lowOnly" (change)="load()"> Solo productos en mínimo o menos</label>}
-@if(error()){<p role="alert" class="text-error-600 dark:text-error-400">{{error()}}</p>}
-@if(editing()){<form (ngSubmit)="save()" class="space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-<label class="block">Nombre<input name="name" [(ngModel)]="name" [class]="field" required maxlength="120"></label>
-<label class="block">SKU (opcional)<input name="sku" [(ngModel)]="sku" [class]="field" maxlength="60"></label>
-<label class="block">Precio en PEN<input name="price" [(ngModel)]="price" [class]="field" inputmode="decimal" required></label>
-<label class="block">Stock mínimo (vacío desactiva alerta)<input name="minimum" [(ngModel)]="minimum" [class]="field" type="number" min="0" max="2147483647" step="1"></label>
-<label class="block"><input type="checkbox" name="active" [(ngModel)]="active"> Activo</label>
-<button [class]="button" [disabled]="busy()">Guardar</button> <button type="button" [class]="button" [disabled]="busy()" (click)="editing.set(false)">Cancelar</button></form>}
-@if(loading()){<p role="status">Cargando…</p>}@else{
-@for(p of rows();track p.id){<div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 py-3 dark:border-gray-700"><div><strong>{{p.name}}</strong><p>{{p.sku || 'Sin SKU'}} · S/ {{money(p.price)}} · {{p.active ? 'Activo' : 'Inactivo'}}</p>@if(stockQuantity(p)!==null){<p>Stock: <strong>{{stockQuantity(p)}}</strong> {{stockQuantity(p)===1?'unidad':'unidades'}} · mínimo: {{p.minimum_stock===null?'Sin alerta':p.minimum_stock}}</p>}@if(isLow(p)){<p role="status" class="font-semibold text-warning-600 dark:text-warning-400">Stock en mínimo o menos</p>}</div>@if(auth.has('products.manage')){<button [class]="button" (click)="edit(p)" [disabled]="busy()">Editar</button>}@if(auth.has('inventory.read')){<button [class]="button" (click)="openStock(p)" [disabled]="busy()">Stock e historial</button>}</div>}@empty{<p>Sin productos.</p>}}
-<div class="flex flex-wrap gap-3"><button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">Anterior</button><span>Página {{page}} · {{total}} productos</span><button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente</button></div>
-</div></app-component-card>
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white text-gray-800 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+  <header class="flex flex-col gap-4 border-b border-gray-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div class="flex items-center gap-2">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Catálogo de artículos</h2>
+      <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs font-semibold text-gray-500" title="Productos, precios y existencias del local" aria-label="Información del catálogo">i</span>
+    </div>
+    @if(auth.has('products.manage')){<button type="button" (click)="edit()" [disabled]="busy()" class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">Nuevo producto</button>}
+  </header>
+  <div class="space-y-6 p-5 sm:p-6">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <label class="relative block w-full sm:w-80">
+        <span class="sr-only">Buscar por SKU</span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="pointer-events-none absolute start-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input type="search" name="search" [(ngModel)]="search" (ngModelChange)="load()" placeholder="Buscar por SKU" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent ps-10 pe-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500" />
+      </label>
+      <label class="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <input type="checkbox" role="switch" [(ngModel)]="lowOnly" (change)="load()" class="peer sr-only" />
+        <span aria-hidden="true" class="relative h-6 w-10 rounded-full bg-gray-300 transition-colors peer-checked:bg-brand-600 peer-focus-visible:outline-2 peer-focus-visible:outline-brand-500 dark:bg-gray-700"><span class="absolute start-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4 rtl:peer-checked:-translate-x-4"></span></span>
+        Solo productos en mínimo o menos
+      </label>
+    </div>
+    @if(error()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{error()}}</p>}
+    @if(loading()){<p role="status">Cargando…</p>}@else{
+    <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800/50">
+        <thead class="bg-gray-50/40 dark:bg-gray-900/30">
+          <tr>
+            <th class="w-10 px-3 py-4 text-start"><input type="checkbox" aria-label="Seleccionar todos los productos" class="rounded text-gray-400 focus:ring-brand-500 dark:text-gray-500" /></th>
+            <th class="px-3 py-4 text-start text-sm font-semibold text-gray-800 dark:text-white/90">Producto / SKU</th>
+            <th class="px-3 py-4 text-start text-sm font-semibold text-gray-800 dark:text-white/90">Precio</th>
+            <th class="w-48 min-w-48 px-3 py-4 text-center text-sm font-semibold text-gray-800 dark:text-white/90">Stock actual</th>
+            <th class="px-3 py-4 text-start text-sm font-semibold text-gray-800 dark:text-white/90">Estado</th>
+            <th class="px-3 py-4 text-start text-sm font-semibold text-gray-800 dark:text-white/90">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50 bg-white dark:bg-gray-900">
+          @for(p of rows();track p.id){
+          <tr class="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors">
+            <td class="px-3 py-5 whitespace-nowrap"><input type="checkbox" [attr.aria-label]="'Seleccionar ' + p.name" class="rounded text-gray-400 focus:ring-brand-500 dark:text-gray-500" /></td>
+            <td class="px-3 py-5">
+              <div class="text-sm font-semibold text-gray-800 dark:text-white">{{p.name}}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{p.sku || 'Sin SKU'}}</div>
+            </td>
+            <td class="px-3 py-5 whitespace-nowrap text-sm text-gray-800 dark:text-white">S/ {{money(p.price)}}</td>
+            <td class="w-48 min-w-48 px-3 py-4 text-center align-middle">
+              <div class="flex min-h-14 min-w-40 flex-col items-center justify-center gap-1">
+                @if(stockQuantity(p)!==null){
+                <span class="text-base font-semibold text-error-700 dark:text-error-400">Stock: {{stockQuantity(p)}}</span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{p.minimum_stock===null?'Sin mínimo':'Mínimo: '+p.minimum_stock}}</span>
+                }@else{
+                <span class="text-base font-semibold text-error-700 dark:text-error-400">Sin stock</span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{p.minimum_stock===null?'Sin mínimo':'Mínimo: '+p.minimum_stock}}</span>
+                }
+                @if(isLow(p)){<span class="text-sm font-semibold text-warning-600 dark:text-warning-400">En mínimo</span>}
+              </div>
+            </td>
+            <td class="px-3 py-5 whitespace-nowrap">
+              <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium" [class.bg-success-100]="p.active" [class.text-success-700]="p.active" [class.dark:bg-success-900/30]="p.active" [class.dark:text-success-400]="p.active" [class.bg-gray-100]="!p.active" [class.text-gray-600]="!p.active" [class.dark:bg-gray-800]="!p.active" [class.dark:text-gray-400]="!p.active">{{p.active ? 'Activo' : 'Inactivo'}}</span>
+            </td>
+            <td class="px-3 py-4 whitespace-nowrap">
+              <div class="flex flex-col items-start gap-2">
+                @if(auth.has('products.manage')){<button type="button" (click)="edit(p)" [disabled]="busy()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">Editar</button>}
+                @if(auth.has('inventory.read')){<button type="button" (click)="openStock(p)" [disabled]="busy()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">Ver historial</button>}
+              </div>
+            </td>
+          </tr>
+          }@empty{
+          <tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Sin productos.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <button [class]="button" (click)="load(page-1)" [disabled]="page===1 || loading()">← Anterior</button>
+        <span>Página {{page}} de {{totalPages}}</span>
+      </div>
+      <div class="flex items-center gap-1">
+        @for(p of pages;track p){
+        <button [class]="button + ' ' + (p===page ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700')" (click)="load(p)" [disabled]="p===page || loading()">{{p}}</button>
+        }
+        <button [class]="button" (click)="load(page+1)" [disabled]="page*10>=total || loading()">Siguiente →</button>
+      </div>
+    </div>
+    }
+  </div>
+</div>
+
 @if(stockProduct();as p){
 <div class="fixed inset-0 z-99999 flex items-center justify-center bg-gray-950/70 p-4">
 <section role="dialog" aria-modal="true" aria-labelledby="inventory-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="closeStock()" class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
