@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Optional, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Optional, Component, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../ui/button/button.component';
 import { TableDropdownComponent } from '../../../common/table-dropdown/table-dropdown.component';
@@ -64,6 +64,12 @@ export class PersonalizedTable {
   @Input() searchPlaceholder = 'Buscar...';
   @Input() detailsLabel = '';
 
+  @Input() expandable = false;
+  @Input() expandedRowId: string | null = null;
+  @Input() expandRowTemplate?: TemplateRef<any>;
+  @Input() columnFormatters: Record<string, (value: unknown, item: TableRow) => string> = {};
+  @Output() rowToggle = new EventEmitter<string>();
+
   @Output() rowCreated = new EventEmitter<TableRow>();
   @Output() rowUpdated = new EventEmitter<TableRow>();
   @Output() rowDeleted = new EventEmitter<TableRow>();
@@ -79,6 +85,7 @@ export class PersonalizedTable {
   get totalPages(): number {
     return Math.ceil((this.serverTotal ?? this.filteredTableData.length) / this.itemsPerPage);
   }
+  rowId(item: TableRow): string { return typeof item['id'] === 'string' ? item['id'] : ''; }
 
   get filteredTableData(): TableRow[] {
     if (this.serverTotal !== null) return this.tableData;
@@ -137,12 +144,20 @@ export class PersonalizedTable {
 
   getCellValue(row: TableRow, key: string, column?: TableColumn): string {
     const value = row[key];
+    if (this.columnFormatters?.[key]) {
+      return this.columnFormatters[key](value, row);
+    }
     if (column?.options?.length) {
       const selectedOption = column.options.find((option) => String(option.value) === String(value ?? ''));
       return selectedOption?.label ?? String(value ?? '');
     }
     if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    if (column?.type === 'time' && value) return String(value).replace(/:\d{2}$/, '');
     return String(value ?? '');
+  }
+
+  get visibleColumnsCount(): number {
+    return this.columns.filter((column) => !column.formOnly).length;
   }
 
   get mobileImageColumn(): TableColumn | undefined {

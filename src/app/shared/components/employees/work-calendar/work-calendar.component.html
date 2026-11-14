@@ -10,18 +10,18 @@
   }@else{
     <p class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">Los turnos y bloqueos personales aparecerán aquí cuando elijas «Ver horarios» en un empleado.</p>
   }
-  <app-component-card title="Horario del local" desc="Define cuándo atiende el negocio: lunes a sábado, incluidos feriados; domingo de descanso. No crea turnos personales.">
+  @if(!employeeOnly){<app-component-card title="Horario del local" desc="Define cuándo atiende el negocio: lunes a sábado, incluidos feriados; domingo de descanso. No crea turnos personales.">
     <app-personalized-table #businessTable [columns]="periodColumns" [tableData]="data().business" [saveAction]="saveBusiness"
       [allowCreate]="authorization.has('schedules.manage')" [allowEdit]="authorization.has('schedules.manage')" [allowDelete]="authorization.has('schedules.manage')"
       addLabel="Añadir tramo comercial" createTitle="Añadir tramo comercial" editTitle="Editar horario del local" />
-  </app-component-card>
+  </app-component-card>}
   <div class = 'py-1'></div>
-  <app-component-card title="Ausencias y bloqueos" desc="Sin empleado seleccionado ves los bloqueos del local; al seleccionar uno, también aparecen sus ausencias. Los recojos se registran manualmente aquí.">
+  @if(!employeeOnly){<app-component-card title="Ausencias y bloqueos" desc="Los bloqueos del local y las ausencias personales se registran manualmente aquí. Los recojos también se representan como bloqueos.">
     <app-personalized-table #blockTable [columns]="blockColumns" [tableData]="data().blocks" [saveAction]="saveBlock"
       [allowCreate]="authorization.has('time_blocks.manage')" [allowEdit]="authorization.has('time_blocks.manage')" [allowDelete]="authorization.has('time_blocks.manage')"
       searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />
-  </app-component-card>
-  @if(employee && authorization.has('availability.read')){
+  </app-component-card>}
+  @if(!employeeOnly && employee && authorization.has('availability.read')){
     <app-component-card title="Consultar horario habilitado" desc="No reserva ni verifica automáticamente ocupación por citas y recojos. Último inicio de servicio: 17:00.">
       <form (ngSubmit)="calculate()" class="space-y-4">
         <div class="grid gap-4 sm:grid-cols-3">

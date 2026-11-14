@@ -37,6 +37,9 @@
       <table class="min-w-[1100px] table-auto">
         <thead class="border-b-2 border-gray-200 dark:border-gray-700">
           <tr>
+            @if (expandable) {
+            <th scope="col" class="px-4 py-3.5 text-center text-theme-sm dark:text-white/90" style="width: 40px;"></th>
+            }
             @for (column of columns; track column.key) {
             @if (!column.formOnly) {
             <th scope="col" class="px-4 py-3.5 font-semibold text-gray-800 text-start text-theme-sm dark:text-white/90">
@@ -54,6 +57,13 @@
         <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
           @for (item of currentItems; track $index) {
             <tr>
+            @if (expandable) {
+            <td class="px-4 py-4 text-center">
+              <button type="button" (click)="rowToggle.emit(rowId(item))" [attr.aria-label]="expandedRowId === item['id'] ? 'Contraer' : 'Expandir'" class="h-6 w-6 rounded-full border border-gray-300 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
+                {{ expandedRowId === item['id'] ? '▾' : '▸' }}
+              </button>
+            </td>
+            }
             @for (column of columns; track column.key) {
             @if (!column.formOnly) {
             <td class="w-20 min-w-20 px-4 py-4 text-gray-700 whitespace-nowrap text-theme-sm dark:text-gray-400">
@@ -144,7 +154,16 @@
                 </app-table-dropdown>
               </div>
             </td>
-          </tr>
+            </tr>
+            @if (expandable && expandedRowId === item['id'] && expandRowTemplate) {
+            <tr>
+              <td [attr.colspan]="visibleColumnsCount + (expandable ? 1 : 0) + 1" class="p-0">
+                <div class="p-4 bg-gray-50 dark:bg-gray-900/30 border-b border-gray-100 dark:border-gray-800">
+                  <ng-container *ngTemplateOutlet="expandRowTemplate; context: { $implicit: item }"></ng-container>
+                </div>
+              </td>
+            </tr>
+            }
           }
         </tbody>
       </table>
@@ -157,6 +176,11 @@
     <article class="rounded-xl border border-gray-200 p-4 dark:border-white/[0.08] dark:bg-gray-900/30">
       <div class="flex items-start justify-between gap-3">
         <div class="flex min-w-0 items-center gap-3">
+          @if (expandable) {
+          <button type="button" (click)="rowToggle.emit(rowId(item))" [attr.aria-label]="expandedRowId === item['id'] ? 'Contraer horarios' : 'Expandir horarios'" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-300 text-sm font-bold text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
+            {{ expandedRowId === item['id'] ? '▾' : '▸' }}
+          </button>
+          }
           @if (mobileImageColumn; as imageColumn) {
           @if (item[imageColumn.key]) {
           <img [src]="item[imageColumn.key]" [alt]="'Foto de ' + getImageTitle(item)" class="size-12 shrink-0 rounded-full object-cover" />
@@ -176,6 +200,12 @@
         </app-badge>
         }
       </div>
+
+      @if (expandable && expandedRowId === item['id'] && expandRowTemplate) {
+      <div class="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+        <ng-container *ngTemplateOutlet="expandRowTemplate; context: { $implicit: item }"></ng-container>
+      </div>
+      }
 
       <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         @for (column of columns; track column.key) {

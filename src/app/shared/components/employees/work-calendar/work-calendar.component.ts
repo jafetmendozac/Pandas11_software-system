@@ -8,6 +8,7 @@ import { Availability, WorkCalendar, WorkCalendarService, WEEKDAYS, WORK_NOTICE,
 @Component({selector:'app-work-calendar',standalone:true,imports:[FormsModule,PersonalizedTable,ComponentCardComponent],templateUrl:'./work-calendar.component.html'})
 export class WorkCalendarComponent implements OnChanges,OnDestroy {
   @Input() employee:Employee|null=null;
+  @Input() employeeOnly=false;
   @ViewChild('shiftTable') shiftTable?:PersonalizedTable;
   @ViewChild('businessTable') businessTable?:PersonalizedTable;
   @ViewChild('blockTable') blockTable?:PersonalizedTable;

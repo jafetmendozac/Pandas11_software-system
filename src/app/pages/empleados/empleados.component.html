@@ -1,21 +1,25 @@
 <app-page-breadcrumb pageTitle="Empleados y horarios" />
 <div class="space-y-6">
-  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Busca a una persona para consultar sus turnos y ausencias. El horario del local y los bloqueos generales se muestran debajo.</p>
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Busca a una persona para consultar sus turnos y ausencias. Haz clic en ▸ para expandir y ver sus horarios.</p>
   @if(errorMessage()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando empleados…</p>}
-  <app-component-card title="Equipo" desc="Busca por nombre o teléfono. Usa Ver horarios para consultar los turnos y bloqueos de una persona.">
+  <app-component-card title="Equipo" desc="Busca por nombre o teléfono. Expande una fila para ver y gestionar sus turnos y bloqueos.">
     <app-personalized-table #table [tableData]="tableData()" [columns]="columns" [serverTotal]="total()"
       (queryChanged)="loadEmployees($event)" [saveAction]="saveEmployee"
       [allowCreate]="authorization.has('employees.manage') && profilesReady()" [allowEdit]="authorization.has('employees.manage')" [allowDelete]="false"
       addLabel="Añadir empleado" createTitle="Añadir empleado" editTitle="Editar empleado"
-      searchPlaceholder="Buscar por nombre o teléfono…" detailsLabel="Ver horarios" (rowDetails)="selectEmployee($event)" />
+      searchPlaceholder="Buscar por nombre o teléfono…"
+      [expandable]="true" [expandedRowId]="expandedRowId()" (rowToggle)="toggleRow($event)" [expandRowTemplate]="expandRowTemplate" [columnFormatters]="columnFormatters()">
+      <ng-template #expandRowTemplate let-item>
+        <app-work-calendar [employee]="asEmployee(item)" [employeeOnly]="true" />
+      </ng-template>
+    </app-personalized-table>
   </app-component-card>
-  <div class='py-2'></div>
-  <section aria-labelledby="employee-calendar-title" class="space-y-4">
+  <section aria-labelledby="general-calendar-title" class="space-y-4">
     <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-500/30 dark:bg-brand-500/10">
-      <h2 id="employee-calendar-title" class="text-lg font-semibold text-gray-800 dark:text-white/90">{{ selected() ? 'Horarios de ' + selected()!.employee_name : 'Horario del local y ausencias generales' }}</h2>
-      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ selected() ? 'También puedes consultar el horario del local y los bloqueos generales. Elige otra persona desde la lista para cambiar esta vista.' : 'Selecciona «Ver horarios» en la lista para añadir los turnos y ausencias de una persona a esta vista.' }}</p>
+      <h2 id="general-calendar-title" class="text-lg font-semibold text-gray-800 dark:text-white/90">Horario del local y bloqueos generales</h2>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Estos datos aplican al negocio y no pertenecen a un empleado específico.</p>
     </div>
-    <app-work-calendar [employee]="selected()" />
+    <app-work-calendar [employee]="null" />
   </section>
 </div>
