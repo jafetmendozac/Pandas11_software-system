@@ -35,7 +35,7 @@
     </div>
     <div class="custom-calendar relative"><full-calendar [options]="options()" /></div>
     <div class="space-y-2 border-t border-gray-100 px-6 py-4 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-      <p>Hora de Lima. Cada evento representa una etapa y un trabajador; selecciónalo para abrir la cita.</p>
+      <p>Cada evento representa una etapa y un trabajador; selecciónalo para abrir la cita.</p>
       <p>Las citas canceladas o no asistidas no ocupan horario. Los recojos se registran como bloqueos manuales; consultar disponibilidad no reserva capacidad.</p>
     </div>
   </div>
@@ -49,7 +49,6 @@
       </div>
       <button type="button" [disabled]="pending()" (click)="close()" aria-label="Cerrar formulario" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-200 text-xl leading-none text-gray-500 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">×</button>
     </div>
-    @if(formError()){<p role="alert" class="text-error-600 dark:text-error-400">{{ formError() }}</p>}
     @if(detailLoading()){<p role="status">Cargando ficha…</p>}
     @if(!detailLoading()){
       @if(current();as a){
@@ -118,6 +117,7 @@
           }
           @if(items().length){}
         </fieldset>
+        @if(formError()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ formError() }}</p>}
         @if(canEdit){
           <div class="flex flex-wrap gap-3 w-full">
             <button type="button" [disabled]="pending()" (click)="close()" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Cerrar</button>
