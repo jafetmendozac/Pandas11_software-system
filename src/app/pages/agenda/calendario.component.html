@@ -78,57 +78,51 @@
                     <app-date-picker [id]="'date-'+firstItem.key" label="Fecha de la atención" placeholder="Selecciona fecha" [value]="itemDate(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [spanish]="true" [customOnMobile]="true" [aboveModal]="true" (dateChange)="setItemDate(firstItem,$event.dateStr)" />
                     <app-time-picker [id]="'time-'+firstItem.key" label="Hora de inicio" placeholder="Selecciona hora" [value]="itemTime(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [enableSeconds]="true" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setItemTime(firstItem,$event)" />
                   </div>
-                  @if(newItemError()){<p class="mt-2 text-sm text-error-600 dark:text-error-400" role="alert">{{ newItemError() }}</p>} @else {<p class="mt-3 text-xs text-gray-500 dark:text-gray-400">La duración de la atención se calcula automáticamente a partir de los servicios seleccionados.</p>}
+                  @if(newItemError()){<p class="mt-2 text-sm text-error-600 dark:text-error-400" role="alert">{{ newItemError() }}</p>}
                   @if(group.items.some(item=>item.service_id)){
                     <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                      <div><span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Trabajador para toda la atención</span><app-custom-select [options]="groupEmployeeOptions(group)" [value]="groupEmployeeId(group)" [disabled]="pending() || !canEdit" (valueChange)="setGroupEmployee(group,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para toda la atención de ' + (group.pet_name || 'la mascota')" /></div>
-                      @if(groupInterval(group);as total){<p class="self-end text-sm text-gray-600 dark:text-gray-400">Duración total: {{ groupDuration(group) }} minutos<br />{{ total.starts_local.replace('T',' ') }} — {{ total.ends_local.replace('T',' ') }}</p>}
+                      <div class="sm:col-span-2"><span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Trabajador para toda la atención</span><app-custom-select [options]="groupEmployeeOptions(group)" [value]="groupEmployeeId(group)" [disabled]="pending() || !canEdit" (valueChange)="setGroupEmployee(group,$event)" placeholder="Selecciona trabajador cualificado" [ariaLabel]="'Trabajador para toda la atención de ' + (group.pet_name || 'la mascota')" /></div>
                     </div>
                   }
                 </div>
               }
               </div>
               @if(group.items.some(item=>item.service_id)){
-                <section class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                  <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-bold text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300 uppercase tracking-wider">Servicios incluidos</div>
-                  <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                <section class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-gray-50/40 dark:border-gray-700 dark:bg-gray-900/20">
+                  <div class="border-b border-gray-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-700 dark:border-gray-700 dark:text-gray-300">Servicios incluidos</div>
+                  <div class="grid gap-3 p-3 sm:grid-cols-2">
                     @for(item of group.items;track item.key){
                       @if(item.service_id){
-                        <div class="flex items-center justify-between gap-3 px-4 py-3.5 text-sm">
-                          <div class="min-w-0 flex items-center gap-3">
-                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 font-bold text-[10px] dark:bg-brand-900/30 dark:text-brand-400">✂️</span>
-                            <div>
-                              <span class="block text-sm font-medium text-gray-800 dark:text-white/90">{{ item.service_name || 'Servicio' }}</span>
-                              <span class="text-[11px] text-gray-400 dark:text-gray-500">S/ {{ formatPrice(item.price) }} · {{ item.duration_minutes }} min</span>
-                            </div>
+                        <div class="relative flex min-h-[72px] items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900/50">
+                          <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-5 w-5"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="m8 7.5 10 5.5M8 16.5 18 11"/></svg>
+                          </span>
+                          <div class="min-w-0 flex-1 pe-5">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-white/90" [title]="item.service_name || 'Servicio'">{{ item.service_name || 'Servicio' }}</span>
+                            <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">S/ {{ formatPrice(item.price) }} · {{ item.duration_minutes }} min</span>
+                            @if(item.quoting){<span class="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-warning-600 dark:text-warning-400">Calculando…</span>} @else {<span class="mt-1 inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700 dark:bg-success-500/10 dark:text-success-400"><span class="h-1.5 w-1.5 rounded-full bg-success-500"></span>Confirmado</span>}
                           </div>
-                          <div class="flex items-end gap-2 text-right">
-                            @if(item.quoting){<span class="inline-flex items-center gap-1 animate-pulse rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-bold text-warning-600 dark:bg-warning-900/30 dark:text-warning-400 shadow-sm">Calculando…</span>} @else {<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-bold text-success-600 dark:bg-success-900/30 dark:text-success-400 shadow-sm"><span class="h-1 w-1 rounded-full bg-success-500 dark:bg-success-400"></span>Listo</span>}
-                          </div>
+                          @if(canEdit){<button type="button" (click)="setGroupServices(group, selectedServices(group).filter(id=>id!==item.service_id))" [disabled]="pending() || item.quoting" [attr.aria-label]="'Quitar ' + (item.service_name || 'servicio')" class="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-lg leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200">×</button>}
                         </div>
                       }
                     }
                   </div>
-                  <div class="border-t border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900/30">
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Total</span>
-                      <div class="text-right">
-                        <span class="block text-lg font-bold text-brand-700 dark:text-brand-400">S/ {{ formatPrice(groupTotalPrice(group)) }}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ groupDuration(group) }} min en total</span>
-                      </div>
-                    </div>
+                  <div class="flex flex-col gap-3 border-t border-gray-200 bg-brand-50/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-end dark:border-gray-700 dark:bg-brand-500/10">
+                    @if(groupInterval(group);as total){<span class="me-auto inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-5 w-5 shrink-0"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Horario calculado: {{ total.starts_local.split('T')[1] }} — {{ total.ends_local.split('T')[1] }}</span></span>}
+                    <div class="text-end"><span class="block text-xl font-bold leading-tight text-gray-900 dark:text-white">TOTAL: S/ {{ formatPrice(groupTotalPrice(group)) }}</span><span class="mt-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ groupDuration(group) }} min en total</span></div>
                   </div>
                 </section>
               }
             </section>
           }
           @if(canEdit){<button type="button" [disabled]="!clientId" (click)="addItem()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Añadir mascota</button>}
-          @if(items().length){<p class="text-sm text-gray-600 dark:text-gray-400">Los servicios de una misma mascota forman una sola atención. La duración total y el horario se calculan automáticamente.</p>}
+          @if(items().length){}
         </fieldset>
         @if(canEdit){
-          <div class="flex flex-wrap gap-3">
-            <button type="button" [disabled]="pending() || checking() || !items().length || items().some(i=>i.quoting) || !newItemValid()" (click)="checkAvailability()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">{{ checking() ? 'Comprobando…' : 'Comprobar disponibilidad' }}</button>
-            <button type="submit" [disabled]="pending() || items().some(i=>i.quoting) || !newItemValid()" class="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">{{ pending() ? 'Guardando…' : 'Guardar cita' }}</button>
+          <div class="flex flex-wrap gap-3 w-full">
+            <button type="button" [disabled]="pending()" (click)="close()" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Cerrar</button>
+            <button type="button" [disabled]="pending() || checking() || !items().length || items().some(i=>i.quoting) || !newItemValid()" (click)="checkAvailability()" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">{{ checking() ? 'Comprobando…' : 'Comprobar disponibilidad' }}</button>
+            <button type="submit" [disabled]="pending() || items().some(i=>i.quoting) || !newItemValid()" class="flex-1 rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">{{ pending() ? 'Guardando…' : 'Guardar cita' }}</button>
           </div>
         }
       </form>
@@ -148,6 +142,5 @@
         }
       }
     }
-    <button type="button" [disabled]="pending()" (click)="close()" class="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Cerrar</button>
   </div>
 </app-modal>
