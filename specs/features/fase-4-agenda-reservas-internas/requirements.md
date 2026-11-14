@@ -19,7 +19,7 @@ Recepción registra, consulta, reprograma, cambia estados y cancela citas intern
 
 1. Solo OWNER/ADMIN crean, reprograman, cambian estados y cancelan; STAFF consulta.
 2. Incluir ahora etapas y relevo de baño a corte. Recepción define los minutos de cada etapa, respetando la duración total configurada del servicio.
-3. Una cita puede incluir varias mascotas del mismo cliente, según disponibilidad real de los trabajadores. No fijar dos mascotas como máximo por cita.
+3. Una cita interna nueva o reprogramada incluye una sola mascota del cliente. Las citas históricas con varias mascotas se conservan para consulta y no se modifican automáticamente.
 
 Después de estas respuestas, el usuario autorizó el plan completo mediante «Vamos procede», incluidas las propuestas operativas y ampliaciones del modelo.
 
@@ -28,7 +28,7 @@ Después de estas respuestas, el usuario autorizó el plan completo mediante «V
 | Regla | Aplicación |
 |---|---|
 | RN-01 | America/Lima, lunes–sábado incluidos feriados, domingo cerrado, último inicio17 y fin posterior a18 solo con turno que lo cubra |
-| RN-03, RN-14 | Una persona atiende un perro a la vez; varias mascotas por cita, sin máximo arbitrario independiente de trabajadores disponibles |
+| RN-03, RN-14 | Una persona atiende una mascota por cita interna; una cita nueva o reprogramada no puede incluir más de una mascota |
 | RN-04, RN-05, RN-11, RN-12 | Precio/duración por mascota usando tarifa vigente de Fase 2; snapshots completos y decimales exactos. No inventar duraciones por tamaño |
 | RN-06 | Recojos ocupan al empleado a través de bloqueos manuales existentes. Su generación/cotización automática no entra en esta propuesta |
 | RN-07, RN-10, RN-15 | Asistente solo baño; corte requiere ALL_SERVICES. Etapas con tiempos explícitos y validación del relevo |
@@ -93,7 +93,7 @@ Permisos independientes de dominio: appointments.read/manage/status/cancel y app
 | ID | Resultado verificable |
 |---|---|
 | F4-01 | Migración incremental CLI de las cuatro tablas/enums y ampliaciones aprobadas, FKs compuestas, defaults/constraints/índices, RLS y modelo coherentes; sin reset ni pérdida de datos previos |
-| F4-02 | OWNER/ADMIN gestionan una cita INTERNAL con uno o varios perros del mismo cliente y servicios; perfiles/mascotas/servicios inválidos rechazados; STAFF consulta sin escrituras por UI, REST o RPC |
+| F4-02 | OWNER/ADMIN gestionan una cita INTERNAL con una mascota y uno o varios servicios; perfiles/mascotas/servicios inválidos rechazados; STAFF consulta sin escrituras por UI, REST o RPC. Históricos con varias mascotas son consultables pero no reprogramables |
 | F4-03 | Alta y edición de cabecera/items/asignaciones son atómicas: un fallo en cualquier elemento revierte toda la operación; cancelación conserva detalle/historial |
 | F4-04 | Cotización por tamaño/pelaje en servidor, snapshots y total numeric exactos; no confiar importes/minutos/status/source/autor del payload; precio se cobra una vez por item y no por etapa |
 | F4-05 | Etapas explícitas permiten asistente en baño y especialista en corte, incluso mismo empleado en ambas; suma de minutos válida, orden y cobertura continua; sin fases ficticias ni solapamientos de mascota |
@@ -130,7 +130,7 @@ El usuario solicitó usar los controles reutilizables equivalentes en el formula
 
 ## Agrupación por mascota y filtros — 2026-11-06
 
-El usuario pidió elegir varios servicios en un mismo selector y usar otra tarjeta únicamente para otra mascota; también pidió sustituir los selectores nativos de empleado, estado y vista de la agenda.
+El usuario pidió originalmente elegir varios servicios en un mismo selector y separar tarjetas por mascota; el cambio aprobado el 2026-11-13 reemplaza esa posibilidad por una única tarjeta de mascota. También se sustituyeron los selectores nativos de empleado, estado y vista de la agenda.
 
-- F4-UI-03 (RN-03, RN-11/RN-12, RN-14/RN-15; F4-02/F4-04/F4-05/F4-06): mostrar una tarjeta por mascota con selección múltiple de servicios. Cada servicio conserva sus horarios, etapas, trabajador y tarifa, sin duplicar la combinación mascota/servicio. Los servicios de una mascota siguen siendo consecutivos; distintas mascotas pueden tener el mismo servicio.
+- F4-UI-03 (RN-03, RN-11/RN-12, RN-14/RN-15; F4-02/F4-04/F4-05/F4-06): mostrar una sola tarjeta de mascota con selección múltiple de servicios. Cada servicio conserva sus horarios, etapas, trabajador y tarifa, sin duplicar la combinación mascota/servicio.
 - F4-UI-04 (RN-13; F4-11/F4-12): empleado, estado y vista mes/año/semana/día utilizan el selector compartido y conservan su comportamiento de filtrado y navegación.

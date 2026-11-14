@@ -55,7 +55,8 @@ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';emplo
  private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
  private readonly automaticStarts=new Set<string>();
  private readonly removedItems=new Map<string,DraftItem>();
- get canEdit():boolean{return !this.detailFailed()&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
+ get historicalMultiPet():boolean{return !!this.current()&&new Set(this.current()!.items.map(item=>item.pet_id)).size>1;}
+ get canEdit():boolean{return !this.detailFailed()&&!this.historicalMultiPet&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
  async ngOnInit():Promise<void>{
   this.options.set({...calendarAppearance,plugins:[themePlugin,dayGridPlugin,multiMonthPlugin,timeGridPlugin,interactionPlugin],initialView:'dayGridMonth',locale:esLocale,timeZone:'America/Lima',direction:document.documentElement.dir==='rtl'?'rtl':'ltr',allDaySlot:false,
    headerToolbar:false,slotMinTime:'07:00:00',slotMaxTime:'24:00:00',height:'auto',
@@ -211,7 +212,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(stage.employee_id&&!candidates.some(e=>e.id===stage.employee_id))rows.unshift({value:stage.employee_id,label:`${this.assignedName(item,index)} · No habilitado`,disabled:true});
   return rows;
  }
- setClient(value:string|number|null):void{this.clientId=String(value??'');this.changeClient();}
+ setClient(value:string|number|null):void{this.clientId=String(value??'');this.changeClient();if(this.clientId)this.addItem();}
  setGroupPet(group:PetGroup,value:string|number|null):void{
   if(!this.canEdit||group.items.some(item=>!!item.id))return;
   const id=String(value??''),pet=this.filteredPets().find(p=>p.id===id);
@@ -251,12 +252,8 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
  setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
  private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
  addItem():void{
-  if(!this.canEdit||!this.clientId)return;
+  if(!this.canEdit||!this.clientId||this.petGroups().length>0)return;
   this.items.update(rows=>[...rows,this.newItem('',this.suggestedStart||this.nextStart())]);this.touch();
- }
- removePetGroup(group:PetGroup):void{
-  if(!this.canEdit)return;for(const item of group.items){this.automaticStarts.delete(item.key);if(item.id&&item.service_id)this.removedItems.set(`${item.pet_id}:${item.service_id}`,item);}
-  this.items.update(rows=>rows.filter(item=>!group.items.includes(item)));this.touch();
  }
  private reflowPet(petId:string):void{
   if(!petId)return;let ready=true;let cursor='';

@@ -33,6 +33,8 @@ export function stageInputs(item:DraftItem):StageInput[]{
 }
 export function appointmentInput(clientId:string,notes:string,items:DraftItem[]):AppointmentInput {
  if(!clientId||!items.length)throw new Error('Selecciona cliente y añade servicios por mascota.');
+ const petIds=new Set(items.map(item=>item.pet_id).filter(Boolean));
+ if(petIds.size!==1||items.some(item=>!item.pet_id))throw new Error('Una cita solo puede incluir una mascota.');
  const combinations=new Set<string>();
  return {client_id:clientId,client_notes:notes,items:items.map(i=>{
   if(!i.pet_id||!i.service_id||i.quoting||i.duration_minutes<=0)throw new Error('Completa la mascota y el servicio cotizado.');

@@ -13,7 +13,7 @@ Fecha: 2026-10-29 (America/Lima). Estado: **implementado y validado en entorno l
 |---|---|
 | DG-01 | Pruebas SQL de OWNER, ADMIN, STAFF, CLIENT, anon, usuario inactivo y rol personalizado con permiso delegado. Pruebas Angular de rol seleccionado y respuesta antigua. La RPC exige rol OWNER/ADMIN activo y `analytics.read`; `EXECUTE` solo para `authenticated`. |
 | DG-02–DG-03 | Pruebas SQL comparan el mes elegido con 5.1 y cubren 12 meses, ceros, cruce de año y frontera horaria Lima; ventas mixtas y pagos de venta anulada sin duplicar caja. Pruebas Angular verifican el periodo enviado y el formato exacto de PEN. |
-| DG-04–DG-05 | Pruebas SQL con varias mascotas/items, relevo BATH→CUT, servicio inactivo, `NO_SHOW`, ventas anuladas RESTOCK/NO_RESTOCK y desempate del ranking. Solo cuenta cada item o salida de inventario elegible una vez. |
+| DG-04–DG-05 | Pruebas SQL con varios items —incluidos históricos múltiples—, relevo BATH→CUT, servicio inactivo, `NO_SHOW`, ventas anuladas RESTOCK/NO_RESTOCK y desempate del ranking. Solo cuenta cada item o salida de inventario elegible una vez. |
 | DG-06 | Pruebas del componente comprueban ausencia de widgets demo, estados de carga/error/reintento/vacío y enlaces operativos para STAFF. |
 | DG-07 | La plantilla contiene títulos, unidades, leyenda, tablas/listas equivalentes, foco visible y clases responsivas/oscuras. La compilación de plantillas y las pruebas DOM pasan. **Revisión visual manual de escritorio/móvil, oscuro y teclado pendiente**; los tests sustituyen el gráfico ApexCharts por un componente falso y no certifican su dibujo real. |
 

@@ -4,7 +4,7 @@ Fecha: 2026-10-17 (America/Lima). Estado: implementación local validada tras au
 
 ## Alcance y aprobación
 
-El usuario confirmó OWNER/ADMIN gestionan, STAFF consulta; varias mascotas del mismo cliente según capacidad; etapas y relevo con tiempos definidos por recepción respetando el total del servicio. Después aprobó el plan y sus ampliaciones al modelo, estados, continuidad, snapshots y tratamiento manual de recojos.
+La validación original cubrió varias mascotas del mismo cliente según la decisión vigente en 2026-10-17. Esa regla fue sustituida el 2026-11-13: las altas y reprogramaciones aceptan una mascota con varios servicios; los históricos múltiples se conservan. La evidencia vigente está en [Cita interna con una sola mascota](../cita-interna-una-mascota/validation.md).
 
 Al iniciar la implementación estaban pendientes únicamente cambios documentales de esta misma fase: business-rules.md y el nuevo directorio de especificaciones. Se conservaron y continuaron. Preflight local de solo lectura confirmó ausencia de appointments, appointment_items, appointment_item_staff, appointment_internal, appointment_services y sus enums; había cuatro migraciones anteriores.
 
@@ -15,7 +15,7 @@ La migración `20261017220427_internal_appointments.sql` se creó con Supabase C
 | Criterio | Resultado |
 |---|---|
 | F4-01 | Quinta migración incremental, enums, defaults/NOT NULL, FKs compuestas, índices, minutos enteros por etapa, snapshot de habilidad y version; modelo actualizado y datos previos conservados |
-| F4-02 | OWNER/ADMIN registran y modifican, STAFF lee, CLIENT/anon/inactivos denegados por RLS/RPC. Si se desactiva un administrador mientras espera el mutex, se vuelve a comprobar su permiso antes de escribir y no se crea la cita. Se prueban varias mascotas del mismo cliente y rechazo de mascota ajena |
+| F4-02 | Evidencia histórica de permisos y atomicidad conservada. La cardinalidad vigente —una mascota por alta/reprogramación e históricos múltiples solo consulta— se valida en el paquete correctivo del 2026-11-13 |
 | F4-03 | save_internal_appointment escribe cabecera/items/etapas dentro de una transacción; fallo del segundo item o edición inválida revierte y conserva el estado anterior completo |
 | F4-04 | Tarifa por mascota en SQL, price/duration/requires_specialist_snapshot persistidos. Se prueba catálogo modificado después de reservar sin alterar snapshots/IDs al reprogramar, precio una sola vez por item y rechazo de importes/origen/autor enviados por cliente |
 | F4-05 | SERVICE o BATH→CUT consecutivos; empleado distinto o mismo en ambas etapas; suma exacta al total y minutos positivos. Cada etapa exige un número entero positivo de minutos en SQL, incluso si un payload con segundos suma el total correcto. Asistente no corta ni puede recibir un servicio especializado disfrazado de solo baño. Conflictos de mascota dentro/fuera de la cita denegados |

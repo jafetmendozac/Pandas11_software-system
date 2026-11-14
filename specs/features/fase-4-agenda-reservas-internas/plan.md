@@ -4,7 +4,7 @@ Fecha: 2026-10-17. Estado: aprobado mediante «Vamos procede» e implementado en
 
 ## Decisiones y alcance
 
-Confirmado por el usuario: gestión de citas solo OWNER/ADMIN, STAFF consulta; varias mascotas del mismo cliente según capacidad; etapas con relevo y minutos definidos por recepción respetando el total del servicio. Las políticas operativas adicionales de [requirements.md](requirements.md) se presentan para aprobar con este plan.
+Confirmado por el usuario: gestión de citas solo OWNER/ADMIN, STAFF consulta; una mascota por cita interna nueva o reprogramada; etapas con relevo y minutos definidos por recepción respetando el total del servicio. Las políticas operativas adicionales de [requirements.md](requirements.md) se presentan para aprobar con este plan.
 
 Se adapta la agenda existente en `/calendario`, no se reconstruye el proyecto ni se amplía el calendario de demostración `/calendar`. Tablas del alcance: appointments, appointment_items, appointment_item_staff y appointment_internal; dependencias de Fases 0–3. No se implementan pagos, autorreserva online ni tareas automáticas de transporte.
 
@@ -87,7 +87,7 @@ Matriz de requisitos: OWNER/ADMIN gestionan, STAFF lee, CLIENT/anon/inactivos de
 
 Reescribir los tipos y consultas de AppointmentsService para el modelo aprobado; eliminar su dependencia funcional de appointment_services sin borrar una tabla remota. Reutilizar búsquedas de clientes/mascotas, empleados y tarifas ya migradas; seleccionar solo activos al crear. Conservar lectura histórica por RPC controlada de la cita incluso si después se retira una ficha.
 
-Adaptar CalendarioComponent y su formulario para cliente fijo, varias mascotas, servicios/items, asignación y tiempos por etapa, cotización, disponibilidad, estados y cancelación. Observaciones internas en sección aparte por permiso; no utilizarlas como título del evento. Guardado asíncrono confirmado, campos preservados ante error, bloqueo de doble envío y respuestas obsoletas descartadas. Deshabilitar arrastre/resize si no pasan por el mismo contrato transaccional.
+Adaptar CalendarioComponent y su formulario para cliente fijo, una mascota, varios servicios/items, asignación y tiempos por etapa, cotización, disponibilidad, estados y cancelación. Observaciones internas en sección aparte por permiso; no utilizarlas como título del evento. Guardado asíncrono confirmado, campos preservados ante error, bloqueo de doble envío y respuestas obsoletas descartadas. Deshabilitar arrastre/resize si no pasan por el mismo contrato transaccional.
 
 Cargar por rango visible con paginación estable y completa, también para catálogos/opciones; probar más de1000 registros sin truncado silencioso. Representar asignaciones/etapas de forma que no parezca que un trabajador ocupa toda una cita paralela cuando solo cubre un tramo. Ficha agrupada por cita y filtros por empleado/estado.
 
@@ -142,6 +142,6 @@ Cada acción «Añadir otro servicio» crea una fila para la misma mascota y sug
 
 ## Agrupación por mascota y filtros — 2026-11-06
 
-La solicitud posterior sustituye la presentación de una tarjeta por servicio por una tarjeta por mascota. Reutilizar y adaptar `MultiSelectComponent` para selección controlada, estados deshabilitados y teclado; cada servicio sigue siendo un `DraftItem` independiente para conservar el contrato RPC y sus etapas. Agrupar los items por mascota únicamente en la interfaz, impedir seleccionar la misma mascota en dos tarjetas y permitir el mismo servicio para mascotas distintas.
+La solicitud posterior sustituyó la presentación de una tarjeta por servicio por una tarjeta por mascota. El cambio aprobado el 2026-11-13 la limita finalmente a una única tarjeta de mascota por cita. `MultiSelectComponent` conserva la selección de varios servicios y cada servicio sigue siendo un `DraftItem` independiente para preservar el contrato RPC y sus etapas.
 
 Sugerir la secuencia al resolver las cotizaciones, incluso cuando respondan fuera de orden; actualizar solo los inicios automáticos y conservar las horas editadas por el usuario. Al desmarcar y volver a marcar un servicio ya guardado durante la misma edición, conservar su identificador y snapshot. Los filtros y vistas de la agenda reutilizan `CustomSelectComponent`. Verificar alta, edición, permisos, snapshot, disponibilidad y vista móvil; documentar resultados sin migración ni cambios remotos.

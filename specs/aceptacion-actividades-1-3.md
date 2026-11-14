@@ -23,7 +23,7 @@ Las capturas se obtuvieron en Chrome Headless 155, ancho 1440 px, sobre una comp
 | 1.3 | Aportar constancias y fechas del proyecto Supabase y repositorio GitHub, sin claves ni datos privados. | Pendiente de evidencia externa. |
 | 2.1–2.4 | Recorrer registro, confirmación de correo, acceso OWNER/ADMIN/STAFF/CLIENT, perfil y salida. Confirmar el alcance de roles y del panel. | Capturas parciales y pruebas técnicas disponibles; aceptación pendiente. |
 | 3.1–3.3 | Revisar alta/edición/baja lógica, ficha, desparasitaciones, notas internas, catálogo y **precios/duraciones comerciales reales**. | Capturas de consulta y pruebas técnicas disponibles; aceptación pendiente. |
-| 3.4 | Recorrer creación de cita, varias mascotas, relevo, conflicto, reprogramación y cancelación. | Pruebas técnicas previas disponibles; recorrido humano pendiente. |
+| 3.4 | Recorrer creación de cita con una mascota y varios servicios, relevo, conflicto, reprogramación y cancelación. | Pruebas técnicas previas disponibles; recorrido humano pendiente. |
 | 3.5 | Confirmar que consultar citas pasadas y canceladas con detalle satisface «históricos». | Alcance definido por el usuario y demostrado en navegador local; conformidad de Alex y Caro pendiente. |
 
 ## Registro de conformidad

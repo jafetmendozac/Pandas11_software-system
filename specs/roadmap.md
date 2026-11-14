@@ -79,7 +79,7 @@ Una contradicción documental se informa antes de resolverla. Una tarea no se de
 | ID | Decisión del usuario | Estado |
 |---|---|---|
 | D-01 | Fuente de verdad del esquema y procedencia del SQL local | Pendiente |
-| D-02 | Citas con una o varias mascotas y empleados; estados válidos | Pendiente |
+| D-02 | Citas internas con una mascota, varios servicios y empleados; estados válidos | Pendiente |
 | D-03 | Registro público, asignación inicial de roles y matriz de permisos | Pendiente |
 | D-04 | Zona horaria, horarios, bloqueos y prevención de solapamientos | Fase 3 aprobada/validada localmente: America/Lima, turnos, bloqueos, último inicio17 y fin extendido explícito. Ocupación automática de agenda pendiente (RN-01) |
 | D-05 | Tarifas comodín, prioridad y reglas de duración/precio | Parcial: duración según tamaño y transporte fijado por administrador según hora/distancia; valores y prioridad pendientes (RN-04 a RN-06) |
@@ -112,7 +112,7 @@ Pendiente para una siguiente fase: acordar el contrato canónico de citas, integ
 
 ## Avance Fase 4 — 2026-10-17
 
-Plan y ampliaciones aprobados e implementados en identity-dev: agenda interna por items, varias mascotas del mismo cliente, etapas/relevo y trabajadores cualificados. Reservas atómicas con control de versión, snapshots de tarifas/duración/habilidad, cancelación sin borrado y notas internas separadas. OWNER/ADMIN gestionan; STAFF consulta. Conflictos por trabajador/mascota y carreras con configuración laboral protegidos en servidor.
+Plan y ampliaciones aprobados e implementados en identity-dev: agenda interna por items, una mascota por cita, varios servicios, etapas/relevo y trabajadores cualificados. Reservas atómicas con control de versión, snapshots de tarifas/duración/habilidad, cancelación sin borrado y notas internas separadas. OWNER/ADMIN gestionan; STAFF consulta. Conflictos por trabajador/mascota y carreras con configuración laboral protegidos en servidor. Los históricos anteriores con varias mascotas permanecen consultables y no se reprograman.
 
 63 pruebas Angular,112 SQL y265 comprobaciones API acumuladas correctas; lint/tipos/build correctos. Modelo local y contratos Angular alineados. Evidencia en [validation.md](features/fase-4-agenda-reservas-internas/validation.md).
 

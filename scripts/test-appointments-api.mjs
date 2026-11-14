@@ -34,15 +34,23 @@ try{
  const simple=(pet=pets[0],emp=employees[0],start='10:00',end='11:00',date='2030-07-29')=>input([item(pet,services[1],[stage(emp,'SERVICE',start,end,date)])]);
  const save=async(payload,api=owner,current=null)=>{const a=await value(api.rpc('save_internal_appointment',{p_input:payload,...(current?{p_id:current.id,p_expected_version:current.version}:{})}));if(!appointments.includes(a.id))appointments.push(a.id);return a;};
  const cancel=async a=>value(owner.rpc('change_appointment_status',{p_id:a.id,p_expected_version:a.version,p_target:'CANCELLED',p_reason:'Prueba sintética'}));
- const split=input([item(pets[0],services[0],[stage(employees[1],'BATH','08:00','09:00'),stage(employees[0],'CUT','09:00','10:00')]),item(pets[1],services[1],[stage(employees[0],'SERVICE','08:00','09:00')])]);
+ const split=input([item(pets[0],services[0],[stage(employees[1],'BATH','08:00','09:00'),stage(employees[0],'CUT','09:00','10:00')]),item(pets[0],services[1],[stage(employees[0],'SERVICE','10:00','11:00')])]);
  let a=await save(split,admin);
- ok(a.items.length===2&&a.items.flatMap(i=>i.stages).length===3,'Dos perros y relevo en reserva atómica');
+ ok(a.items.length===2&&new Set(a.items.map(i=>i.pet_id)).size===1&&a.items.flatMap(i=>i.stages).length===3,'Una mascota con dos servicios y relevo en reserva atómica');
  ok(a.total_price==='150.35'&&a.deposit_required==='0'&&a.source==='INTERNAL'&&a.status==='CONFIRMED'&&a.version===1,'Total una vez por servicio, sin adelanto de autorreserva');
- ok(a.starts_at.startsWith('2030-07-29T13:00:00')&&a.ends_at.startsWith('2030-07-29T15:00:00'),'Hora Lima en cabecera derivada de etapas');
+ ok(a.starts_at.startsWith('2030-07-29T13:00:00')&&a.ends_at.startsWith('2030-07-29T16:00:00'),'Hora Lima en cabecera derivada de etapas');
  ok(a.created_by===actors.ADMIN.id,'Autor real del servidor');
  execFileSync('supabase',['test','db'],{stdio:'pipe'});
  ok((await value(owner.rpc('get_appointment',{p_id:a.id}))).version===a.version,'Regresión SQL completa con una reserva vigente ajena a sus fixtures; la conserva');
  ok((await value(staff.rpc('get_appointment',{p_id:a.id}))).items.length===2,'STAFF consulta ficha completa');
+ const historicalId=randomUUID(),historicalItemA=randomUUID(),historicalItemB=randomUUID();appointments.push(historicalId);
+ sql(`insert into public.appointments(id,client_id,starts_at,ends_at,total_price,created_by) values('${historicalId}','${clients[0]}','2030-08-05 13:00+00','2030-08-05 14:00+00',100.50,'${actors.OWNER.id}');insert into public.appointment_items(id,appointment_id,pet_id,client_id,service_id,price,duration_minutes,requires_specialist_snapshot) values('${historicalItemA}','${historicalId}','${pets[0]}','${clients[0]}','${services[1]}',50.25,60,false),('${historicalItemB}','${historicalId}','${pets[1]}','${clients[0]}','${services[1]}',50.25,60,false);insert into public.appointment_item_staff(item_id,employee_id,stage,starts_at,ends_at) values('${historicalItemA}','${employees[0]}','SERVICE','2030-08-05 13:00+00','2030-08-05 14:00+00'),('${historicalItemB}','${employees[1]}','SERVICE','2030-08-05 13:00+00','2030-08-05 14:00+00')`);
+ const historicalBefore=await value(owner.rpc('get_appointment',{p_id:historicalId}));
+ ok(new Set(historicalBefore.items.map(i=>i.pet_id)).size===2,'Histórico con varias mascotas sigue consultable');
+ const historicalEdit=input([{id:historicalItemA,...item(pets[0],services[1],[stage(employees[0],'SERVICE','08:00','09:00','2030-08-05')])}]);
+ const historicalRejected=await owner.rpc('save_internal_appointment',{p_input:historicalEdit,p_id:historicalId,p_expected_version:historicalBefore.version});
+ ok(historicalRejected.error?.code==='22023'&&historicalRejected.error.message.includes('histórica'),'Histórico con varias mascotas no se reprograma');
+ ok(JSON.stringify(await value(owner.rpc('get_appointment',{p_id:historicalId})))===JSON.stringify(historicalBefore),'Reprogramación rechazada conserva todos los items históricos');
  await value(owner.rpc('save_appointment_internal',{p_id:a.id,p_expected_version:a.version,p_notes:'Privado '+prefix}));a=await value(owner.rpc('get_appointment',{p_id:a.id}));
  ok(!JSON.stringify(a).includes('Privado'),'Observación interna fuera de ficha ordinaria');
  const note=await value(staff.from('appointment_internal').select('*').eq('appointment_id',a.id).single());ok(note.updated_by===actors.OWNER.id&&note.notes.startsWith('Privado'),'STAFF consulta interna con permiso propio');
@@ -54,6 +62,7 @@ try{
  ok(a.items.some(i=>i.requires_specialist_snapshot),'Habilidad histórica conservada');
  await value(owner.from('services').update({base_price:'100.10',base_duration_minutes:120,requires_specialist:true}).eq('id',services[0]));
  for(const bad of [
+  input([item(pets[0],services[1],[stage(employees[0],'SERVICE','11:00','12:00')]),item(pets[1],services[1],[stage(employees[1],'SERVICE','12:00','13:00')])]),
   input([item(pets[2],services[1],[stage(employees[0],'SERVICE','10:00','11:00')])]),
   input([item(pets[0],services[0],[stage(employees[1],'SERVICE','10:00','12:00')])]),
   input([item(pets[0],services[0],[stage(employees[1],'BATH','10:00','12:00')])]),

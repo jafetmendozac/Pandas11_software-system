@@ -1,16 +1,19 @@
 begin;
-select plan(37);
+select plan(39);
 select set_config('test.owner',gen_random_uuid()::text,true);
 select set_config('test.staff',gen_random_uuid()::text,true);
 select set_config('test.client',gen_random_uuid()::text,true);
 select set_config('test.pet',gen_random_uuid()::text,true);
+select set_config('test.pet2',gen_random_uuid()::text,true);
 select set_config('test.employee',gen_random_uuid()::text,true);
 select set_config('test.service',gen_random_uuid()::text,true);
 insert into auth.users(id,email,raw_user_meta_data) values(current_setting('test.owner')::uuid,'test-'||current_setting('test.owner')||'@example.test','{}'),(current_setting('test.staff')::uuid,'test-'||current_setting('test.staff')||'@example.test','{}');
 insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
 insert into public.user_roles select current_setting('test.staff')::uuid,id from public.roles where code='STAFF';
 insert into public.clients(id,first_name) values(current_setting('test.client')::uuid,'Fixture agenda');
-insert into public.pets(id,client_id,name) values(current_setting('test.pet')::uuid,current_setting('test.client')::uuid,'Fixture perro');
+insert into public.pets(id,client_id,name) values
+ (current_setting('test.pet')::uuid,current_setting('test.client')::uuid,'Fixture perro'),
+ (current_setting('test.pet2')::uuid,current_setting('test.client')::uuid,'Fixture perro 2');
 insert into public.employees(id,profile_id,skill_level) values(current_setting('test.employee')::uuid,current_setting('test.owner')::uuid,'ALL_SERVICES');
 insert into public.employee_schedules(employee_id,weekday,start_time,end_time) values(current_setting('test.employee')::uuid,2,'07:00','19:00');
 insert into public.services(id,name,base_price,base_duration_minutes,requires_specialist) values(current_setting('test.service')::uuid,'Fixture baño/corte',100.10,120,true);
@@ -26,6 +29,11 @@ select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'pickup_type'),'NONE','Cita interna sin traslado por defecto');
 select is((public.get_appointment(current_setting('test.appointment')::uuid)->>'status'),'CONFIRMED','Alta confirmada por recepción');
 select is(jsonb_array_length(public.get_appointment(current_setting('test.appointment')::uuid)->'items'->0->'stages'),2,'Mismo trabajador puede bañar y cortar');
+select throws_ok(
+ $$select public.save_internal_appointment(jsonb_set(current_setting('test.payload')::jsonb,'{items}',(current_setting('test.payload')::jsonb->'items')||jsonb_build_array(jsonb_set(current_setting('test.payload')::jsonb->'items'->0,'{pet_id}',to_jsonb(current_setting('test.pet2'))))))$$,
+ '22023',null,'Una cita no acepta dos mascotas'
+);
+select is((select count(*)::integer from public.appointments where client_id=current_setting('test.client')::uuid),1,'Rechazo de segunda mascota no deja cabecera parcial');
 select is((public.appointment_availability(current_setting('test.employee')::uuid,'2030-07-30','18:00','19:00',true,null,true)->>'interval_covered')::boolean,false,'Agenda descuenta ocupación después18');
 select is((public.employee_availability(current_setting('test.employee')::uuid,'2030-07-30','18:00','19:00',true)->>'interval_covered')::boolean,true,'Contrato laboral de Fase3 se conserva separado');
 select throws_ok($$select public.save_internal_appointment(current_setting('test.payload')::jsonb)$$,'23P01',null,'No duplicar empleado/mascota');

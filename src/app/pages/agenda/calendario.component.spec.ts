@@ -152,11 +152,14 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
  });
 
  it('selecciona dos servicios en una sola tarjeta y envía ambos para la misma mascota',async()=>{
-  const f=await fixture();const c=f.componentInstance;c.openNew('2030-07-29T08:00:00');c.clientId='c';
+  const f=await fixture();const c=f.componentInstance;c.openNew('2030-07-29T08:00:00');
   c.pets.set([{id:'pet',client_id:'c',name:'Perro',pet_size:'TOY',breed_id:null} as never]);
   c.services.set([{id:'service',name:'Baño',requires_specialist:false},{id:'corte',name:'Corte',requires_specialist:false}] as never);
   spyOn(TestBed.inject(TarifasService),'quote').and.callFake(async(id:string)=>({price:'50.25',duration_minutes:id==='service'?60:30} as never));
-  c.addItem();c.setGroupPet(c.petGroups()[0],'pet');f.detectChanges();
+  c.setClient('c');
+  expect(c.petGroups().length).toBe(1);expect(c.items()[0].start).toBe('2030-07-29T08:00:00');
+  c.addItem();expect(c.petGroups().length).toBe(1);
+  c.setGroupPet(c.petGroups()[0],'pet');f.detectChanges();
   const root=f.nativeElement as HTMLElement;const trigger=root.querySelector<HTMLButtonElement>('button[aria-label="Servicios para Perro"]');
   expect(trigger).not.toBeNull();trigger!.click();f.detectChanges();
   trigger!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));f.detectChanges();
@@ -176,6 +179,13 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(saved.items[1].stages[0].starts_local).toBe('2030-07-29T09:00:00');
  });
 
+ it('reinicia una sola tarjeta al cambiar de cliente',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew('2030-07-29T08:00:00');
+  c.setClient('c');expect(c.items().length).toBe(1);expect(c.petGroups().length).toBe(1);
+  c.setClient('');expect(c.items()).toEqual([]);
+  c.setClient('c');expect(c.items().length).toBe(1);expect(c.petGroups().length).toBe(1);
+ });
+
  it('espera la duración anterior aunque las cotizaciones terminen en distinto orden',async()=>{
   const f=await fixture();const c=f.componentInstance;c.openNew('2030-07-29T08:00:00');c.clientId='c';
   c.pets.set([{id:'pet',client_id:'c',name:'Perro',pet_size:'TOY',breed_id:null} as never]);
@@ -193,19 +203,13 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.items()[1].start).toBe('2030-07-29T10:00:00');
  });
 
- it('crea otra tarjeta solo para otra mascota y conserva servicios históricos al editar',async()=>{
+ it('mantiene una sola mascota y permite varios servicios para ella',async()=>{
   const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';
   const first=draft();const second={...draft(),key:'other',service_id:'corte',service_name:'Corte',id:'item-2',price:'73.25'};
   c.items.set([{...first,id:'item-1'},second]);f.detectChanges();
   expect(c.petGroups().length).toBe(1);expect(c.selectedServices(c.petGroups()[0])).toEqual(['service','corte']);
-  expect(c.items()[1].price).toBe('73.25');
-  c.addItem();f.detectChanges();expect(c.petGroups().length).toBe(2);
-  expect((f.nativeElement as HTMLElement).querySelectorAll('form fieldset > section').length).toBe(2);
-  const otherGroup=c.petGroups()[1];c.pets.set([{id:'pet',client_id:'c',name:'Perro'},{id:'pet-2',client_id:'c',name:'Otro'}] as never);
-  expect(c.petOptions(otherGroup).find(option=>option.value==='pet')?.disabled).toBeTrue();
-  c.services.set([{id:'service',name:'Baño',requires_specialist:false}] as never);
-  c.setGroupPet(otherGroup,'pet-2');
-  expect(c.serviceOptions(c.petGroups()[1]).map(option=>option.value)).toContain('service');
+  c.addItem();f.detectChanges();expect(c.petGroups().length).toBe(1);
+  expect((f.nativeElement as HTMLElement).textContent).not.toContain('Añadir mascota');
  });
 
  it('recupera el servicio guardado y su tarifa al desmarcarlo y volverlo a marcar',async()=>{
@@ -219,12 +223,20 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.serviceOptions(c.petGroups()[0]).map(option=>option.value)).toContain('service');
   c.setGroupServices(c.petGroups()[0],['service']);
   expect(c.items()[0].id).toBe('item-1');expect(c.items()[0].price).toBe('73.25');
-  c.removePetGroup(c.petGroups()[0]);c.pets.set([{id:'pet',client_id:'c',name:'Perro'}] as never);
-  c.addItem();c.setGroupPet(c.petGroups()[0],'pet');c.setGroupServices(c.petGroups()[0],['service']);
-  expect(c.items()[0].id).toBe('item-1');expect(c.items()[0].price).toBe('73.25');
   expect(quote).not.toHaveBeenCalled();
   await c.save();expect(api.save.calls.mostRecent().args[0].items[0].id).toBe('item-1');
   expect(api.save.calls.mostRecent().args[1]).toBe(existing);
+ });
+
+ it('conserva una cita histórica con varias mascotas en modo no reprogramable',async()=>{
+  const second={...appointment.items[0],id:'i-2',pet_id:'pet-2',pet_name:'Otro perro',stages:[{...appointment.items[0].stages[0],id:'stage-2',item_id:'i-2'}]};
+  const historical={...appointment,items:[appointment.items[0],second]};
+  api.get.and.resolveTo(historical);
+  const f=await fixture();const c=f.componentInstance;await c.openAppointment('a');f.detectChanges();
+  expect(c.historicalMultiPet).toBeTrue();expect(c.canEdit).toBeFalse();expect(c.items().length).toBe(2);
+  expect((f.nativeElement as HTMLElement).textContent).toContain('cita histórica contiene varias mascotas');
+  expect((f.nativeElement as HTMLElement).textContent).toContain('Cancelar reserva');
+  await c.save();expect(api.save).not.toHaveBeenCalled();
  });
 
  it('sincroniza los selectores de fecha y hora con el valor de Lima incluyendo segundos',async()=>{

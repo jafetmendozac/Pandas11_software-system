@@ -52,7 +52,7 @@ Las referencias de 1 y 2 horas no son duraciones fijas universales. No se invent
 | PN-05 | ¿Cuándo vence el plazo para pagar el adelanto o verificarlo y cuándo se libera la reserva? | RN-08 |
 | PN-06 | Resuelto: las citas registradas por personal se cobran al final, tenga o no cuenta el cliente | RN-09 |
 | PN-07 | ¿Qué reglas aplican a cancelaciones, reprogramaciones, retrasos y devoluciones del adelanto? | RN-01, RN-08 |
-| PN-08 | Resuelto: varias mascotas del mismo cliente según capacidad real de trabajadores; sin máximo fijo de dos por cita | RN-03, RN-14 |
+| PN-08 | Sustituido para citas internas nuevas y reprogramadas: una sola mascota por cita; las citas históricas con varias mascotas se conservan | RN-03, RN-14 |
 
 Las respuestas deben incorporarse aquí sin convertir propuestas del agente en decisiones confirmadas.
 
@@ -61,7 +61,7 @@ Las respuestas deben incorporarse aquí sin convertir propuestas del agente en d
 - La restricción de domingos observada en la agenda coincide con RN-01; no acredita cumplimiento completo de feriados, horario o finalización posterior a las 18:00.
 - La duración en agenda se obtiene de los servicios seleccionados; eso no acredita que sus valores almacenados correspondan a RN-04/RN-05.
 - Inicialmente el enum SQL local contemplaba más medios de pago que RN-02 (Yape/efectivo). La solicitud de Fase 5 del 2026-10-18 amplía RN-02 a los cinco métodos existentes; no autoriza por sí misma una migración o modificación de datos. La portada todavía menciona Yape/efectivo y no se actualiza automáticamente.
-- El modelo de citas Angular difiere del SQL local, como registra [architecture.md](architecture.md). Debe resolverse el contrato antes de implementar capacidad o citas con varios perros.
+- El contrato Angular vigente usa `appointment_items` y permite varios servicios para una sola mascota por cita; la capacidad paralela se consigue mediante citas distintas y trabajadores disponibles.
 - No se ha validado una implementación de límite de capacidad o cálculo/cotización de recojo.
 
 Estas diferencias quedan informadas, sin modificar código o base de datos.
@@ -103,14 +103,14 @@ Fuente: respuestas del usuario a las tres preguntas de esta sesión. Definen req
 | ID | Regla | Estado |
 |---|---|---|
 | RN-13 | En la agenda interna, OWNER y ADMIN crean, reprograman, cambian estados y cancelan. STAFF solo consulta | Confirmado por respuesta explícita; no concede gestión laboral ni de seguridad |
-| RN-14 | Una cita puede incluir varias mascotas del mismo cliente según capacidad real de los trabajadores; no fijar dos como máximo por cita | Confirmado por respuesta explícita |
+| RN-14 | Una cita interna nueva o reprogramada incluye una sola mascota; las citas históricas con varias mascotas se conservan para consulta | Confirmado por cambio aprobado el 2026-11-13 |
 | RN-15 | Incluir relevo por etapas de baño a corte en Fase 4; recepción define minutos de cada etapa respetando la duración total configurada del servicio | Confirmado por respuesta explícita; no inventar reparto de tiempos |
 
 No se confirmaron todavía espera entre etapas, transiciones detalladas de estados, cancelación durante atención, excepciones de último inicio, reglas de retrasos ni transporte automático. Las propuestas constan en [requisitos de Fase 4](features/fase-4-agenda-reservas-internas/requirements.md) y necesitan aprobación del plan antes de incorporarse como reglas operativas implementadas.
 
 ## Fase 4 aprobada e implementada localmente — 2026-10-17
 
-El usuario aprobó el plan y las ampliaciones mediante «Vamos procede». RN-13/RN-14/RN-15 ya tienen implementación local con permisos, citas con varias mascotas, etapas SERVICE o BATH→CUT y relevo. Recepción define minutos de baño/corte; suma igual al snapshot y sin huecos. ALL_SERVICES puede ambas, ASSISTANT solo baño.
+El usuario aprobó el plan y las ampliaciones mediante «Vamos procede». RN-13/RN-15 mantienen permisos, etapas SERVICE o BATH→CUT y relevo. Desde el cambio aprobado el 2026-11-13, las altas y reprogramaciones internas aceptan una sola mascota; las filas históricas con varias mascotas no se eliminan ni se modifican automáticamente. Recepción define minutos de baño/corte; suma igual al snapshot y sin huecos. ALL_SERVICES puede ambas, ASSISTANT solo baño.
 
 - RN-01: primera atención de cada mascota dentro de horario comercial hasta17; continuaciones pueden iniciar más tarde. Cada etapa exige turno explícito y cobertura completa, incluidos finales después18. Sin cruces de medianoche.
 - RN-09: origen INTERNAL, confirmación directa y adelanto obligatorio0, con o sin cuenta del cliente. Cobro al finalizar es regla de negocio; el módulo de pagos no se implementa aquí.
@@ -217,7 +217,7 @@ El usuario aprobó el [plan de gráficos](features/actividad-5-dashboard-grafico
 
 | ID | Regla aprobada |
 |---|---|
-| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Varias mascotas/items cuentan por separado; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID, con nombre actual del catálogo. |
+| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Cada servicio/item cuenta por separado, incluidos históricos anteriores con varias mascotas; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID, con nombre actual del catálogo. |
 | RN-35 | «Productos vendidos» cuenta unidades de movimientos `SALE` por mes de `created_at` cuando la venta sigue `CONFIRMED`. Una venta anulada sale del ranking con RESTOCK o NO_RESTOCK, mientras su cobro `PAID` sigue en RN-32 si no hubo devolución. El ranking muestra hasta cinco productos por cantidad descendente, desempate por ID, con nombre actual. |
 | RN-36 | El panel muestra 12 meses de cobros confirmados separados entre servicios y productos, incluidos meses vacíos en cero. Las cifras y rankings se reservan a OWNER/ADMIN activos con `analytics.read`; STAFF puede usar `/panel` para enlaces operativos permitidos, sin analítica financiera. |
 

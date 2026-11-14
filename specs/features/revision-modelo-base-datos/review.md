@@ -14,7 +14,7 @@ La estructura es una base útil, pero no está lista para convertirse directamen
 
 - Perfil vinculado por FK a `auth.users` y relaciones rol–permiso/usuario–rol mediante claves compuestas.
 - Clientes sin cuenta permitidos por `clients.profile_id` nullable, coherente con RN-09.
-- Cita como cabecera y servicios por mascota como detalle; permite varios perros, pero el negocio aún debe confirmar el límite por cita.
+- Cita como cabecera y servicios por mascota como detalle; el contrato vigente limita altas y reprogramaciones a una mascota, con varios servicios permitidos.
 - FKs compuestas del detalle aseguran que mascota y cita correspondan al mismo cliente.
 - Precios y duraciones de detalle como snapshots, adecuados para conservar lo acordado.
 - Tarifas por tamaño y pelaje con `NULLS NOT DISTINCT`, útil para evitar reglas comodín duplicadas.
