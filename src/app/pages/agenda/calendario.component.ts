@@ -46,7 +46,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  private readonly employeeService=inject(EmpleadosService);private readonly serviceCatalogue=inject(ServiciosService);private readonly pricing=inject(TarifasService);
  readonly clients=signal<Client[]>([]);readonly pets=signal<Pet[]>([]);readonly employees=signal<Employee[]>([]);readonly services=signal<Service[]>([]);
  readonly rows=signal<Appointment[]>([]);readonly loading=signal(false);readonly optionsLoading=signal(true);readonly error=signal('');
- readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');
+ readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');readonly notice=signal('');
  readonly current=signal<Appointment|null>(null);readonly items=signal<DraftItem[]>([]);readonly checking=signal(false);
  readonly checks=signal<Record<string,ReservationAvailability>>({});readonly options=signal<CalendarOptions>({});
 readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
@@ -124,7 +124,7 @@ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';emplo
  }
  openNew(start?:string):void{
   if(!this.authorization.has('appointments.manage')||this.pending()||this.optionsLoading())return;
-  this.detailRevision++;this.automaticStarts.clear();this.removedItems.clear();this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
+  this.notice.set('');this.detailRevision++;this.automaticStarts.clear();this.removedItems.clear();this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
  }
  async openAppointment(id:string):Promise<void>{
   if(this.pending())return;const revision=++this.detailRevision;this.automaticStarts.clear();this.removedItems.clear();this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
@@ -316,7 +316,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   this.formError.set('');
   try{
    const payload=appointmentInput(this.clientId,this.notes,this.items());this.pending.set(true);
-   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.automaticStarts.clear();this.removedItems.clear();this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();
+   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.automaticStarts.clear();this.removedItems.clear();this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();this.notice.set(wasNew?'Cita creada correctamente.':'Cita actualizada correctamente.');this.isOpen.set(false);
   }catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
  }
  async transition(target:AppointmentStatus):Promise<void>{

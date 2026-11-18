@@ -31,8 +31,9 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
  it('mantiene el formulario ante rechazo de solapamiento y evita doble envío',async()=>{
   const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';c.items.set([draft()]);api.save.and.rejectWith(new Error('Empleado ocupado'));
   await c.save();expect(c.isOpen()).toBeTrue();expect(c.items()[0].start).toBe('2030-07-29T08:00');expect(c.formError()).toBe('Empleado ocupado');
-  let finish!:(a:Appointment)=>void;api.save.and.callFake(()=>new Promise(r=>finish=r));const pending=c.save();await c.save();expect(api.save).toHaveBeenCalledTimes(2);finish(appointment);await pending;
-  expect(c.internalLoaded).toBeTrue();
+  let finish!:(a:Appointment)=>void;api.save.and.callFake(()=>new Promise(r=>finish=r));const pending=c.save();await c.save();expect(api.save).toHaveBeenCalledTimes(2);finish(appointment);await pending;f.detectChanges();
+  expect(c.internalLoaded).toBeTrue();expect(c.isOpen()).toBeFalse();expect(c.notice()).toBe('Cita creada correctamente.');
+  await c.openAppointment('a');f.detectChanges();expect(f.nativeElement.textContent).toContain('Editar cita');
  });
  it('descarta una comprobación antigua si cambian los tiempos',async()=>{
   const f=await fixture();const c=f.componentInstance;c.items.set([draft()]);let resolve!:(r:ReservationAvailability)=>void;api.availability.and.callFake(()=>new Promise(r=>resolve=r));
