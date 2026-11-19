@@ -70,7 +70,7 @@ try{
   input([item(pets[0],services[1],[stage(employees[0],'SERVICE','10:00','10:30')])]),
   input([item(pets[0],services[0],[stage(employees[0],'BATH','10:00:00','10:00:30'),stage(employees[0],'CUT','10:00:30','12:00:00')])]),
   {...simple(),source:'ONLINE'}, {...simple(),total_price:'0'}, {...simple(),created_by:actors.CLIENT.id},
-  input([{...simple().items[0],price:'0'}]), simple(pets[0],employees[0],'17:01','18:01'),
+  input([{...simple().items[0],price:'0'}]), simple(pets[0],employees[0],'18:01','19:01'),
   simple(pets[0],employees[0],'08:00','09:00','2030-08-04'), simple(pets[0],randomUUID()),
  ])ok(!!(await owner.rpc('save_internal_appointment',{p_input:bad})).error,'Payload inválido, habilidad, rango o mascota ajena denegados');
  const countBefore=(await value(owner.from('appointments').select('id').eq('client_id',clients[0]))).length;

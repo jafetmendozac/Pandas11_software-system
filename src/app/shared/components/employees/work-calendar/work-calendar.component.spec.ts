@@ -18,6 +18,7 @@ describe('Consulta laboral y gestión protegida',()=>{
   it('muestra aviso explícito, cobertura y hora Lima aun al cambiar de fecha UTC',async()=>{
     const f=await fixture();f.componentInstance.date='2026-07-28';f.componentInstance.start='17:00';f.componentInstance.end='19:00';await f.componentInstance.calculate();f.detectChanges();
     expect(f.nativeElement.textContent).toContain(WORK_NOTICE);
+    expect(f.nativeElement.textContent).not.toContain('Último inicio de servicio: 17:00');
     expect(f.nativeElement.textContent).toContain('2026-07-28 19:00');
     expect(f.nativeElement.textContent).toContain('Cobertura laboral del intervalo: Sí');
   });

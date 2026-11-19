@@ -1,6 +1,6 @@
 # Agenda conectada a horarios configurables
 
-Fecha: 2026-11-13 (America/Lima). Estado: propuesta pendiente de aprobación.
+Fecha: 2026-11-13 (America/Lima). Estado: plan aprobado por el usuario el 2026-11-18 e implementado en Supabase local y Angular.
 
 ## Objetivo
 
@@ -27,7 +27,7 @@ Eliminar los límites fijos de 17:00/18:00 en la creación de citas y usar como 
 
 ## Reglas relacionadas
 
-- RN-01 se actualizaría: horario configurable de lunes a sábado, sin corte fijo 17:00/18:00; inicio dentro del horario comercial y cobertura completa del turno.
+- RN-01 actualizado: horario configurable de lunes a sábado, sin corte fijo 17:00/18:00; inicio dentro del horario comercial y cobertura completa del turno.
 - RN-03/RN-07: trabajador libre y habilitado.
 - RN-10/RN-15: continuaciones y relevos mantienen cobertura por etapa.
 - RN-14: una mascota por cita.

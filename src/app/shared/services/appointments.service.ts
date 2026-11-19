@@ -17,6 +17,8 @@ export class AppointmentsService {
  }
  get(id:string):Promise<Appointment>{return this.rpc('get_appointment',{p_id:id});}
  save(input:AppointmentInput,current:Appointment|null):Promise<Appointment>{return this.rpc('save_internal_appointment',{p_input:input,...(current?{p_id:current.id,p_expected_version:current.version}:{})});}
+ createWithPlannedEnd(input:AppointmentInput,endsLocal:string):Promise<Appointment>{return this.rpc('create_internal_appointment_with_planned_end',{p_input:input,p_ends_local:endsLocal});}
+ adjustPlannedEnd(current:Appointment,endsLocal:string):Promise<Appointment>{return this.rpc('adjust_appointment_planned_end',{p_id:current.id,p_expected_version:current.version,p_ends_local:endsLocal});}
  transition(current:Appointment,target:AppointmentStatus,reason=''):Promise<Appointment>{return this.rpc('change_appointment_status',{p_id:current.id,p_expected_version:current.version,p_target:target,p_reason:reason||null});}
  async internal(id:string):Promise<AppointmentNote|null>{
   const {data,error}=await this.supabase.client.from('appointment_internal').select('notes,updated_by,updated_at').eq('appointment_id',id).maybeSingle();

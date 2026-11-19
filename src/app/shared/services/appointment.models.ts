@@ -3,15 +3,15 @@ export type AppointmentStatus='REQUESTED'|'PENDING'|'CONFIRMED'|'IN_PROGRESS'|'C
 export type StageKind='SERVICE'|'BATH'|'CUT';
 export type PickupType='PICKUP_ONLY'|'DROPOFF_ONLY'|'BOTH'|'NONE';
 export interface AppointmentStage {id:string;item_id:string;employee_id:string;employee_name:string;stage:StageKind;starts_at:string;ends_at:string;}
-export interface AppointmentItem {id:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;requires_specialist_snapshot:boolean;notes:string|null;weight_kg_at_visit:number|null;stages:AppointmentStage[];}
+export interface AppointmentItem {id:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;planned_duration_minutes?:number|null;requires_specialist_snapshot:boolean;notes:string|null;weight_kg_at_visit:number|null;stages:AppointmentStage[];}
 export interface Appointment {id:string;client_id:string;client_name:string;starts_at:string;ends_at:string;status:AppointmentStatus;source:'INTERNAL'|'ONLINE';version:number;total_price:string;deposit_required:string;pickup_fee:string;pickup_type:PickupType;client_notes:string|null;cancel_reason:string|null;created_by:string;needs_attention:boolean;items:AppointmentItem[];}
 export interface StageInput {employee_id:string;stage:StageKind;starts_local:string;ends_local:string;}
-export interface ItemInput {id?:string;pet_id:string;service_id:string;notes:string;weight_kg_at_visit:number|null;stages:StageInput[];}
+export interface ItemInput {id?:string;pet_id:string;service_id:string;notes:string;weight_kg_at_visit:number|null;planned_duration_minutes?:number;stages:StageInput[];}
 export interface AppointmentInput {client_id:string;client_notes:string;items:ItemInput[];}
 export interface ReservationAvailability {windows:{starts_at:string;ends_at:string}[];interval_covered:boolean|null;can_start_service:boolean|null;reasons:string[];notice:string;}
 export interface AppointmentNote {notes:string|null;updated_by:string;updated_at:string;}
 export interface DraftStage {stage:StageKind;employee_id:string;minutes:number|null;}
-export interface DraftItem {key:string;id?:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;specialist:boolean;notes:string;weight_kg_at_visit:number|null;start:string;stages:DraftStage[];quoting:boolean;quoteRevision:number;}
+export interface DraftItem {key:string;id?:string;pet_id:string;service_id:string;pet_name:string;service_name:string;price:string;duration_minutes:number;planned_duration_minutes?:number|null;specialist:boolean;notes:string;weight_kg_at_visit:number|null;start:string;stages:DraftStage[];quoting:boolean;quoteRevision:number;}
 export const STATUS_LABELS:Record<AppointmentStatus,string>={REQUESTED:'Solicitada',PENDING:'Pendiente',CONFIRMED:'Programada',IN_PROGRESS:'Programada',COMPLETED:'Atendida',CANCELLED:'Cancelada',NO_SHOW:'Cancelada'};
 export const STAGE_LABELS:Record<StageKind,string>={SERVICE:'Servicio completo',BATH:'Baño',CUT:'Corte'};
 export const PICKUP_TYPE_LABELS:Record<PickupType,string>={PICKUP_ONLY:'Solo recojo',DROPOFF_ONLY:'Solo regreso',BOTH:'Recojo y regreso',NONE:'Sin transporte'};
@@ -28,7 +28,7 @@ export function stageInputs(item:DraftItem):StageInput[]{
   if(!s.employee_id||s.minutes===null||!Number.isSafeInteger(s.minutes)||s.minutes<=0)throw new Error('Completa trabajador y minutos positivos de cada etapa.');
   const end=addLocalMinutes(cursor,s.minutes);const row={employee_id:s.employee_id,stage:s.stage,starts_local:cursor,ends_local:end};cursor=end;return row;
  });
- if(item.stages.reduce((sum,s)=>sum+(s.minutes??0),0)!==item.duration_minutes)throw new Error('Las etapas deben sumar la duración del servicio.');
+ if(item.stages.reduce((sum,s)=>sum+(s.minutes??0),0)!==(item.planned_duration_minutes??item.duration_minutes))throw new Error('Las etapas deben sumar la duración prevista del servicio.');
  return stages;
 }
 export function appointmentInput(clientId:string,notes:string,items:DraftItem[]):AppointmentInput {
@@ -41,9 +41,9 @@ export function appointmentInput(clientId:string,notes:string,items:DraftItem[])
   const combination=`${i.pet_id}:${i.service_id}`;
   if(combinations.has(combination))throw new Error('Este servicio ya se agregó para la misma mascota.');
   combinations.add(combination);
-  return {...(i.id?{id:i.id}:{}),pet_id:i.pet_id,service_id:i.service_id,notes:i.notes,weight_kg_at_visit:i.weight_kg_at_visit,stages:stageInputs(i)};
+  return {...(i.id?{id:i.id}:{}),pet_id:i.pet_id,service_id:i.service_id,notes:i.notes,weight_kg_at_visit:i.weight_kg_at_visit,...(!i.id&&i.planned_duration_minutes!==undefined&&i.planned_duration_minutes!==null&&i.planned_duration_minutes!==i.duration_minutes?{planned_duration_minutes:i.planned_duration_minutes}:{}),stages:stageInputs(i)};
  })};
 }
 export function draftItem(item:AppointmentItem):DraftItem {
- return {key:item.id,id:item.id,pet_id:item.pet_id,service_id:item.service_id,pet_name:item.pet_name,service_name:item.service_name,price:item.price,duration_minutes:item.duration_minutes,specialist:item.requires_specialist_snapshot,notes:item.notes??'',weight_kg_at_visit:item.weight_kg_at_visit,start:localLima(item.stages[0].starts_at),quoting:false,quoteRevision:0,stages:item.stages.map(s=>({stage:s.stage,employee_id:s.employee_id,minutes:Temporal.Instant.from(s.ends_at).since(Temporal.Instant.from(s.starts_at)).total('minutes')}))};
+ return {key:item.id,id:item.id,pet_id:item.pet_id,service_id:item.service_id,pet_name:item.pet_name,service_name:item.service_name,price:item.price,duration_minutes:item.duration_minutes,planned_duration_minutes:item.planned_duration_minutes,specialist:item.requires_specialist_snapshot,notes:item.notes??'',weight_kg_at_visit:item.weight_kg_at_visit,start:localLima(item.stages[0].starts_at),quoting:false,quoteRevision:0,stages:item.stages.map(s=>({stage:s.stage,employee_id:s.employee_id,minutes:Temporal.Instant.from(s.ends_at).since(Temporal.Instant.from(s.starts_at)).total('minutes')}))};
 }

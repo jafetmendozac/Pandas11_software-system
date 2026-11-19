@@ -399,6 +399,7 @@ CREATE TABLE "appointment_items" (
   "service_id" uuid NOT NULL,
   "price" numeric NOT NULL,
   "duration_minutes" integer NOT NULL,
+  "planned_duration_minutes" integer CHECK (planned_duration_minutes > 0),
   "requires_specialist_snapshot" boolean NOT NULL,
   "weight_kg_at_visit" numeric CHECK (weight_kg_at_visit > 0 AND weight_kg_at_visit < 'Infinity'::numeric),
   "notes" text,

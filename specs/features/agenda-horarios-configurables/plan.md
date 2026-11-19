@@ -1,6 +1,6 @@
 # Plan técnico — Agenda conectada a horarios configurables
 
-Estado: pendiente de aprobación.
+Estado: aprobado por el usuario el 2026-11-18 e implementado localmente. El usuario pidió ejecutar solo las pruebas necesarias; la validación registra las pruebas focalizadas realizadas.
 
 ## Impacto del modelo
 

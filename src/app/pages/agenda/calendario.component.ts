@@ -46,20 +46,20 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  private readonly employeeService=inject(EmpleadosService);private readonly serviceCatalogue=inject(ServiciosService);private readonly pricing=inject(TarifasService);
  readonly clients=signal<Client[]>([]);readonly pets=signal<Pet[]>([]);readonly employees=signal<Employee[]>([]);readonly services=signal<Service[]>([]);
  readonly rows=signal<Appointment[]>([]);readonly loading=signal(false);readonly optionsLoading=signal(true);readonly error=signal('');
- readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');readonly notice=signal('');
+ readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');readonly notice=signal('');readonly adjustError=signal('');
  readonly current=signal<Appointment|null>(null);readonly items=signal<DraftItem[]>([]);readonly checking=signal(false);
  readonly checks=signal<Record<string,ReservationAvailability>>({});readonly options=signal<CalendarOptions>({});
 readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
 readonly newItemError=signal('');readonly newItemValid=signal(false);
-clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
- private revision=0;private formRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
+plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
+ private revision=0;private formRevision=0;private savedFormRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
  private readonly automaticStarts=new Set<string>();
  private readonly removedItems=new Map<string,DraftItem>();
  get historicalMultiPet():boolean{return !!this.current()&&new Set(this.current()!.items.map(item=>item.pet_id)).size>1;}
  get canEdit():boolean{return !this.detailFailed()&&!this.historicalMultiPet&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
  async ngOnInit():Promise<void>{
   this.options.set({...calendarAppearance,plugins:[themePlugin,dayGridPlugin,multiMonthPlugin,timeGridPlugin,interactionPlugin],initialView:'dayGridMonth',locale:esLocale,timeZone:'America/Lima',direction:document.documentElement.dir==='rtl'?'rtl':'ltr',allDaySlot:false,
-   headerToolbar:false,slotMinTime:'07:00:00',slotMaxTime:'24:00:00',height:'auto',
+   headerToolbar:false,slotMinTime:'00:00:00',slotMaxTime:'24:00:00',height:'auto',
    selectable:this.authorization.has('appointments.manage'),editable:false,events:[],
    select:info=>this.openNew(info.startStr.includes('T')?info.startStr.slice(0,19):`${info.startStr}T07:00:00`),
    datesSet:info=>{this.calendarTitle.set(info.view.title);this.currentView.set(info.view.type);if(this.rangeFrom===info.startStr&&this.rangeUntil===info.endStr)return;this.rangeFrom=info.startStr;this.rangeUntil=info.endStr;void this.loadRange();},
@@ -117,26 +117,24 @@ clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';emplo
  }
  private nextStart():string{
   let time=Temporal.Now.zonedDateTimeISO('America/Lima').toPlainDateTime().round({smallestUnit:'hour',roundingMode:'ceil'});
-  if(time.hour<7)time=time.with({hour:7});
-  if(time.hour>17)time=time.add({days:1}).with({hour:7});
   if(time.dayOfWeek===7)time=time.add({days:1});
   return time.toString({smallestUnit:'second'});
  }
  openNew(start?:string):void{
   if(!this.authorization.has('appointments.manage')||this.pending()||this.optionsLoading())return;
-  this.notice.set('');this.detailRevision++;this.automaticStarts.clear();this.removedItems.clear();this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
+  this.notice.set('');this.newPlannedEndEdited=false;this.newPlannedEndTime='';this.detailRevision++;this.automaticStarts.clear();this.removedItems.clear();this.detailFailed.set(false);this.current.set(null);this.clientId='';this.notes='';this.internalNotes='';this.internalLoaded=false;this.cancelReason='';this.items.set([]);this.suggestedStart=start||this.nextStart();this.touch();this.isOpen.set(true);
  }
  async openAppointment(id:string):Promise<void>{
-  if(this.pending())return;const revision=++this.detailRevision;this.automaticStarts.clear();this.removedItems.clear();this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
+  if(this.pending())return;this.notice.set('');this.adjustError.set('');const revision=++this.detailRevision;this.automaticStarts.clear();this.removedItems.clear();this.formRevision++;this.checking.set(false);this.checks.set({});this.detailFailed.set(false);this.clientId='';this.notes='';this.internalNotes='';this.detailLoading.set(true);this.formError.set('');this.isOpen.set(true);this.current.set(null);this.items.set([]);this.internalLoaded=false;
   try{
    const a=await this.appointments.get(id);if(revision!==this.detailRevision)return;
-   this.current.set(a);this.clientId=a.client_id;this.notes=a.client_notes??'';this.cancelReason='';this.items.set(a.items.map(draftItem));this.checks.set({});
+   this.current.set(a);this.plannedEndTime=this.itemTimeFromInstant(a.ends_at);this.clientId=a.client_id;this.notes=a.client_notes??'';this.cancelReason='';this.items.set(a.items.map(draftItem));this.checks.set({});this.savedFormRevision=this.formRevision;
    if(this.authorization.has('appointment_internal.read')){const note=await this.appointments.internal(id);if(revision===this.detailRevision){this.internalNotes=note?.notes??'';this.internalLoaded=true;}}
   }catch(error){if(revision===this.detailRevision){this.detailFailed.set(true);this.formError.set(workError(error));}}finally{if(revision===this.detailRevision)this.detailLoading.set(false);}
  }
  close():void{if(this.pending())return;this.detailRevision++;this.formRevision++;this.isOpen.set(false);this.checking.set(false);}
  touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
- changeClient():void{this.automaticStarts.clear();this.removedItems.clear();this.items.set([]);this.touch();}
+ changeClient():void{this.resetNewPlannedEnd();this.automaticStarts.clear();this.removedItems.clear();this.items.set([]);this.touch();}
  filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
  clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''} · ${c.whatsapp||c.phone||'Sin WhatsApp'}`.trim()}));}
  petGroups():PetGroup[]{
@@ -174,7 +172,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   for(const item of group.items)for(const stage of item.stages)stage.employee_id=employeeId;
   this.touch();this.validateNewItem();
 }
-  groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.duration_minutes||0),0);}
+  groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.planned_duration_minutes??item.duration_minutes??0),0);}
   groupTotalPrice(group:PetGroup):number{return group.items.filter(item=>!!item.service_id).reduce((sum,item)=>sum+Number(item.price||0),0);}
   formatPrice(value:string|number|null|undefined):string{const amount=Number(value??0);try{return this.money(String(value??0));}catch{return amount.toFixed(2);}}
  groupInterval(group:PetGroup):StageInput|null{
@@ -182,6 +180,14 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(!first?.start||!minutes||group.items.some(item=>item.quoting))return null;
   try{return {stage:'SERVICE',employee_id:this.groupEmployeeId(group),starts_local:first.start,ends_local:addLocalMinutes(first.start,minutes)};}catch{return null;}
  }
+ newPlannedEndValue(group:PetGroup):string{return this.newPlannedEndEdited?this.newPlannedEndTime:(this.groupInterval(group)?.ends_local.slice(11,16)??'');}
+ newPlannedDuration(group:PetGroup):number|null{
+  if(!this.newPlannedEndEdited)return this.groupDuration(group);
+  const interval=this.groupInterval(group);if(!interval||!this.newPlannedEndTime)return null;
+  try{const minutes=Temporal.PlainDateTime.from(`${interval.ends_local.slice(0,11)}${this.newPlannedEndTime}`).since(Temporal.PlainDateTime.from(interval.starts_local)).total('minutes');return Number.isSafeInteger(minutes)&&minutes>0?minutes:null;}catch{return null;}
+ }
+ setNewPlannedEndTime(value:string):void{this.newPlannedEndTime=value;this.newPlannedEndEdited=true;this.formError.set('');}
+ private resetNewPlannedEnd():void{this.newPlannedEndTime='';this.newPlannedEndEdited=false;}
  validateNewItem():void{
   this.newItemError.set('');this.newItemValid.set(false);
   const group=this.petGroups().find(g=>g.items.some(item=>!!item.service_id&&!!item.start));
@@ -194,14 +200,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   const day=new Date(`${date}T00:00:00`).getUTCDay();
   const limaDay=((day+6)%7)+1;
   if(limaDay<1||limaDay>6){this.newItemError.set('El local solo abre de lunes a sábado.');return;}
-  const [h,m]=time.split(':').map(Number);
-  const minutes=h*60+(m??0);
-  if(minutes<7*60){this.newItemError.set('La hora de inicio no puede ser antes de las 07:00.');return;}
-  if(minutes>18*60){this.newItemError.set('La hora de inicio no puede ser después de las 18:00.');return;}
-  if(minutes>=17*60&&minutes<18*60){
-   const dur=this.groupDuration(group);
-   if(dur&&minutes+dur>18*60){this.newItemError.set('El servicio terminaría después de las 18:00 sin turno que lo cubra.');return;}
-  }
+  if(!/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(time)){this.newItemError.set('Indica una hora de inicio válida.');return;}
   const emp=this.groupEmployeeId(group);
   if(!emp){this.newItemError.set('Selecciona un trabajador.');return;}
   this.newItemValid.set(true);
@@ -215,12 +214,14 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
  setClient(value:string|number|null):void{this.clientId=String(value??'');this.changeClient();if(this.clientId)this.addItem();}
  setGroupPet(group:PetGroup,value:string|number|null):void{
   if(!this.canEdit||group.items.some(item=>!!item.id))return;
+  this.resetNewPlannedEnd();
   const id=String(value??''),pet=this.filteredPets().find(p=>p.id===id);
   if(!pet||this.items().some(item=>!group.items.includes(item)&&item.pet_id===id))return;
   for(const item of group.items){item.pet_id=id;item.pet_name=pet.name;void this.quote(item);}
  }
  setGroupServices(group:PetGroup,selected:string[]):void{
   if(!this.canEdit||!group.pet_id)return;
+  this.resetNewPlannedEnd();
   const all=this.items(),live=group.items.filter(item=>all.includes(item));if(!live.length)return;
   const allowed=new Set(this.serviceOptions(group).map(option=>option.value));
   const ids=[...new Set(selected)].filter(id=>allowed.has(id)),wanted=new Set(ids);
@@ -245,11 +246,11 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   for(const item of added)void this.quote(item);
  }
  setEmployee(item:DraftItem,index:number,value:string|number|null):void{item.stages[index].employee_id=String(value??'');this.touch();}
- setMinutes(item:DraftItem,index:number,value:string|number):void{item.stages[index].minutes=value===''?null:Number(value);this.touch();}
+ setMinutes(item:DraftItem,index:number,value:string|number):void{this.resetNewPlannedEnd();item.stages[index].minutes=value===''?null:Number(value);this.touch();}
  itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
  itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
- setItemDate(item:DraftItem,date:string):void{item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
- setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
+ setItemDate(item:DraftItem,date:string):void{this.resetNewPlannedEnd();item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}this.resetNewPlannedEnd();item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
  private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
  addItem():void{
   if(!this.canEdit||!this.clientId||this.petGroups().length>0)return;
@@ -260,7 +261,7 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   for(const [index,item] of this.items().filter(i=>i.pet_id===petId&&i.service_id).entries()){
    if(index>0)item.start=ready?cursor:'';
    if(!item.start||!item.duration_minutes||item.quoting){ready=false;continue;}
-   try{cursor=addLocalMinutes(item.start,item.duration_minutes);}catch{ready=false;}
+   try{cursor=addLocalMinutes(item.start,item.planned_duration_minutes??item.duration_minutes);}catch{ready=false;}
   }
  }
  async quote(item:DraftItem):Promise<void>{
@@ -273,10 +274,11 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
    item.price=q.price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
    item.stages=[{stage:'SERVICE',employee_id:'',minutes:q.duration_minutes}];
   }catch(error){if(item.quoteRevision===token&&this.items().includes(item))this.formError.set(workError(error));}
-  finally{if(item.quoteRevision===token&&this.items().includes(item)){item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);}}
+  finally{if(item.quoteRevision===token&&this.items().includes(item)){this.resetNewPlannedEnd();item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);}}
  }
  split(item:DraftItem,enabled:boolean):void{
   if(!this.canEdit)return;
+  this.resetNewPlannedEnd();
   item.stages=enabled?[{stage:'BATH',employee_id:'',minutes:null},{stage:'CUT',employee_id:'',minutes:null}]:[{stage:'SERVICE',employee_id:'',minutes:item.duration_minutes}];this.touch();
  }
  interval(item:DraftItem,index:number):StageInput|null{
@@ -315,9 +317,34 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(!this.canEdit||this.pending()||this.detailLoading())return;
   this.formError.set('');
   try{
-   const payload=appointmentInput(this.clientId,this.notes,this.items());this.pending.set(true);
-   const wasNew=!this.current();const a=await this.appointments.save(payload,this.current());if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.automaticStarts.clear();this.removedItems.clear();this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();this.notice.set(wasNew?'Cita creada correctamente.':'Cita actualizada correctamente.');this.isOpen.set(false);
+   const wasNew=!this.current();const group=this.petGroups()[0];const estimatedEnd=group?this.groupInterval(group)?.ends_local:null;
+   if(wasNew&&this.newPlannedEndEdited&&!this.newPlannedEndTime)throw new Error('Indica la hora prevista de término.');
+   const chosenEnd=estimatedEnd&&this.newPlannedEndEdited?`${estimatedEnd.slice(0,11)}${this.newPlannedEndTime}`:null;
+   const customized=wasNew&&!!estimatedEnd&&!!chosenEnd&&chosenEnd!==estimatedEnd.slice(0,16);
+   let items=this.items();
+   if(customized){
+    const last=[...items].reverse().find(item=>!!item.service_id);
+    const lastStage=last&&this.interval(last,last.stages.length-1);
+    if(!last||!lastStage)throw new Error('Completa los horarios de los servicios.');
+    const minutes=Temporal.PlainDateTime.from(chosenEnd).since(Temporal.PlainDateTime.from(lastStage.starts_local)).total('minutes');
+    if(!Number.isSafeInteger(minutes)||minutes<=0)throw new Error('La hora prevista debe ser posterior al inicio del último servicio, en minutos completos.');
+    const stages=last.stages.map((stage,index)=>({...stage,minutes:index===last.stages.length-1?minutes:stage.minutes}));
+    const plannedDuration=stages.reduce((total,stage)=>total+(stage.minutes??0),0);
+    items=items.map(item=>item===last?{...last,stages,planned_duration_minutes:plannedDuration}:item);
+   }
+   const payload=appointmentInput(this.clientId,this.notes,items);this.pending.set(true);
+   const a=customized?await this.appointments.createWithPlannedEnd(payload,chosenEnd!):await this.appointments.save(payload,this.current());
+   if(wasNew){this.internalLoaded=this.authorization.has('appointment_internal.read');this.internalNotes='';}this.automaticStarts.clear();this.removedItems.clear();this.current.set(a);this.items.set(a.items.map(draftItem));this.formRevision++;this.checks.set({});await this.loadRange();this.notice.set(wasNew?'Cita creada correctamente.':'Cita actualizada correctamente.');this.isOpen.set(false);
   }catch(error){this.formError.set(workError(error));}finally{this.pending.set(false);}
+ }
+ itemTimeFromInstant(instant:string):string{return limaDateTime(instant).split(' ').at(-1)??'';}
+ async adjustPlannedEnd():Promise<void>{
+  const a=this.current();if(!a||!this.canEdit||this.pending()||!this.plannedEndTime)return;
+  if(this.formRevision!==this.savedFormRevision){this.adjustError.set('Guarda primero los otros cambios de la cita.');return;}
+  const date=limaDateTime(a.ends_at).slice(0,10);
+  this.adjustError.set('');this.pending.set(true);
+  try{const saved=await this.appointments.adjustPlannedEnd(a,`${date}T${this.plannedEndTime}`);this.current.set(saved);this.items.set(saved.items.map(draftItem));this.notice.set('Fin previsto actualizado.');this.formRevision++;this.savedFormRevision=this.formRevision;await this.loadRange();}
+  catch(error){this.adjustError.set(workError(error));}finally{this.pending.set(false);}
  }
  async transition(target:AppointmentStatus):Promise<void>{
   const a=this.current();if(!a||this.pending()||!this.authorization.has(target==='CANCELLED'?'appointments.cancel':'appointments.status'))return;

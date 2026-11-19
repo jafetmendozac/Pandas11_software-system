@@ -64,6 +64,6 @@ export class WorkCalendarComponent implements OnChanges,OnDestroy {
   };
   readonly label=limaDateTime;
   reasonLabel(reason:string):string{
-    return ({INACTIVE_EMPLOYEE:'Empleado inactivo',INACTIVE_PROFILE:'Perfil vinculado inactivo',SKILL_REQUIRED:'El servicio requiere habilidad de corte',CLOSED:'Local cerrado ese día',NO_SHIFT:'No tiene turno ese día',OUTSIDE_WORKING_HOURS:'El intervalo no está cubierto por el turno y horario del local',BLOCKED:'Hay un bloqueo en el intervalo',CLOSED_AT_START:'El local está cerrado a la hora de inicio',LATE_START:'El último inicio de servicio es a las 17:00'} as Record<string,string>)[reason]??reason;
+    return ({INACTIVE_EMPLOYEE:'Empleado inactivo',INACTIVE_PROFILE:'Perfil vinculado inactivo',SKILL_REQUIRED:'El servicio requiere habilidad de corte',CLOSED:'Local cerrado ese día',NO_SHIFT:'No tiene turno ese día',OUTSIDE_WORKING_HOURS:'El intervalo no está cubierto por el turno y horario del local',BLOCKED:'Hay un bloqueo en el intervalo',CLOSED_AT_START:'El local está cerrado a la hora de inicio',LATE_START:'El inicio está fuera del horario configurado del local'} as Record<string,string>)[reason]??reason;
   }
 }

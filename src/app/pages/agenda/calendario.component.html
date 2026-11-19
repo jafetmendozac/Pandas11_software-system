@@ -1,6 +1,6 @@
 <app-page-breadcrumb pageTitle="Agenda y reservas internas" />
 <div class="space-y-4 text-gray-800 dark:text-white/90">
-  @if(notice()){<p role="status" class="rounded-xl border border-success-200 bg-success-50 p-4 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400">{{ notice() }}</p>}
+  @if(notice() && !isOpen()){<p role="status" class="rounded-xl border border-success-200 bg-success-50 p-4 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400">{{ notice() }}</p>}
   @if(error()){<p role="alert" class="rounded-xl border border-error-200 bg-error-50 p-4 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ error() }}</p>}
   @if(loading() || optionsLoading()){<p role="status" class="text-sm text-gray-500 dark:text-gray-400">Cargando agenda…</p>}
   <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -50,12 +50,21 @@
       </div>
       <button type="button" [disabled]="pending()" (click)="close()" aria-label="Cerrar formulario" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-200 text-xl leading-none text-gray-500 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">×</button>
     </div>
+    @if(isOpen() && notice()){<p role="status" class="rounded-lg border border-success-200 bg-success-50 p-3 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400">{{ notice() }}</p>}
     @if(detailLoading()){<p role="status">Cargando ficha…</p>}
     @if(!detailLoading()){
       @if(current();as a){
         <p class="font-medium">{{ a.client_name }} · {{ statuses[a.status] }} · Total S/ {{ money(a.total_price) }}</p>
         @if(authorization.has('payments.read')){<a routerLink="/pagos" [queryParams]="{cita:a.id}" class="inline-flex rounded-lg border border-brand-200 px-4 py-2 text-sm text-brand-600 dark:border-brand-500/30 dark:text-brand-400">Consultar pagos y saldo</a>}
         <div class="grid gap-3 text-sm sm:grid-cols-2"><div class="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/40"><p class="font-semibold">Horario</p><p class="mt-1">{{ label(a.starts_at) }} — {{ label(a.ends_at) }}</p></div><div class="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/40"><p class="font-semibold">Cobro</p><p class="mt-1">Sin adelanto obligatorio; cobro al finalizar.</p></div></div>
+        @if(canEdit){
+          <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-4 dark:border-brand-500/30 dark:bg-brand-500/10">
+            <p class="text-sm font-semibold">Ajustar fin previsto</p>
+            <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Puedes acortar o alargar la cita. Se comprobarán el turno y otras reservas antes de guardar.</p>
+            <div class="mt-3 flex flex-wrap items-end gap-3"><div class="w-44"><app-time-picker id="planned-end-time" label="Hora prevista de término" [value]="plannedEndTime" [disabled]="pending()" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="plannedEndTime=$event" /></div><button type="button" [disabled]="pending() || !plannedEndTime" (click)="adjustPlannedEnd()" class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50">Actualizar fin previsto</button></div>
+            @if(adjustError()){<p role="alert" class="mt-2 text-sm text-error-700 dark:text-error-400">{{ adjustError() }}</p>}
+          </div>
+        }
         @if(a.needs_attention && (a.status==='CONFIRMED' || a.status==='IN_PROGRESS')){<p role="alert" class="text-warning-600 dark:text-warning-400">Revisar disponibilidad: hay trabajadores, perfiles o intervalos sin cobertura. Reasigna o resuelve la incidencia antes de atender.</p>}
         @if(historicalMultiPet){<p role="status" class="rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700 dark:border-warning-500/30 dark:bg-warning-500/10 dark:text-warning-400">Esta cita histórica contiene varias mascotas. Puedes consultarla y cambiar su estado, pero no reprogramarla ni reemplazar sus servicios.</p>}
         @if(a.cancel_reason){<p>Motivo de cancelación: {{ a.cancel_reason }}</p>}
@@ -83,6 +92,7 @@
                     <app-date-picker [id]="'date-'+firstItem.key" label="Fecha de la atención" placeholder="Selecciona fecha" [value]="itemDate(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [spanish]="true" [customOnMobile]="true" [aboveModal]="true" (dateChange)="setItemDate(firstItem,$event.dateStr)" />
                     <app-time-picker [id]="'time-'+firstItem.key" label="Hora de inicio" placeholder="Selecciona hora" [value]="itemTime(firstItem)" [disabled]="pending() || !canEdit" [required]="true" [enableSeconds]="true" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setItemTime(firstItem,$event)" />
                   </div>
+                  <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">El inicio debe estar dentro del horario del local; toda la atención necesita turno disponible del trabajador.</p>
                   @if(newItemError()){<p class="mt-2 text-sm text-error-600 dark:text-error-400" role="alert">{{ newItemError() }}</p>}
                   @if(group.items.some(item=>item.service_id)){
                     <div class="mt-3 grid gap-3 sm:grid-cols-2">
@@ -104,7 +114,7 @@
                           </span>
                           <div class="min-w-0 flex-1 pe-5">
                             <span class="block truncate text-sm font-semibold text-gray-800 dark:text-white/90" [title]="item.service_name || 'Servicio'">{{ item.service_name || 'Servicio' }}</span>
-                            <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">S/ {{ formatPrice(item.price) }} · {{ item.duration_minutes }} min</span>
+                            <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">S/ {{ formatPrice(item.price) }} · Duración cotizada: {{ item.duration_minutes }} min @if(item.planned_duration_minutes && item.planned_duration_minutes !== item.duration_minutes){ · Prevista: {{ item.planned_duration_minutes }} min}</span>
                             @if(item.quoting){<span class="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-warning-600 dark:text-warning-400">Calculando…</span>} @else {<span class="mt-1 inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700 dark:bg-success-500/10 dark:text-success-400"><span class="h-1.5 w-1.5 rounded-full bg-success-500"></span>Confirmado</span>}
                           </div>
                           @if(canEdit){<button type="button" (click)="setGroupServices(group, selectedServices(group).filter(id=>id!==item.service_id))" [disabled]="pending() || item.quoting" [attr.aria-label]="'Quitar ' + (item.service_name || 'servicio')" class="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-lg leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200">×</button>}
@@ -112,9 +122,15 @@
                       }
                     }
                   </div>
+                  @if(!current() && groupInterval(group)){
+                    <div class="border-t border-gray-200 bg-white px-4 py-4 dark:border-gray-700 dark:bg-gray-900/30">
+                      <div class="max-w-xs"><app-time-picker [id]="'new-planned-end-'+group.key" label="Hora prevista de término" [value]="newPlannedEndValue(group)" [disabled]="pending() || group.items.some(i=>i.quoting)" [use24Hour]="true" [customOnMobile]="true" [aboveModal]="true" (timeChange)="setNewPlannedEndTime($event)" /></div>
+                      <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Puedes acortar o alargar el tiempo calculado. Se comprobará la disponibilidad al crear la cita.</p>
+                    </div>
+                  }
                   <div class="flex flex-col gap-3 border-t border-gray-200 bg-brand-50/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-end dark:border-gray-700 dark:bg-brand-500/10">
-                    @if(groupInterval(group);as total){<span class="me-auto inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-5 w-5 shrink-0"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Horario calculado: {{ total.starts_local.split('T')[1] }} — {{ total.ends_local.split('T')[1] }}</span></span>}
-                    <div class="text-end"><span class="block text-xl font-bold leading-tight text-gray-900 dark:text-white">TOTAL: S/ {{ formatPrice(groupTotalPrice(group)) }}</span><span class="mt-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ groupDuration(group) }} min en total</span></div>
+                    @if(groupInterval(group);as total){<span class="me-auto inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-5 w-5 shrink-0"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Horario previsto: {{ total.starts_local.slice(11,16) }} — {{ !current() && newPlannedEndEdited ? newPlannedEndTime : total.ends_local.slice(11,16) }}</span></span>}
+                    <div class="text-end"><span class="block text-xl font-bold leading-tight text-gray-900 dark:text-white">TOTAL: S/ {{ formatPrice(groupTotalPrice(group)) }}</span><span class="mt-1 block text-sm font-medium text-gray-700 dark:text-gray-300">@if(!current() && newPlannedDuration(group) === null){Revisa la hora prevista}@else{Duración prevista: {{ !current() ? newPlannedDuration(group) : groupDuration(group) }} min}</span></div>
                   </div>
                 </section>
               }

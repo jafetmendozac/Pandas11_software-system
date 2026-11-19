@@ -14,9 +14,9 @@ import { Appointment, DraftItem, ReservationAvailability } from '../../shared/se
 const draft=():DraftItem=>({key:'key',pet_id:'pet',service_id:'service',pet_name:'Perro',service_name:'Baño',price:'50.25',duration_minutes:60,specialist:false,notes:'',weight_kg_at_visit:null,start:'2030-07-29T08:00',stages:[{stage:'SERVICE',employee_id:'e',minutes:60}],quoting:false,quoteRevision:0});
 const appointment:Appointment={id:'a',client_id:'c',client_name:'Cliente',starts_at:'2030-07-29T13:00:00Z',ends_at:'2030-07-29T14:00:00Z',version:1,total_price:'50.25',deposit_required:'0',pickup_fee:'0',pickup_type:'NONE',source:'INTERNAL',status:'CONFIRMED',client_notes:'nota pública',cancel_reason:null,created_by:'owner',needs_attention:false,items:[{id:'i',pet_id:'pet',pet_name:'<img src=x onerror=alert(1)>',service_id:'service',service_name:'Baño',price:'50.25',duration_minutes:60,requires_specialist_snapshot:false,notes:null,weight_kg_at_visit:null,stages:[{id:'stage',item_id:'i',stage:'SERVICE',employee_id:'e',employee_name:'Empleado',starts_at:'2030-07-29T13:00:00Z',ends_at:'2030-07-29T14:00:00Z'}]}]};
 describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
- let api:{range:jasmine.Spy;get:jasmine.Spy;save:jasmine.Spy;availability:jasmine.Spy;internal:jasmine.Spy;transition:jasmine.Spy;saveInternal:jasmine.Spy};let auth:{has:jasmine.Spy};
+ let api:{range:jasmine.Spy;get:jasmine.Spy;save:jasmine.Spy;createWithPlannedEnd:jasmine.Spy;adjustPlannedEnd:jasmine.Spy;availability:jasmine.Spy;internal:jasmine.Spy;transition:jasmine.Spy;saveInternal:jasmine.Spy};let auth:{has:jasmine.Spy};
  beforeEach(()=>{
-  api={range:jasmine.createSpy().and.resolveTo([]),get:jasmine.createSpy().and.resolveTo(appointment),save:jasmine.createSpy().and.resolveTo(appointment),availability:jasmine.createSpy().and.resolveTo({can_start_service:true,interval_covered:true,reasons:[]}),internal:jasmine.createSpy().and.resolveTo({notes:'Privado'}),transition:jasmine.createSpy(),saveInternal:jasmine.createSpy()};auth={has:jasmine.createSpy().and.returnValue(true)};
+  api={range:jasmine.createSpy().and.resolveTo([]),get:jasmine.createSpy().and.resolveTo(appointment),save:jasmine.createSpy().and.resolveTo(appointment),createWithPlannedEnd:jasmine.createSpy().and.resolveTo(appointment),adjustPlannedEnd:jasmine.createSpy().and.resolveTo(appointment),availability:jasmine.createSpy().and.resolveTo({can_start_service:true,interval_covered:true,reasons:[]}),internal:jasmine.createSpy().and.resolveTo({notes:'Privado'}),transition:jasmine.createSpy(),saveInternal:jasmine.createSpy()};auth={has:jasmine.createSpy().and.returnValue(true)};
   TestBed.configureTestingModule({imports:[CalendarioComponent],providers:[provideRouter([]),{provide:AppointmentsService,useValue:api},{provide:AuthorizationService,useValue:auth},{provide:ClientesService,useValue:{getAll:async()=>[{id:'c',first_name:'Cliente'}]}},{provide:MascotasService,useValue:{getAll:async()=>[]}},{provide:EmpleadosService,useValue:{getAll:async()=>[{id:'e',employee_name:'Empleado',active:true,profile_active:true,skill_level:'ALL_SERVICES'}]}},{provide:ServiciosService,useValue:{getAll:async()=>[]}},{provide:TarifasService,useValue:{quote:async()=>({})}}]});
  });
  const fixture=async()=>{const f=TestBed.createComponent(CalendarioComponent);f.detectChanges();for(let n=0;n<10&&f.componentInstance.optionsLoading();n++)await Promise.resolve();f.detectChanges();expect(f.componentInstance.optionsLoading()).toBeFalse();return f;};
@@ -34,6 +34,38 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   let finish!:(a:Appointment)=>void;api.save.and.callFake(()=>new Promise(r=>finish=r));const pending=c.save();await c.save();expect(api.save).toHaveBeenCalledTimes(2);finish(appointment);await pending;f.detectChanges();
   expect(c.internalLoaded).toBeTrue();expect(c.isOpen()).toBeFalse();expect(c.notice()).toBe('Cita creada correctamente.');
   await c.openAppointment('a');f.detectChanges();expect(f.nativeElement.textContent).toContain('Editar cita');
+ });
+ it('crea con fin previsto elegido en una sola operación y conserva el formulario si falla',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();c.clientId='c';c.items.set([draft()]);
+  f.detectChanges();
+  expect(f.nativeElement.querySelector('input[id^="new-planned-end-"]')).not.toBeNull();
+  expect(f.nativeElement.textContent).toContain('Hora prevista de término');
+  c.setNewPlannedEndTime('09:30');await c.save();
+  expect(api.createWithPlannedEnd).toHaveBeenCalledOnceWith(jasmine.any(Object),'2030-07-29T09:30');
+  const chosen=api.createWithPlannedEnd.calls.mostRecent().args[0];
+  expect(chosen.items[0].planned_duration_minutes).toBe(90);
+  expect(chosen.items[0].stages[0].ends_local).toBe('2030-07-29T09:30:00');
+  expect(api.save).not.toHaveBeenCalled();expect(c.isOpen()).toBeFalse();
+  c.openNew();c.clientId='c';c.items.set([draft()]);c.setNewPlannedEndTime('09:30');
+  api.createWithPlannedEnd.and.rejectWith(new Error('Horario ocupado'));await c.save();
+  expect(c.isOpen()).toBeTrue();expect(c.current()).toBeNull();expect(c.formError()).toBe('Horario ocupado');
+ });
+ it('no bloquea en el formulario un inicio nocturno por una hora fija',async()=>{
+  const f=await fixture();const c=f.componentInstance;c.openNew();const item=draft();item.start='2030-07-31T20:10:00';c.items.set([item]);
+  c.validateNewItem();f.detectChanges();
+  expect(c.newItemValid()).toBeTrue();expect(c.newItemError()).toBe('');
+  expect(f.nativeElement.textContent).toContain('horario del local');
+ });
+ it('ajusta el fin previsto sin cambiar el precio y conserva la ficha si falla',async()=>{
+  const f=await fixture();const c=f.componentInstance;await c.openAppointment('a');
+  c.plannedEndTime='10:30';const adjusted={...appointment,ends_at:'2030-07-29T15:30:00Z',version:2,items:[{...appointment.items[0],planned_duration_minutes:150}]};
+  api.adjustPlannedEnd.and.resolveTo(adjusted);await c.adjustPlannedEnd();
+  expect(api.adjustPlannedEnd).toHaveBeenCalledWith(appointment,'2030-07-29T10:30');
+  expect(c.current()?.ends_at).toBe(adjusted.ends_at);expect(c.current()?.total_price).toBe(appointment.total_price);
+  expect(c.isOpen()).toBeTrue();
+  api.adjustPlannedEnd.and.rejectWith(new Error('Horario ocupado'));c.plannedEndTime='11:00';await c.adjustPlannedEnd();
+  expect(c.current()?.ends_at).toBe(adjusted.ends_at);expect(c.adjustError()).toBe('Horario ocupado');
+  c.touch();await c.adjustPlannedEnd();expect(api.adjustPlannedEnd).toHaveBeenCalledTimes(2);expect(c.adjustError()).toContain('Guarda primero');
  });
  it('descarta una comprobación antigua si cambian los tiempos',async()=>{
   const f=await fixture();const c=f.componentInstance;c.items.set([draft()]);let resolve!:(r:ReservationAvailability)=>void;api.availability.and.callFake(()=>new Promise(r=>resolve=r));
@@ -103,8 +135,8 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.currentView()).toBe('timeGridDay');
   choose('Filtrar por empleado','Empleado');
   expect(c.employeeFilter).toBe('e');expect(api.range.calls.mostRecent().args[2]).toBe('e');
-  choose('Filtrar por estado','Confirmada');
-  expect(c.statusFilter).toBe('CONFIRMED');expect(api.range.calls.mostRecent().args[3]).toBe('CONFIRMED');
+  choose('Filtrar por estado','Programada');
+  expect(c.statusFilter).toBe('CONFIRMED');expect(api.range.calls.allArgs().some(args=>args[3]==='CONFIRMED')).toBeTrue();expect(api.range.calls.allArgs().some(args=>args[3]==='IN_PROGRESS')).toBeTrue();
   choose('Filtrar por empleado','Todos');choose('Filtrar por estado','Todos');
   expect(c.employeeFilter).toBe('');expect(c.statusFilter).toBe('');
   expect(api.range.calls.mostRecent().args[2]).toBeNull();expect(api.range.calls.mostRecent().args[3]).toBeNull();
@@ -120,7 +152,7 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
    c.statusFilter=status;calendar.getApi().gotoDate('2020-07-28');
    for(let n=0;n<10;n++)await Promise.resolve();f.detectChanges();
    await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));f.detectChanges();
-   expect(api.range.calls.mostRecent().args[3]).toBe(status);
+   expect(api.range.calls.allArgs().some(args=>args[3]===status)).toBeTrue();
    expect(f.nativeElement.querySelector('full-calendar').textContent).toContain(c.statuses[status]);
    const event=f.nativeElement.querySelector('full-calendar .event-fc-color') as HTMLElement;
    expect(event).not.toBeNull();event.click();
@@ -161,7 +193,7 @@ describe('Agenda interna: permisos, formulario y concurrencia visual',()=>{
   expect(c.petGroups().length).toBe(1);expect(c.items()[0].start).toBe('2030-07-29T08:00:00');
   c.addItem();expect(c.petGroups().length).toBe(1);
   c.setGroupPet(c.petGroups()[0],'pet');f.detectChanges();
-  const root=f.nativeElement as HTMLElement;const trigger=root.querySelector<HTMLButtonElement>('button[aria-label="Servicios para Perro"]');
+  const root=f.nativeElement as HTMLElement;const trigger=root.querySelector<HTMLButtonElement>('button[aria-label="Selecciona uno o varios servicios"]');
   expect(trigger).not.toBeNull();trigger!.click();f.detectChanges();
   trigger!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));f.detectChanges();
   expect(c.isOpen()).toBeTrue();expect(trigger!.getAttribute('aria-expanded')).toBe('false');

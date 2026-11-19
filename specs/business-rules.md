@@ -10,7 +10,7 @@ Fuente: solicitud inicial y respuestas posteriores del usuario. Estas definicion
 
 | ID | Regla | Estado de definición |
 |---|---|---|
-| RN-01 | Atención de lunes a sábado, incluidos feriados, con horario disponible de 07:00 a 18:00. Domingo es descanso. Se permite que un servicio termine después de las 18:00 | Confirmado: último inicio a las 17:00 y zona America/Lima (plan de Fase 3 aprobado) |
+| RN-01 | Atención de lunes a sábado, incluidos feriados; domingo es descanso. El inicio debe pertenecer al horario del local configurado y toda la atención debe estar cubierta por el turno del trabajador. Puede terminar después del cierre solo con turno explícito, sin cruzar de día. | La regla histórica de último inicio a las 17:00 fue sustituida por la aprobación de horarios configurables del 2026-11-18; zona America/Lima |
 | RN-02 | Medios de pago: Yape, Plin, efectivo, tarjeta o transferencia | Ampliado por solicitud explícita de Fase 5 el 2026-10-18; no implica integración bancaria ni implementación actual |
 | RN-03 | Actualmente trabajan dos personas; pueden avanzar con hasta dos perros diferentes simultáneamente, uno por trabajador, sujeto a sus habilidades | Confirmado; no equivale a dos ingresos por hora ni define un máximo de perros por cita |
 | RN-04 | Baño y corte tiene una referencia inicial de 2 horas, pero la duración depende del tamaño del perro | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
@@ -112,7 +112,7 @@ No se confirmaron todavía espera entre etapas, transiciones detalladas de estad
 
 El usuario aprobó el plan y las ampliaciones mediante «Vamos procede». RN-13/RN-15 mantienen permisos, etapas SERVICE o BATH→CUT y relevo. Desde el cambio aprobado el 2026-11-13, las altas y reprogramaciones internas aceptan una sola mascota; las filas históricas con varias mascotas no se eliminan ni se modifican automáticamente. Recepción define minutos de baño/corte; suma igual al snapshot y sin huecos. ALL_SERVICES puede ambas, ASSISTANT solo baño.
 
-- RN-01: primera atención de cada mascota dentro de horario comercial hasta17; continuaciones pueden iniciar más tarde. Cada etapa exige turno explícito y cobertura completa, incluidos finales después18. Sin cruces de medianoche.
+- RN-01: la aclaración histórica fijaba el primer inicio hasta las 17:00. La aprobación de horarios configurables del 2026-11-18 reemplazó ese corte: el inicio debe pertenecer al horario comercial configurado. Cada etapa exige turno explícito y cobertura completa, incluidos finales después del cierre. Sin cruces de medianoche.
 - RN-09: origen INTERNAL, confirmación directa y adelanto obligatorio0, con o sin cuenta del cliente. Cobro al finalizar es regla de negocio; el módulo de pagos no se implementa aquí.
 - Estados: CONFIRMED permite editar, iniciar, cancelar o marcar no asistió. IN_PROGRESS solo completa. Inicio/NO_SHOW requieren haber llegado la hora programada. Terminales no se reabren; cancelación requiere motivo y conserva detalle/autor/fecha. CANCELLED/NO_SHOW liberan; COMPLETED conserva sus intervalos programados.
 - Precios, minutos y habilidad se guardan como snapshots de servicio. Reprogramar conserva items intactos; nuevos items se cotizan en servidor. No se inventan tiempos por tamaño ni se duplican precios por etapa/trabajador.
@@ -246,3 +246,9 @@ El usuario aprobó el [plan 5.4](features/actividad-5-reportes-retencion/plan.md
 | RN-42 | Solo OWNER/ADMIN activos con `analytics.read` consultan y exportan reportes. STAFF, CLIENT, anon y roles personalizados con permiso delegado no acceden. Los cobros y citas por mes conservan las fórmulas RN-32/RN-33. |
 
 La retención mide repetición entre meses consecutivos; no representa cohortes de primera visita, seguimiento a 30 días ni causa de abandono. Un mes histórico puede cambiar si cambian registros operativos; la etiqueta «Histórico» no significa cierre contable.
+
+## Ajuste del fin previsto — aprobación 2026-11-18
+
+El usuario aprobó acortar o alargar solo el fin previsto de una cita interna programada, incluso después de su inicio si el nuevo fin sigue en el futuro. No se registra fin real ni se exige motivo. RN-04/RN-05/RN-12 conservan duración cotizada y precio como referencia; RN-15 permite que la última etapa planificada difiera de esa duración. RN-01/RN-03/RN-13 exigen cobertura laboral, ausencia de conflictos y permiso OWNER/ADMIN; STAFF solo consulta. RN-09/RN-18 mantienen el cobro al finalizar. La migración incremental y la interfaz se aplicaron únicamente en el entorno local.
+
+El usuario aprobó también elegir el fin previsto al crear la cita. La validación toma el intervalo elegido, no exige que esté libre toda la duración cotizada; un conflicto o error revierte la creación completa. Se conserva la duración cotizada como referencia y solo puede ajustarse la última etapa del último servicio.

@@ -29,7 +29,7 @@
       searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />
   </app-component-card>}
   @if(!employeeOnly && employee && authorization.has('availability.read')){
-    <app-component-card title="Consultar horario habilitado" desc="No reserva ni verifica automáticamente ocupación por citas y recojos. Último inicio de servicio: 17:00.">
+    <app-component-card title="Consultar horario habilitado" desc="El inicio debe estar dentro del horario del local y el servicio completo debe quedar cubierto por el turno del empleado. Esta consulta no reserva ni verifica ocupación por citas y recojos.">
       <form (ngSubmit)="calculate()" class="space-y-4">
         <div class="grid gap-4 sm:grid-cols-3">
           <label>Fecha<input type="date" name="date" [(ngModel)]="date" (ngModelChange)="invalidate()" required class="mt-2 w-full rounded-lg border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900" /></label>
