@@ -15,7 +15,7 @@
         addLabel="Añadir turno" createTitle="Añadir turno" editTitle="Editar turno" />
     </section>
   }@else{
-    <p class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">Los turnos y bloqueos personales aparecerán aquí cuando elijas «Ver horarios» en un empleado.</p>
+    <p class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">Los turnos de cada empleado se gestionan desde su fila. Las ausencias y bloqueos se registran en la tabla general.</p>
   }
   @if(!employeeOnly){<app-component-card title="Horario del local" desc="Define cuándo atiende el negocio: lunes a sábado, incluidos feriados; domingo de descanso. No crea turnos personales.">
     <app-personalized-table #businessTable [columns]="periodColumns" [tableData]="data().business" [saveAction]="saveBusiness"
@@ -23,7 +23,7 @@
       addLabel="Añadir tramo comercial" createTitle="Añadir tramo comercial" editTitle="Editar horario del local" />
   </app-component-card>}
   <div class = 'py-1'></div>
-  @if(!employeeOnly){<app-component-card title="Ausencias y bloqueos" desc="Los bloqueos del local y las ausencias personales se registran manualmente aquí. Los recojos también se representan como bloqueos.">
+  @if(!employeeOnly){<app-component-card title="Ausencias y bloqueos" desc="Selecciona Todo el local o un empleado. Los recojos también se representan como bloqueos.">
     <app-personalized-table #blockTable [columns]="blockColumns" [tableData]="data().blocks" [saveAction]="saveBlock"
       [allowCreate]="authorization.has('time_blocks.manage')" [allowEdit]="authorization.has('time_blocks.manage')" [allowDelete]="authorization.has('time_blocks.manage')"
       searchKey="reason" searchPlaceholder="Buscar motivo…" addLabel="Añadir bloqueo" createTitle="Añadir bloqueo" editTitle="Editar bloqueo" />

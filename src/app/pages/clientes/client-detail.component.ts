@@ -43,7 +43,7 @@ export class ClientDetailComponent implements OnInit {
     { key: 'name', label: 'Nombre', placeholder: 'Ej. Max' },
     { key: 'breed_id', label: 'Raza', required: false, options: [] },
     { key: 'pet_sex', label: 'Sexo', required: false, options: [{ label: 'No especificado', value: '' }, { label: 'Macho', value: 'MALE' }, { label: 'Hembra', value: 'FEMALE' }, { label: 'Desconocido', value: 'UNKNOWN' }] },
-    { key: 'pet_size', label: 'Tamaño', required: false, options: [{ label: 'No especificado', value: '' }, { label: 'Miniatura', value: 'TOY' }, { label: 'Pequeño', value: 'SMALL' }, { label: 'Mediano', value: 'MEDIUM' }, { label: 'Grande', value: 'LARGE' }, { label: 'Extra grande', value: 'EXTRA_LARGE' }] },
+    { key: 'pet_size', label: 'Tamaño', required: false, options: [{ label: 'No especificado', value: '' }, { label: 'Toy', value: 'TOY' }, { label: 'Pequeño', value: 'SMALL' }, { label: 'Mediano', value: 'MEDIUM' }, { label: 'Mediano grande', value: 'LARGE' }, { label: 'Grande - extra', value: 'EXTRA_LARGE' }] },
     { key: 'weight_kg', label: 'Peso (kg)', type: 'number', required: false },
     { key: 'allergies', label: 'Alergias', control: 'radio', required: false, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
     { key: 'bites', label: 'Muerde', control: 'radio', required: false, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },

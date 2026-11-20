@@ -22,6 +22,12 @@ export class ServiceCatalogComponent implements OnInit {
   readonly error = signal('');
   readonly petNotice = signal('');
   readonly services = signal<Service[]>([]);
+  readonly selectableServices = computed(() => this.services().filter(service => service.kind === 'MAIN' || service.can_sell_alone));
+  readonly addonPairs = signal<Array<{addon_id:string;main_id:string}>>([]);
+  readonly selectedAddonIds = signal<string[]>([]);
+  readonly availableAddons = computed(() => this.services().filter(service => service.kind === 'ADD_ON' &&
+    this.addonPairs().some(pair => pair.main_id === this.selectedServiceId() && pair.addon_id === service.id)));
+  readonly quoteLines = signal<Array<{name:string;price:string;max_price:string;duration_minutes:number}>>([]);
   readonly pets = signal<Pet[]>([]);
   readonly selectedServiceId = signal('');
   readonly selectedPetId = signal('');
@@ -35,7 +41,9 @@ export class ServiceCatalogComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const services = await this.catalogue.getAll(true);
-      this.services.set(services.filter(service => service.active && service.visible_to_clients));
+      this.services.set(services.filter(service => service.active && service.visible_to_clients)
+        .sort((a,b) => (a.kind === 'MAIN' ? 0 : 1) - (b.kind === 'MAIN' ? 0 : 1)));
+      this.addonPairs.set(await this.catalogue.allowedAddons());
     } catch {
       this.error.set('No pudimos cargar los servicios. Vuelve a intentarlo más tarde.');
     } finally {
@@ -60,6 +68,13 @@ export class ServiceCatalogComponent implements OnInit {
 
   selectService(id: string): void {
     this.selectedServiceId.set(id);
+    this.selectedAddonIds.set([]);
+    this.invalidate();
+  }
+
+  toggleAddon(id:string):void {
+    if(!this.availableAddons().some(service=>service.id===id))return;
+    this.selectedAddonIds.update(ids=>ids.includes(id)?ids.filter(current=>current!==id):[...ids,id]);
     this.invalidate();
   }
 
@@ -79,8 +94,22 @@ export class ServiceCatalogComponent implements OnInit {
     this.result.set(null);
     this.calculationError.set('');
     try {
-      const result = await this.pricing.quote(this.selectedServiceId(), this.size());
-      if (revision === this.revision) this.result.set(result);
+      const selected=[this.selectedServiceId(),...this.selectedAddonIds()];
+      const quoted=await Promise.all(selected.map(id=>this.pricing.quote(id,this.size())));
+      if (revision === this.revision) {
+        const lines=quoted.map((quote,index)=>({name:this.services().find(service=>service.id===selected[index])?.name??'Servicio',
+          price:quote.price,max_price:quote.max_price??quote.price,duration_minutes:quote.duration_minutes}));
+        const total=(field:'price'|'max_price')=>{
+          const cents=lines.reduce((sum,line)=>{
+            const [whole,fraction='']=line[field].split('.');
+            return sum+BigInt(whole)*100n+BigInt(fraction.padEnd(2,'0'));
+          },0n);
+          return `${cents/100n}.${String(cents%100n).padStart(2,'0')}`;
+        };
+        this.quoteLines.set(lines);
+        this.result.set({...quoted[0],price:total('price'),max_price:total('max_price'),
+          duration_minutes:lines.reduce((sum,line)=>sum+line.duration_minutes,0)});
+      }
     } catch {
       if (revision === this.revision) this.calculationError.set('No pudimos calcular esta tarifa. Revisa el servicio e inténtalo de nuevo.');
     } finally {
@@ -91,6 +120,7 @@ export class ServiceCatalogComponent implements OnInit {
   private invalidate(): void {
     this.revision++;
     this.result.set(null);
+    this.quoteLines.set([]);
     this.calculationError.set('');
     this.calculating.set(false);
   }

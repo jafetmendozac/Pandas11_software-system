@@ -26,7 +26,7 @@ select throws_ok($$select public.save_work_period('employee',jsonb_build_object(
 select throws_ok($$select public.save_work_period('business','{"weekday":2,"start_time":"18:00","end_time":"07:00"}')$$,'22023',null,'No cruza medianoche');
 select throws_ok($$insert into public.employee_schedules(employee_id,weekday,start_time,end_time) values(current_setting('test.employee')::uuid,3,'07:00','12:00')$$,'42501',null,'Sin escritura directa que eluda protocolo');
 select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','17:00','19:00')->>'can_start_service')::boolean,true,'RN01: feriado y fin19 con turno explícito');
-select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','17:01','18:00')->>'can_start_service')::boolean,false,'RN01: inicio posterior a17 denegado');
+select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','17:01','18:00')->>'can_start_service')::boolean,true,'RN01: inicio antes del cierre configurable permitido');
 select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','12:00','13:00')->>'interval_covered')::boolean,false,'No rellenar cierre intermedio del local');
 select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','18:00','19:00')->>'interval_covered')::boolean,true,'Cobertura laboral después del cierre');
 select is((public.employee_availability(current_setting('test.employee')::uuid,'2026-07-28','18:00','19:00')->>'can_start_service')::boolean,false,'Cobertura no autoriza nuevo inicio al cierre');

@@ -187,3 +187,7 @@ Plan y decisiones R54-D01–D04 aprobados mediante «Vamos». `/reportes` muestr
 ## Actividad 5.5: ajustes finales de interfaz y usabilidad — 2026-10-31
 
 Plan aprobado mediante «Vamos». El menú del panel oculta ejemplos, el encabezado ofrece cambio de rol en móvil y deja de mostrar búsqueda sin función, el diálogo de stock separa registro e historial y Reportes explica los intervalos vacíos. Se revisaron 14 rutas operativas con datos sintéticos en móvil y pantallas clave en oscuro/RTL; pruebas Angular, tipos y build correctos. Véase [validación 5.5](features/actividad-5-usabilidad-final/validation.md) para evidencia y hallazgos pendientes. No hay aceptación operativa ni despliegue remoto. El siguiente punto del cronograma es 6.1, pruebas integrales y corrección de errores.
+
+## Catálogo principal y adicionales — 2026-11-19
+
+Plan aprobado e implementado en Supabase local y Angular: tres principales, tres adicionales, rangos con precio final elegido, duraciones por tamaño, compatibilidad en servidor y borrado físico de 12 servicios antiguos con snapshots históricos. Evidencia en [validación](features/servicios-principales-adicionales/validation.md). No se aplicó a remoto ni se realizó aceptación manual visual.

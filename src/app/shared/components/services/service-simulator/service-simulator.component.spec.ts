@@ -9,7 +9,7 @@ const mockSupabase = { client: { from: () => ({ select: () => ({ ilike: () => ({
 describe('Simulador de precios',()=>{
   let pricing:{quote:jasmine.Spy};
   beforeEach(()=>{
-    pricing={quote:jasmine.createSpy().and.resolveTo({service_id:'service',price:'0',duration_minutes:45,source:'SIZE',rule_id:'rule'})};
+    pricing={quote:jasmine.createSpy().and.resolveTo({service_id:'service',price:'0',max_price:'0',duration_minutes:45,source:'SIZE',rule_id:'rule'})};
     TestBed.configureTestingModule({imports:[ServiceSimulatorComponent],providers:[
       {provide:SupabaseService,useValue:mockSupabase},
       {provide:ServiciosService,useValue:{getAll:async()=>[{id:'service',name:'Baño',active:true,visible_to_clients:true},{id:'hidden',name:'Oculto',active:true,visible_to_clients:false}]}},
@@ -33,7 +33,7 @@ describe('Simulador de precios',()=>{
     const f=TestBed.createComponent(ServiceSimulatorComponent);f.detectChanges();await f.whenStable();
     let resolve!:(quote:ServiceQuote)=>void;pricing.quote.and.callFake(()=>new Promise(r=>resolve=r));f.componentInstance.serviceId='service';
     const pending=f.componentInstance.calculate();f.componentInstance.size='TOY';f.componentInstance.invalidate();
-    resolve({service_id:'service',price:'1',duration_minutes:30,source:'BASE',rule_id:null});await pending;
+    resolve({service_id:'service',price:'1',max_price:'1',duration_minutes:30,source:'BASE',rule_id:null});await pending;
     expect(f.componentInstance.quote()).toBeNull();expect(f.componentInstance.calculating()).toBeFalse();
   });
   it('sin dimensiones envía NULL y limpia resultado si el servicio es denegado',async()=>{

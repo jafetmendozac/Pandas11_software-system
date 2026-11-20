@@ -228,6 +228,12 @@ La migración local `20261029130000_contact_queue.sql` añade `client_contact_co
 
 `ContactQueueService` conecta `/por-contactar`; el sidebar exige `contacts.read` y la ruta aplica guard. La página permite registrar intentos y consentimiento por permiso del rol seleccionado, muestra estados de carga/error y conserva la identidad de un reintento incierto. El dropdown de notificaciones de plantilla se retiró del encabezado. La migración solo se aplicó a Supabase local; ver [validación 5.3](features/actividad-5-recordatorios-contactos/validation.md).
 
+## Catálogo principal y adicionales — 2026-11-19
+
+`services` distingue `MAIN`/`ADD_ON`, venta individual y rango base; `service_prices` guarda mínimo/máximo y duración por tamaño. `service_addon_allowed` define relaciones admisibles. `quote_service` devuelve límites y la RPC de citas valida el precio final, un principal y adicionales compatibles, o una prestación vendible sola. `appointment_items.service_name_snapshot` permite borrar físicamente servicios antiguos sin perder nombres; `service_id` histórico puede ser NULL. Ventas y analítica usan el snapshot. El catálogo propio suma rangos y minutos de adicionales, y la agenda exige elegir precio final. Solo migraciones locales; ver [validación](features/servicios-principales-adicionales/validation.md).
+
+Ampliación local del 2026-11-20: el catálogo tiene nueve prestaciones, incluidas dos variantes de baño medicado, Cepillado y Corte de uñas. Los códigos del enum de tamaño se conservan; sus cinco etiquetas comerciales son Toy, Pequeño, Mediano, Mediano grande y Grande - extra. Para citas nuevas, la RPC exige tamaño y la UI autocompleta el mínimo del rango editable. Ver [requisitos](features/catalogo-nueve-servicios/requirements.md).
+
 ## Reportes y retención 5.4 — 2026-10-31
 
 `/reportes` es una página Angular independiente que consulta `public.monthly_business_reports(date,date)` mediante `MonthlyReportsService`. La RPC local reutiliza `dashboard_kpis` por mes y calcula retención con clientes distintos de citas completadas. Devuelve solo agregados; Angular valida la estructura y genera dos CSV en el navegador. La función exige OWNER/ADMIN activo y `analytics.read` en servidor. No añade tablas ni altera el modelo de `Pandas11.sql`; el esquema remoto no fue inspeccionado. Ver [validación 5.4](features/actividad-5-reportes-retencion/validation.md).

@@ -59,11 +59,11 @@ export class MascotasTableComponent implements OnInit {
             required: false,
             options: [
                 { label: 'No especificado', value: '' },
-                { label: 'Miniatura', value: 'TOY' },
+                { label: 'Toy', value: 'TOY' },
                 { label: 'Pequeño', value: 'SMALL' },
                 { label: 'Mediano', value: 'MEDIUM' },
-                { label: 'Grande', value: 'LARGE' },
-                { label: 'Extra grande', value: 'EXTRA_LARGE' },
+                { label: 'Mediano grande', value: 'LARGE' },
+                { label: 'Grande - extra', value: 'EXTRA_LARGE' },
             ],
         },
         {

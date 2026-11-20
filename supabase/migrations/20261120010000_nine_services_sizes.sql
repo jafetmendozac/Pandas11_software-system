@@ -1,0 +1,155 @@
+-- Completar las nueve prestaciones aprobadas sin alterar los snapshots históricos.
+do $$ begin
+ if not exists(select 1 from public.services where id='d0400000-0000-4000-8000-000000000315'
+  and name='Baño medicado' and kind='ADD_ON' and base_price=5 and base_max_price=15 and base_duration_minutes=15)
+ then raise exception 'Baño medicado local no coincide con el catálogo anterior; conciliar'; end if;
+ if exists(select 1 from public.services where id in
+  ('d0400000-0000-4000-8000-000000000317','d0400000-0000-4000-8000-000000000318',
+   'd0400000-0000-4000-8000-000000000319')
+  or name in ('Baño medicado para parásitos externos','Baño medicado para piel delicada','Cepillado','Corte de uñas'))
+ then raise exception 'Nuevo servicio ya existe; conciliar antes de insertar'; end if;
+ if exists(select 1 from public.service_prices where service_id in
+  ('d0400000-0000-4000-8000-000000000310','d0400000-0000-4000-8000-000000000315',
+   'd0400000-0000-4000-8000-000000000316'))
+ then raise exception 'Tarifa adicional modificada manualmente; conciliar antes de insertar'; end if;
+end $$;
+
+update public.services set name='Baño medicado para parásitos externos',updated_at=clock_timestamp()
+ where id='d0400000-0000-4000-8000-000000000315';
+insert into public.services(id,name,description,base_price,base_max_price,base_duration_minutes,requires_specialist,kind,can_sell_alone)
+values
+ ('d0400000-0000-4000-8000-000000000317','Baño medicado para piel delicada','Adicional al baño estético.',5,15,15,false,'ADD_ON',false),
+ ('d0400000-0000-4000-8000-000000000318','Cepillado','Cepillado según el tamaño de la mascota.',5,5,10,false,'ADD_ON',true),
+ ('d0400000-0000-4000-8000-000000000319','Corte de uñas','Corte de uñas para cualquier tamaño.',5,5,10,false,'ADD_ON',true);
+
+insert into public.service_prices(service_id,pet_size,price,max_price,duration_minutes)
+select s.id,z.pet_size,z.price,z.max_price,z.duration_minutes from public.services s
+join (values
+ ('d0400000-0000-4000-8000-000000000310'::uuid,5::numeric,30::numeric,15),
+ ('d0400000-0000-4000-8000-000000000315'::uuid,5::numeric,15::numeric,15),
+ ('d0400000-0000-4000-8000-000000000316'::uuid,5::numeric,20::numeric,20),
+ ('d0400000-0000-4000-8000-000000000317'::uuid,5::numeric,15::numeric,15),
+ ('d0400000-0000-4000-8000-000000000319'::uuid,5::numeric,5::numeric,10)
+) x(id,price,max_price,duration_minutes) on x.id=s.id
+cross join lateral (values
+ ('TOY'::public.pet_size,x.price,x.max_price,x.duration_minutes),
+ ('SMALL'::public.pet_size,x.price,x.max_price,x.duration_minutes),
+ ('MEDIUM'::public.pet_size,x.price,x.max_price,x.duration_minutes),
+ ('LARGE'::public.pet_size,x.price,x.max_price,x.duration_minutes),
+ ('EXTRA_LARGE'::public.pet_size,x.price,x.max_price,x.duration_minutes)
+) z(pet_size,price,max_price,duration_minutes);
+insert into public.service_prices(service_id,pet_size,price,max_price,duration_minutes) values
+ ('d0400000-0000-4000-8000-000000000318','TOY',5,5,10),
+ ('d0400000-0000-4000-8000-000000000318','SMALL',5,5,10),
+ ('d0400000-0000-4000-8000-000000000318','MEDIUM',10,10,15),
+ ('d0400000-0000-4000-8000-000000000318','LARGE',15,15,20),
+ ('d0400000-0000-4000-8000-000000000318','EXTRA_LARGE',20,20,25);
+
+insert into public.service_addon_allowed(addon_id,main_id) values
+ ('d0400000-0000-4000-8000-000000000317','d0400000-0000-4000-8000-000000000305'),
+ ('d0400000-0000-4000-8000-000000000318','d0400000-0000-4000-8000-000000000305'),
+ ('d0400000-0000-4000-8000-000000000318','d0400000-0000-4000-8000-000000000313'),
+ ('d0400000-0000-4000-8000-000000000318','d0400000-0000-4000-8000-000000000314'),
+ ('d0400000-0000-4000-8000-000000000319','d0400000-0000-4000-8000-000000000305'),
+ ('d0400000-0000-4000-8000-000000000319','d0400000-0000-4000-8000-000000000313'),
+ ('d0400000-0000-4000-8000-000000000319','d0400000-0000-4000-8000-000000000314');
+
+-- La cotización de citas nuevas exige uno de los cinco tamaños existentes.
+create or replace function public.save_internal_appointment(p_input jsonb,p_id uuid default null,p_expected_version integer default null) returns jsonb
+language plpgsql volatile security definer set search_path='' as $$
+declare a public.appointments; old_item public.appointment_items; v_item jsonb; v_stage jsonb; item_id uuid; kept uuid[]:=array[]::uuid[]; q jsonb; specialist boolean; pet uuid; service uuid; client uuid;
+ price numeric; duration int; target uuid; first_time timestamptz; last_time timestamptz; v_total numeric; v_price_text text; v_main uuid; v_main_count integer; v_addon_count integer;
+begin
+ perform private.require_work_permission('appointments.manage'); perform private.require_work_permission('appointments.read'); perform private.appointment_lock();
+ perform private.require_work_permission('appointments.manage'); perform private.require_work_permission('appointments.read');
+ if p_input is null or jsonb_typeof(p_input)<>'object' or p_input-array['client_id','client_notes','items']<>'{}'::jsonb then raise exception 'Campos de cita no admitidos' using errcode='22023'; end if;
+ if jsonb_typeof(p_input->'items') is distinct from 'array' or jsonb_array_length(p_input->'items')=0 then raise exception 'Añade servicios y asignaciones' using errcode='22023'; end if;
+ if (select count(distinct nullif(value->>'pet_id','')) from jsonb_array_elements(p_input->'items'))<>1
+  or exists(select 1 from jsonb_array_elements(p_input->'items') where nullif(value->>'pet_id','') is null)
+ then raise exception 'Una cita solo puede incluir una mascota' using errcode='22023'; end if;
+ client:=(p_input->>'client_id')::uuid;
+ perform 1 from public.clients where id=client and deleted_at is null for share;
+ if not found then raise exception 'Cliente no disponible' using errcode='22023'; end if;
+ if p_id is null then
+  insert into public.appointments(client_id,starts_at,ends_at,total_price,created_by,client_notes) values(client,now(),now()+interval '1 minute',0,auth.uid(),p_input->>'client_notes') returning * into a;
+ else
+  select * into strict a from public.appointments where id=p_id for update;
+  if a.version is distinct from p_expected_version then raise exception 'La cita cambió. Recarga antes de guardar' using errcode='40001'; end if;
+  if a.status<>'CONFIRMED' or a.client_id<>client then raise exception 'Solo se reprograman citas confirmadas del mismo cliente' using errcode='22023'; end if;
+  if (select count(distinct pet_id) from public.appointment_items where appointment_id=a.id)>1 then
+   raise exception 'La cita histórica con varias mascotas es solo de consulta' using errcode='22023';
+  end if;
+ end if;
+ for v_item in select value from jsonb_array_elements(p_input->'items') loop
+  if jsonb_typeof(v_item)<>'object' or v_item-array['id','pet_id','service_id','weight_kg_at_visit','notes','stages','planned_duration_minutes','price']<>'{}'::jsonb then raise exception 'Campos de servicio no admitidos' using errcode='22023'; end if;
+  pet:=(v_item->>'pet_id')::uuid; service:=(v_item->>'service_id')::uuid;
+  perform 1 from public.pets where id=pet and client_id=client and active and deleted_at is null and death_date is null for share;
+  if not found then raise exception 'Mascota ajena, retirada o no disponible' using errcode='22023'; end if;
+  if p_id is not null and v_item ? 'planned_duration_minutes' then raise exception 'El ajuste de duración al crear no se admite al editar una cita' using errcode='22023'; end if;
+  old_item:=null;
+  if nullif(v_item->>'id','') is not null then
+   select * into strict old_item from public.appointment_items where id=(v_item->>'id')::uuid and appointment_id=a.id;
+   if old_item.service_id is null then raise exception 'Servicio histórico retirado; esta cita es solo de consulta' using errcode='22023'; end if;
+   if old_item.pet_id<>pet or old_item.service_id<>service then raise exception 'Para sustituir mascota o servicio añade un item nuevo' using errcode='22023'; end if;
+   item_id:=old_item.id; price:=old_item.price; duration:=old_item.duration_minutes; specialist:=old_item.requires_specialist_snapshot;
+   update public.appointment_items set notes=v_item->>'notes',weight_kg_at_visit=(v_item->>'weight_kg_at_visit')::numeric where id=item_id;
+   delete from public.appointment_item_staff st where st.item_id=old_item.id;
+  else
+   if not exists(select 1 from public.pets where id=pet and pet_size is not null) then
+    raise exception 'Indica uno de los cinco tamaños de la mascota antes de crear la cita' using errcode='22023'; end if;
+   select public.quote_service(s.id,p.pet_size),s.requires_specialist into q,specialist from public.services s cross join public.pets p where s.id=service and s.active and p.id=pet;
+   if not found then raise exception 'Servicio no disponible' using errcode='22023'; end if;
+   v_price_text:=v_item->>'price';
+   if v_price_text is null then
+    if (q->>'price')::numeric<>(q->>'max_price')::numeric then
+     raise exception 'Elige un precio dentro del rango del servicio' using errcode='22023';
+    end if;
+    price:=(q->>'price')::numeric;
+   else
+    if v_price_text !~ '^[0-9]+([.][0-9]{1,2})?$' then raise exception 'Precio de servicio inválido' using errcode='22023'; end if;
+    price:=v_price_text::numeric;
+    if price<(q->>'price')::numeric or price>(q->>'max_price')::numeric then
+     raise exception 'Precio fuera del rango del servicio' using errcode='22023'; end if;
+   end if;
+   duration:=(q->>'duration_minutes')::integer;
+   insert into public.appointment_items(appointment_id,pet_id,client_id,service_id,service_name_snapshot,price,duration_minutes,planned_duration_minutes,requires_specialist_snapshot,weight_kg_at_visit,notes)
+    values(a.id,pet,client,service,(select name from public.services where id=service),price,duration,(v_item->>'planned_duration_minutes')::integer,specialist,(v_item->>'weight_kg_at_visit')::numeric,v_item->>'notes') returning id into item_id;
+  end if;
+  if item_id=any(kept) then raise exception 'Servicio repetido' using errcode='22023'; end if; kept:=array_append(kept,item_id);
+  if jsonb_typeof(v_item->'stages') is distinct from 'array' then raise exception 'Indica las etapas' using errcode='22023'; end if;
+  for v_stage in select value from jsonb_array_elements(v_item->'stages') loop
+   if jsonb_typeof(v_stage)<>'object' or v_stage-array['employee_id','stage','starts_local','ends_local']<>'{}'::jsonb then raise exception 'Campos de etapa no admitidos' using errcode='22023'; end if;
+   target:=(v_stage->>'employee_id')::uuid;
+   perform 1 from public.employees e join public.profiles pr on pr.id=e.profile_id where e.id=target for share of e,pr;
+   if not found then raise exception 'Empleado inexistente' using errcode='22023'; end if;
+   insert into public.appointment_item_staff(item_id,employee_id,stage,starts_at,ends_at) values(item_id,target,v_stage->>'stage',private.lima_instant(v_stage->>'starts_local'),private.lima_instant(v_stage->>'ends_local'));
+  end loop;
+ end loop;
+ delete from public.appointment_item_staff st where st.item_id in(select id from public.appointment_items where appointment_id=a.id and not(id=any(kept)));
+ delete from public.appointment_items where appointment_id=a.id and not(id=any(kept));
+ if p_id is null and exists(select 1 from public.appointment_items where appointment_id=a.id and planned_duration_minutes is not null) then
+  if (select count(*) from public.appointment_items where appointment_id=a.id and planned_duration_minutes is not null)<>1
+   or exists(select 1 from public.appointment_items i where i.appointment_id=a.id and i.planned_duration_minutes is not null
+    and i.id<>(select st.item_id from public.appointment_item_staff st join public.appointment_items ai on ai.id=st.item_id where ai.appointment_id=a.id order by st.ends_at desc,st.id desc limit 1))
+  then raise exception 'Solo el último servicio puede ajustar su duración prevista' using errcode='22023'; end if;
+ end if;
+ select count(*) filter(where s.kind='MAIN'),count(*) filter(where s.kind='ADD_ON'),
+  (min(s.id::text) filter(where s.kind='MAIN'))::uuid into v_main_count,v_addon_count,v_main
+ from public.appointment_items i join public.services s on s.id=i.service_id where i.appointment_id=a.id;
+ if v_main_count=1 then
+  if exists(select 1 from public.appointment_items i join public.services s on s.id=i.service_id
+   where i.appointment_id=a.id and s.kind='ADD_ON' and not exists
+    (select 1 from public.service_addon_allowed x where x.addon_id=s.id and x.main_id=v_main)) then
+   raise exception 'Adicional incompatible con el servicio principal' using errcode='22023'; end if;
+ elsif v_main_count=0 and v_addon_count=1 then
+  if not exists(select 1 from public.appointment_items i join public.services s on s.id=i.service_id
+   where i.appointment_id=a.id and s.can_sell_alone) then
+   raise exception 'Este adicional requiere Baño estético' using errcode='22023'; end if;
+ else raise exception 'Elige un principal o una prestación que se venda sola' using errcode='22023'; end if;
+ select min(s.starts_at),max(s.ends_at) into first_time,last_time from public.appointment_items i join public.appointment_item_staff s on s.item_id=i.id where i.appointment_id=a.id;
+ if first_time is null or first_time<clock_timestamp() then raise exception 'No se puede reservar o reprogramar en el pasado' using errcode='22023'; end if;
+ select sum(i.price) into v_total from public.appointment_items i where i.appointment_id=a.id;
+ update public.appointments set starts_at=first_time,ends_at=last_time,total_price=v_total,client_notes=p_input->>'client_notes',updated_at=clock_timestamp(),version=case when p_id is null then 1 else version+1 end where id=a.id;
+ perform private.validate_appointment(a.id);
+ return private.appointment_json(a.id);
+end $$;

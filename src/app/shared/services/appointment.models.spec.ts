@@ -9,10 +9,10 @@ describe('Contrato de agenda: snapshots y tiempos',()=>{
   const stages=stageInputs(item());expect(stages[1].starts_local).toBe('2030-07-29T18:00:00');expect(stages[1].ends_local).toBe('2030-07-29T19:00:00');
   expect(stages.map(s=>s.employee_id)).toEqual(['assistant','specialist']);
  });
- it('no envía precios, duración, habilidad u origen controlados por el servidor',()=>{
+ it('envía el precio elegido, mientras el servidor controla duración, habilidad y origen',()=>{
   const payload=appointmentInput('client','nota',[item()]);
   expect(Object.keys(payload).sort()).toEqual(['client_id','client_notes','items']);
-  expect(Object.keys(payload.items[0]).sort()).toEqual(['notes','pet_id','service_id','stages','weight_kg_at_visit']);
+  expect(Object.keys(payload.items[0]).sort()).toEqual(['notes','pet_id','price','service_id','stages','weight_kg_at_visit']);
  });
  it('rechaza reparto incompleto, minutos fraccionarios y ausencia de trabajador',()=>{
   const i=item();i.stages[0].minutes=30;expect(()=>stageInputs(i)).toThrow();

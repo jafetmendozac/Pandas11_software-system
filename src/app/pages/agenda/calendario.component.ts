@@ -26,13 +26,12 @@ import { calendarAppearance } from './calendar-appearance';
 import { CustomSelectComponent, CustomSelectOption } from '../../shared/components/form/custom-select/custom-select.component';
 import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
 import { TextAreaComponent } from '../../shared/components/form/input/text-area.component';
-import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { TimePickerComponent } from '../../shared/components/form/time-picker/time-picker.component';
 import { MultiSelectComponent, Option as MultiSelectOption } from '../../shared/components/form/multi-select/multi-select.component';
 
 interface PetGroup { key:string; pet_id:string; pet_name:string; items:DraftItem[]; }
 
-@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,MultiSelectComponent,InputFieldComponent,TextAreaComponent,DatePickerComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
+@Component({selector:'app-calendario',standalone:true,imports:[RouterLink,FormsModule,FullCalendarModule,ModalComponent,PageBreadcrumbComponent,CustomSelectComponent,MultiSelectComponent,InputFieldComponent,TextAreaComponent,TimePickerComponent],templateUrl:'./calendario.component.html'})
 export class CalendarioComponent implements OnInit,OnDestroy {
  @ViewChild(FullCalendarComponent) private calendar?:FullCalendarComponent;
  readonly viewOptions=[{key:'dayGridMonth',label:'Mes'},{key:'multiMonthYear',label:'Año'},{key:'timeGridWeek',label:'Semana'},{key:'timeGridDay',label:'Día'}] as const;
@@ -45,6 +44,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  private readonly clientService=inject(ClientesService);private readonly petService=inject(MascotasService);
  private readonly employeeService=inject(EmpleadosService);private readonly serviceCatalogue=inject(ServiciosService);private readonly pricing=inject(TarifasService);
  readonly clients=signal<Client[]>([]);readonly pets=signal<Pet[]>([]);readonly employees=signal<Employee[]>([]);readonly services=signal<Service[]>([]);
+ readonly addonPairs=signal<Array<{addon_id:string;main_id:string}>>([]);
  readonly rows=signal<Appointment[]>([]);readonly loading=signal(false);readonly optionsLoading=signal(true);readonly error=signal('');
  readonly isOpen=signal(false);readonly detailLoading=signal(false);readonly detailFailed=signal(false);readonly pending=signal(false);readonly formError=signal('');readonly notice=signal('');readonly adjustError=signal('');
  readonly current=signal<Appointment|null>(null);readonly items=signal<DraftItem[]>([]);readonly checking=signal(false);
@@ -56,7 +56,9 @@ plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';not
  private readonly automaticStarts=new Set<string>();
  private readonly removedItems=new Map<string,DraftItem>();
  get historicalMultiPet():boolean{return !!this.current()&&new Set(this.current()!.items.map(item=>item.pet_id)).size>1;}
- get canEdit():boolean{return !this.detailFailed()&&!this.historicalMultiPet&&this.authorization.has('appointments.manage')&&(!this.current()||this.current()?.status==='CONFIRMED');}
+ get canEdit():boolean{return !this.detailFailed()&&!this.historicalMultiPet&&
+  !this.current()?.items.some(item=>item.service_id===null)&&this.authorization.has('appointments.manage')&&
+  (!this.current()||this.current()?.status==='CONFIRMED');}
  async ngOnInit():Promise<void>{
   this.options.set({...calendarAppearance,plugins:[themePlugin,dayGridPlugin,multiMonthPlugin,timeGridPlugin,interactionPlugin],initialView:'dayGridMonth',locale:esLocale,timeZone:'America/Lima',direction:document.documentElement.dir==='rtl'?'rtl':'ltr',allDaySlot:false,
    headerToolbar:false,slotMinTime:'00:00:00',slotMaxTime:'24:00:00',height:'auto',
@@ -87,7 +89,8 @@ plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';not
    }
   });
   try{
-   const [clients,pets,employees,services]=await Promise.all([this.clientService.getAll(),this.petService.getAll(),this.employeeService.getAll(),this.serviceCatalogue.getAll()]);
+   const [clients,pets,employees,services,pairs]=await Promise.all([this.clientService.getAll(),this.petService.getAll(),this.employeeService.getAll(),this.serviceCatalogue.getAll(),this.serviceCatalogue.allowedAddons()]);
+   this.addonPairs.set(pairs);
    this.clients.set(clients);this.pets.set(pets.filter(p=>p.active&&!p.deleted_at&&!p.death_date));this.employees.set(employees.filter(e=>e.active&&e.profile_active));this.services.set(services.filter(s=>s.active));
   }catch(error){this.error.set(workError(error));}finally{this.optionsLoading.set(false);}
  }
@@ -152,7 +155,7 @@ plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';not
   return options;
  }
  serviceOptions(group:PetGroup):MultiSelectOption[]{
-  const options:MultiSelectOption[]=this.services().map(s=>({value:s.id,text:s.name}));
+  const options:MultiSelectOption[]=this.services().map(s=>({value:s.id,text:`${s.name} · ${s.kind==='MAIN'?'Principal':s.can_sell_alone?'Adicional o solo':'Adicional'}`}));
   for(const item of group.items)if(item.service_id&&!options.some(option=>option.value===item.service_id))options.push({value:item.service_id,text:item.service_name||'Servicio no disponible'});
   for(const item of this.removedItems.values())if(item.pet_id===group.pet_id&&!options.some(option=>option.value===item.service_id))options.push({value:item.service_id,text:item.service_name||'Servicio anterior'});
   return options;
@@ -173,10 +176,16 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   this.touch();this.validateNewItem();
 }
   groupDuration(group:PetGroup):number{return group.items.reduce((total,item)=>total+(item.planned_duration_minutes??item.duration_minutes??0),0);}
-  groupTotalPrice(group:PetGroup):number{return group.items.filter(item=>!!item.service_id).reduce((sum,item)=>sum+Number(item.price||0),0);}
+  groupTotalPrice(group:PetGroup):string{
+   const cents=group.items.filter(item=>!!item.service_id||!!item.id).reduce((sum,item)=>{
+    const match=/^(\d+)(?:\.(\d{1,2}))?$/.exec(item.price);
+    return sum+(match?BigInt(match[1])*100n+BigInt((match[2]??'').padEnd(2,'0')):0n);
+   },0n);
+   return `${cents/100n}.${String(cents%100n).padStart(2,'0')}`;
+  }
   formatPrice(value:string|number|null|undefined):string{const amount=Number(value??0);try{return this.money(String(value??0));}catch{return amount.toFixed(2);}}
  groupInterval(group:PetGroup):StageInput|null{
-  const first=group.items.find(item=>item.service_id);const minutes=this.groupDuration(group);
+  const first=group.items.find(item=>item.service_id||item.id);const minutes=this.groupDuration(group);
   if(!first?.start||!minutes||group.items.some(item=>item.quoting))return null;
   try{return {stage:'SERVICE',employee_id:this.groupEmployeeId(group),starts_local:first.start,ends_local:addLocalMinutes(first.start,minutes)};}catch{return null;}
  }
@@ -203,6 +212,10 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(!/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(time)){this.newItemError.set('Indica una hora de inicio válida.');return;}
   const emp=this.groupEmployeeId(group);
   if(!emp){this.newItemError.set('Selecciona un trabajador.');return;}
+  if(group.items.some(item=>item.service_id&&!item.id&&(!/^\d+(?:\.\d{1,2})?$/.test(item.price)||
+    Number(item.price)<Number(item.min_price??item.price)||Number(item.price)>Number(item.max_price??item.price)))){
+    this.newItemError.set('Elige un precio final dentro del rango de cada servicio.');return;
+  }
   this.newItemValid.set(true);
  }
  employeeOptions(item:DraftItem,index:number):CustomSelectOption[]{
@@ -225,6 +238,19 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   const all=this.items(),live=group.items.filter(item=>all.includes(item));if(!live.length)return;
   const allowed=new Set(this.serviceOptions(group).map(option=>option.value));
   const ids=[...new Set(selected)].filter(id=>allowed.has(id)),wanted=new Set(ids);
+  const selectedServices=ids.map(id=>this.services().find(service=>service.id===id)).filter((service):service is Service=>!!service);
+  const mains=selectedServices.filter(service=>service.kind==='MAIN');
+  if(mains.length>1){this.formError.set('Elige solo un servicio principal.');return;}
+  if(mains.length===0&&selectedServices.length>0&&
+    (selectedServices.length!==1||!selectedServices[0].can_sell_alone)){
+    this.formError.set('Elige primero un servicio principal o una prestación que pueda venderse sola.');return;
+  }
+  if(mains.length===1&&selectedServices.some(service=>service.kind==='ADD_ON'&&
+    !this.addonPairs().some(pair=>pair.main_id===mains[0].id&&pair.addon_id===service.id))){
+    this.formError.set('Ese adicional no puede combinarse con el servicio principal elegido.');return;
+  }
+  this.formError.set('');
+  ids.sort((a,b)=>(this.services().find(s=>s.id===a)?.kind==='MAIN'?-1:0)-(this.services().find(s=>s.id===b)?.kind==='MAIN'?-1:0));
   const kept=live.filter(item=>!!item.service_id&&wanted.has(item.service_id));
   for(const item of live)if(item.id&&item.service_id&&!wanted.has(item.service_id))this.removedItems.set(`${item.pet_id}:${item.service_id}`,item);
   let placeholder=live.find(item=>!item.id&&!item.service_id);
@@ -238,6 +264,9 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
    placeholder=undefined;item.service_id=id;item.service_name=this.services().find(service=>service.id===id)?.name??'';item.pet_name=group.pet_name;added.push(item);
   }
   const next=[...kept,...added];
+  if(next.every(item=>!item.id))next.sort((a,b)=>
+    Number(this.services().find(service=>service.id===a.service_id)?.kind!=='MAIN')-
+    Number(this.services().find(service=>service.id===b.service_id)?.kind!=='MAIN'));
   if(!next.length){const empty=placeholder??this.newItem(group.pet_id,live[0].start);empty.pet_name=group.pet_name;next.push(empty);}
   for(const item of live)if(!next.includes(item))this.automaticStarts.delete(item.key);
   const first=all.findIndex(item=>live.includes(item));
@@ -249,9 +278,8 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
  setMinutes(item:DraftItem,index:number,value:string|number):void{this.resetNewPlannedEnd();item.stages[index].minutes=value===''?null:Number(value);this.touch();}
  itemDate(item:DraftItem):string{return item.start.split('T')[0]??'';}
  itemTime(item:DraftItem):string{return item.start.split('T')[1]??'';}
- setItemDate(item:DraftItem,date:string):void{this.resetNewPlannedEnd();item.start=date?`${date}T${this.itemTime(item)}`:'';this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
- setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona primero la fecha de la mascota.');return;}this.resetNewPlannedEnd();item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
- private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
+ setItemTime(item:DraftItem,time:string):void{const date=this.itemDate(item);if(!date){this.formError.set('Selecciona un día en el calendario.');return;}this.resetNewPlannedEnd();item.start=`${date}T${time}`;this.reflowPet(item.pet_id);this.touch();this.validateNewItem();}
+ private newItem(petId:string,start:string):DraftItem{return {key:crypto.randomUUID(),pet_id:petId,service_id:'',pet_name:this.pets().find(p=>p.id===petId)?.name??'',service_name:'',price:'0',max_price:'0',duration_minutes:0,specialist:false,notes:'',weight_kg_at_visit:null,start,stages:[{stage:'SERVICE',employee_id:'',minutes:null}],quoting:false,quoteRevision:0};}
  addItem():void{
   if(!this.canEdit||!this.clientId||this.petGroups().length>0)return;
   this.items.update(rows=>[...rows,this.newItem('',this.suggestedStart||this.nextStart())]);this.touch();
@@ -265,16 +293,21 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
   }
  }
  async quote(item:DraftItem):Promise<void>{
-  if(item.id||!this.canEdit)return;const token=++item.quoteRevision;this.touch();item.duration_minutes=0;item.quoting=true;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);
+  if(item.id||!this.canEdit)return;const token=++item.quoteRevision;this.touch();item.price='';item.min_price=undefined;item.max_price=undefined;item.duration_minutes=0;item.quoting=true;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);
   const pet=this.pets().find(p=>p.id===item.pet_id),service=this.services().find(s=>s.id===item.service_id);
   if(!pet||!service){item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);return;}
+  if(!pet.pet_size){item.quoting=false;this.formError.set('Asigna a la mascota uno de los cinco tamaños antes de crear la cita.');this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);return;}
   try{
    const q=await this.pricing.quote(service.id,pet.pet_size);
    if(item.quoteRevision!==token||!this.items().includes(item))return;
-   item.price=q.price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
+   item.price=q.price;item.min_price=q.price;item.max_price=q.max_price;item.duration_minutes=q.duration_minutes;item.specialist=service.requires_specialist;item.pet_name=pet.name;item.service_name=service.name;
    item.stages=[{stage:'SERVICE',employee_id:'',minutes:q.duration_minutes}];
   }catch(error){if(item.quoteRevision===token&&this.items().includes(item))this.formError.set(workError(error));}
   finally{if(item.quoteRevision===token&&this.items().includes(item)){this.resetNewPlannedEnd();item.quoting=false;this.reflowPet(item.pet_id);this.items.update(rows=>[...rows]);}}
+ }
+ setItemPrice(item:DraftItem,value:string|number):void{
+  if(!this.canEdit||item.id)return;
+  item.price=String(value);this.formError.set('');this.touch();this.items.update(rows=>[...rows]);this.validateNewItem();
  }
  split(item:DraftItem,enabled:boolean):void{
   if(!this.canEdit)return;

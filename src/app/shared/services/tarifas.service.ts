@@ -7,10 +7,10 @@ import { money, minutes } from './service-pricing.models';
 export type { PetSize } from './mascotas.service';
 export interface ServicePrice extends TableRow {
   id: string; service_id: string; service_name: string; pet_size: PetSize;
-  price: string; duration_minutes: number;
+  price: string; max_price: string; duration_minutes: number;
 }
 export interface ServiceQuote {
-  service_id: string; price: string; duration_minutes: number; rule_id: string | null;
+  service_id: string; price: string; max_price: string; duration_minutes: number; rule_id: string | null;
   source: 'SIZE' | 'BASE';
 }
 @Injectable({ providedIn: 'root' })
@@ -21,7 +21,8 @@ export class TarifasService {
       p_search: query.search, p_page: query.page, p_size: query.size,
     });
     if (error) throw error;
-    return data as PageResult<ServicePrice>;
+    const result=data as PageResult<ServicePrice>;
+    return {...result,rows:result.rows.map(row=>({...row,price:String(row.price),max_price:String(row.max_price)}))};
   }
   async getAll(): Promise<ServicePrice[]> {
     const rows: ServicePrice[] = [];
@@ -36,7 +37,7 @@ export class TarifasService {
     if (!row['pet_size']) throw new Error('Selecciona un tamaño.');
     return {
       service_id: row['service_id'], pet_size: String(row['pet_size']),
-      price: money(row['price']), duration_minutes: minutes(row['duration_minutes']),
+      price: money(row['price']), max_price: money(row['max_price'] ?? row['price']), duration_minutes: minutes(row['duration_minutes']),
     };
   }
   async create(row: TableRow): Promise<void> {
@@ -65,14 +66,14 @@ export class TarifasService {
 
   async forService(serviceId: string): Promise<ServicePrice[]> {
     const { data, error } = await this.supabase.client.from('service_prices')
-      .select('id,service_id,pet_size,price,duration_minutes')
+      .select('id,service_id,pet_size,price,max_price,duration_minutes')
       .eq('service_id', serviceId).order('pet_size');
     if (error) throw error;
-    return (data as unknown as ServicePrice[]).map(row => ({ ...row, service_name: '' }));
+    return (data as unknown as ServicePrice[]).map(row => ({ ...row, price:String(row.price),max_price:String(row.max_price),service_name: '' }));
   }
 
-  async saveForSize(serviceId: string, size: PetSize, price: unknown, duration: unknown): Promise<void> {
-    const payload = this.payload({ service_id: serviceId, pet_size: size, price, duration_minutes: duration });
+  async saveForSize(serviceId: string, size: PetSize, price: unknown, maxPrice: unknown, duration: unknown): Promise<void> {
+    const payload = this.payload({ service_id: serviceId, pet_size: size, price, max_price: maxPrice, duration_minutes: duration });
     const { data, error } = await this.supabase.client.from('service_prices')
       .upsert(payload, { onConflict: 'service_id,pet_size' }).select('id').single();
     if (error) throw error;

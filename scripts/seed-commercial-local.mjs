@@ -136,7 +136,7 @@ async function main() {
     const quote = await value(owner.rpc('quote_service', {
       p_service_id: id(305), p_size: 'TOY',
     }));
-    assert.ok(money(quote.price) === '25.00' && quote.duration_minutes === 30,
+    assert.ok(money(quote.price) === '25.00' && quote.duration_minutes === 45,
       'La tarifa de Toby cambió; no se crea la cita histórica');
     // La RPC de creación rechaza fechas pasadas. Solo este fixture histórico usa SQL
     // local privilegiado y valida horario, habilidad y solapamientos en la misma transacción.
@@ -152,9 +152,9 @@ async function main() {
       insert into public.appointments(id,client_id,starts_at,ends_at,total_price,created_by,client_notes)
         values(${literal(id(809))}::uuid,${literal(id(101))}::uuid,${literal(starts)}::timestamptz,
           ${literal(ends)}::timestamptz,25.00,${literal(actors.ADMIN.user.id)}::uuid,${literal(note)});
-      insert into public.appointment_items(id,appointment_id,pet_id,client_id,service_id,price,duration_minutes,requires_specialist_snapshot)
+      insert into public.appointment_items(id,appointment_id,pet_id,client_id,service_id,service_name_snapshot,price,duration_minutes,requires_specialist_snapshot)
         values(${literal(id(810))}::uuid,${literal(id(809))}::uuid,${literal(id(202))}::uuid,
-          ${literal(id(101))}::uuid,${literal(id(305))}::uuid,25.00,30,false);
+          ${literal(id(101))}::uuid,${literal(id(305))}::uuid,'Baño estético',25.00,30,false);
       insert into public.appointment_item_staff(id,item_id,employee_id,stage,starts_at,ends_at)
         values(${literal(id(811))}::uuid,${literal(id(810))}::uuid,${literal(id(502))}::uuid,
           'SERVICE',${literal(starts)}::timestamptz,${literal(ends)}::timestamptz);

@@ -11,9 +11,9 @@ insert into auth.users(id,email,raw_user_meta_data) values(current_setting('test
 insert into public.user_roles select current_setting('test.owner')::uuid,id from public.roles where code='OWNER';
 insert into public.user_roles select current_setting('test.staff')::uuid,id from public.roles where code='STAFF';
 insert into public.clients(id,first_name) values(current_setting('test.client')::uuid,'Fixture agenda');
-insert into public.pets(id,client_id,name) values
- (current_setting('test.pet')::uuid,current_setting('test.client')::uuid,'Fixture perro'),
- (current_setting('test.pet2')::uuid,current_setting('test.client')::uuid,'Fixture perro 2');
+insert into public.pets(id,client_id,name,pet_size) values
+ (current_setting('test.pet')::uuid,current_setting('test.client')::uuid,'Fixture perro','TOY'),
+ (current_setting('test.pet2')::uuid,current_setting('test.client')::uuid,'Fixture perro 2','TOY');
 insert into public.employees(id,profile_id,skill_level) values(current_setting('test.employee')::uuid,current_setting('test.owner')::uuid,'ALL_SERVICES');
 insert into public.employee_schedules(employee_id,weekday,start_time,end_time) values(current_setting('test.employee')::uuid,2,'07:00','19:00');
 insert into public.services(id,name,base_price,base_duration_minutes,requires_specialist) values(current_setting('test.service')::uuid,'Fixture baño/corte',100.10,120,true);

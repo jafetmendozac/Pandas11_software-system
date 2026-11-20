@@ -25,7 +25,8 @@ import { CustomSelectComponent, CustomSelectOption } from '../../form/custom-sel
     @if (quote(); as result) {
       <div role="status" aria-live="polite" class="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
         <p class="text-sm font-medium">Precio y tiempo calculados</p>
-        <p class="mt-1 text-lg font-semibold">S/ {{ label(result.price) }} · {{ result.duration_minutes }} minutos</p>
+        <p class="mt-1 text-lg font-semibold">S/ {{ label(result.price) }}@if(result.max_price && result.max_price !== result.price){–{{ label(result.max_price) }}} · {{ result.duration_minutes }} minutos</p>
+        @if(result.max_price && result.max_price !== result.price){<p class="mt-1 text-sm">Recepción confirmará el importe final dentro de este rango.</p>}
         <p class="mt-1 text-sm">Se aplicó: {{ sourceLabel(result.source) }}</p>
       </div>
     }
@@ -43,13 +44,13 @@ export class ServiceSimulatorComponent implements OnInit, OnDestroy {
   readonly quote = signal<ServiceQuote | null>(null);
   serviceId = ''; size: PetSize | '' = '';
   readonly sizeOptions: CustomSelectOption[] = [
-    { value: '', label: 'No indicado' }, { value: 'TOY', label: 'Miniatura' },
+    { value: '', label: 'No indicado' }, { value: 'TOY', label: 'Toy' },
     { value: 'SMALL', label: 'Pequeño' }, { value: 'MEDIUM', label: 'Mediano' },
-    { value: 'LARGE', label: 'Grande' }, { value: 'EXTRA_LARGE', label: 'Extra grande' },
+    { value: 'LARGE', label: 'Mediano grande' }, { value: 'EXTRA_LARGE', label: 'Grande - extra' },
   ];
   readonly serviceOptions = () => [
     { value: '', label: 'Selecciona un servicio' },
-    ...this.services().map(service => ({ value: service.id, label: service.name })),
+    ...this.services().map(service => ({ value: service.id, label: `${service.name} · ${service.kind==='MAIN'?'Principal':service.can_sell_alone?'Adicional o solo':'Adicional'}` })),
   ];
   readonly label = decimalLabel;
   async ngOnInit(): Promise<void> {

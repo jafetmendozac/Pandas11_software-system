@@ -10,17 +10,18 @@ interface SizePriceRow {
   size: PetSize;
   label: string;
   price: string;
+  maxPrice: string;
   duration: number | string;
   saved: ServicePrice | null;
   editing: boolean;
 }
 
 const SIZES: Array<{ size: PetSize; label: string }> = [
-  { size: 'TOY', label: 'Miniatura' },
+  { size: 'TOY', label: 'Toy' },
   { size: 'SMALL', label: 'Pequeño' },
   { size: 'MEDIUM', label: 'Mediano' },
-  { size: 'LARGE', label: 'Grande' },
-  { size: 'EXTRA_LARGE', label: 'Extra grande' },
+  { size: 'LARGE', label: 'Mediano grande' },
+  { size: 'EXTRA_LARGE', label: 'Grande - extra' },
 ];
 
 @Component({
@@ -54,6 +55,7 @@ export class ServicePricingEditorComponent implements OnChanges {
   edit(row: SizePriceRow): void {
     if (!this.authorization.has('service_prices.manage')) return;
     row.price = row.saved?.price ?? this.service?.base_price ?? '';
+    row.maxPrice = row.saved?.max_price ?? this.service?.base_max_price ?? '';
     row.duration = row.saved?.duration_minutes ?? this.service?.base_duration_minutes ?? '';
     row.editing = true;
     this.error.set('');
@@ -70,7 +72,7 @@ export class ServicePricingEditorComponent implements OnChanges {
     this.busySize.set(row.size);
     this.error.set('');
     try {
-      await this.prices.saveForSize(this.service.id, row.size, row.price, row.duration);
+      await this.prices.saveForSize(this.service.id, row.size, row.price, row.maxPrice, row.duration);
       await this.load();
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'No se pudo guardar la tarifa.');
@@ -107,6 +109,7 @@ export class ServicePricingEditorComponent implements OnChanges {
         return {
           ...size,
           price: price?.price ?? service.base_price,
+          maxPrice: price?.max_price ?? service.base_max_price,
           duration: price?.duration_minutes ?? service.base_duration_minutes,
           saved: price,
           editing: false,

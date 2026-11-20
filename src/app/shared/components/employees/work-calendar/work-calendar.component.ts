@@ -8,6 +8,7 @@ import { Availability, WorkCalendar, WorkCalendarService, WEEKDAYS, WORK_NOTICE,
 @Component({selector:'app-work-calendar',standalone:true,imports:[FormsModule,PersonalizedTable,ComponentCardComponent],templateUrl:'./work-calendar.component.html'})
 export class WorkCalendarComponent implements OnChanges,OnDestroy {
   @Input() employee:Employee|null=null;
+  @Input() employees:Employee[]=[];
   @Input() employeeOnly=false;
   @ViewChild('shiftTable') shiftTable?:PersonalizedTable;
   @ViewChild('businessTable') businessTable?:PersonalizedTable;
@@ -30,7 +31,7 @@ export class WorkCalendarComponent implements OnChanges,OnDestroy {
     for(const table of [this.shiftTable,this.businessTable,this.blockTable])table?.closeForm();
     this.data.set({schedules:[],business:[],blocks:[]});this.invalidate();
     this.blockColumns=[
-      {key:'employee_id',label:'Ámbito',required:false,options:[{value:'',label:'Todo el local'},...(this.employee?[{value:this.employee.id,label:this.employee.employee_name||'Empleado seleccionado'}]:[])]},
+      {key:'employee_id',label:'Ámbito',required:false,options:[{value:'',label:'Todo el local'},...this.employees.map(employee=>({value:employee.id,label:employee.employee_name||'Empleado'}))]},
       {key:'starts_local',label:'Inicio',type:'datetime-local'},
       {key:'ends_local',label:'Fin',type:'datetime-local'},
       {key:'reason',label:'Motivo',helpText:'Ej. descanso, ausencia o recojo; bloquea todo el intervalo.'},

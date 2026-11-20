@@ -71,16 +71,11 @@ async function main() {
     `update public.clients set first_name='Rosa',last_name='Salazar' where id='${id(103)}' and first_name in ('DEMO Archivo','Rosa') and last_name in ('Cliente retirado','Salazar') and (first_name='DEMO Archivo' or last_name='Cliente retirado');`,
     ...[[201,'DEMO Luna','Luna'],[202,'DEMO Toby','Toby'],[203,'DEMO Rocky','Rocky'],[204,'DEMO Histórico','Milo']]
       .map(([n,oldName,newName]) => `update public.pets set name=${literal(newName)} where id='${id(n)}' and name=${literal(oldName)};`),
-    ...[[301,'DEMO Baño','Baño canino'],[302,'DEMO Baño y corte','Baño y corte canino'],
-      [303,'DEMO Servicio interno','Hidratación de pelaje'],[304,'DEMO Servicio inactivo','Spa de temporada']]
-      .map(([n,oldName,newName]) => `update public.services set name=${literal(newName)} where id='${id(n)}' and name=${literal(oldName)};`),
     ...[['OWNER','DEMO OWNER','Pruebas locales','Ana','Valdez'],['ADMIN','DEMO ADMIN','Pruebas locales','Diego','Ramos'],
       ['STAFF','DEMO STAFF','Pruebas locales','María','Torres'],['CLIENT','DEMO CLIENT','Pruebas locales','Lucía','Herrera']]
       .map(([role,oldFirst,oldLast,first,last]) => `update public.profiles set first_name=${literal(first)},last_name=${literal(last)} where id=${literal(accounts[role])}::uuid and first_name=${literal(oldFirst)} and last_name=${literal(oldLast)};`),
     `update public.client_internal set notes='Confirmar teléfono de contacto antes de la cita.' where client_id='${id(101)}' and notes='DEMO INTERNO: confirmar contacto antes de atender.';`,
     `update public.pet_internal set notes='Rocky puede reaccionar al cepillado; consultar manejo con Mateo.' where pet_id='${id(203)}' and notes='DEMO INTERNO: antecedentes ficticios de mordida; revisar manejo con responsable.';`,
-    `update public.services set description='Baño, secado y cepillado.' where id='${id(301)}' and description='Tarifas y minutos ficticios para probar prioridad de reglas.';`,
-    `update public.services set description='Baño, secado y corte.' where id='${id(302)}' and description='Ejemplo ficticio con relevo; requiere especialista.';`,
     `update public.time_blocks set reason='Recojo a domicilio de una mascota.' where id='${id(701)}' and reason='DEMO: recojo manual; trabajador ocupado (sin viaje de regreso ni cotización automática)';`,
     `update public.time_blocks set reason='Ausencia programada.' where id='${id(702)}' and reason='DEMO: ausencia / descanso';`,
   ];
@@ -117,25 +112,6 @@ async function main() {
   ], 'pet_id');
   fixture('client_internal', [{client_id: id(101), notes: 'Confirmar teléfono de contacto antes de la cita.', updated_by: accounts.OWNER}], 'client_id', 'client_id');
   fixture('pet_internal', [{pet_id: id(203), notes: 'Rocky puede reaccionar al cepillado; consultar manejo con Mateo.', updated_by: accounts.OWNER}], 'pet_id', 'pet_id');
-  fixture('services', [
-    {id: id(301), name: 'Baño canino', description: 'Baño, secado y cepillado.', base_price: '45.00', base_duration_minutes: 60},
-    {id: id(302), name: 'Baño y corte canino', description: 'Baño, secado y corte.', base_price: '90.00', base_duration_minutes: 120, requires_specialist: true},
-    {id: id(303), name: 'Hidratación de pelaje', description: 'Servicio interno de acondicionamiento.', base_price: '30.00', base_duration_minutes: 30, visible_to_clients: false},
-    {id: id(304), name: 'Spa de temporada', base_price: '10.00', base_duration_minutes: 30, active: false},
-  ], 'name');
-  fixture('services', [
-    {id: id(305), name: 'Baño estético', base_price: '25.00', base_duration_minutes: 30},
-    {id: id(306), name: 'Baño medicado para piel delicada', base_price: '0.00', base_duration_minutes: 60},
-    {id: id(307), name: 'Baño medicado para parásitos externos', base_price: '0.00', base_duration_minutes: 60},
-    {id: id(308), name: 'Corte de pelo simple', base_price: '0.00', base_duration_minutes: 60, requires_specialist: true},
-    {id: id(309), name: 'Corte de pelo de raza', base_price: '0.00', base_duration_minutes: 90, requires_specialist: true},
-    {id: id(310), name: 'Desparasitación', base_price: '0.00', base_duration_minutes: 30},
-    {id: id(311), name: 'Cepillados', base_price: '0.00', base_duration_minutes: 30},
-    {id: id(312), name: 'Corte de uñas', base_price: '0.00', base_duration_minutes: 15},
-  ], 'name');
-  fixture('service_prices', [
-    {id: id(402), service_id: id(301), pet_size: 'TOY', price: '25.00', duration_minutes: 30},
-  ], 'service_id');
   fixtures.push(`insert into public.pet_breeds(name) values ('Mestiza') on conflict do nothing;`);
   fixtures.push(`update public.pets p set breed_id=b.id from public.pet_breeds b
     where p.id='${id(201)}'::uuid and p.breed='Mestiza' and b.name='Mestiza'
@@ -160,14 +136,13 @@ async function main() {
   await value(owner.auth.signInWithPassword({email: email('OWNER'), password}));
   const stage = (employee, kind, start, end) => ({employee_id: id(employee), stage: kind,
     starts_local: `${startDate}T${start}`, ends_local: `${startDate}T${end}`});
-  const item = (pet, service, stages) => ({pet_id: id(pet), service_id: id(service), stages});
+  const item = (pet, service, stages, price) => ({pet_id: id(pet), service_id: id(service), ...(price ? {price} : {}), stages});
   const cases = [
     {key: 'relevo-dos-mascotas', client: 101, items: [
-      item(201, 302, [stage(502, 'BATH', '08:00', '09:00'), stage(501, 'CUT', '09:00', '10:00')]),
-      item(202, 301, [stage(501, 'SERVICE', '08:00', '08:30')]),
+      item(201, 313, [stage(502, 'BATH', '08:00', '09:00'), stage(501, 'CUT', '09:00', '09:45')], '50.00'),
     ]},
-    {key: 'fin-despues-18', client: 102, items: [item(203, 302, [stage(501, 'SERVICE', '17:00', '19:00')])]},
-    {key: 'cancelada', client: 102, cancel: true, items: [item(203, 301, [stage(502, 'SERVICE', '14:00', '15:00')])]},
+    {key: 'fin-despues-18', client: 102, items: [item(203, 305, [stage(501, 'SERVICE', '17:00', '18:30')], '40.00')]},
+    {key: 'cancelada', client: 102, cancel: true, items: [item(203, 305, [stage(502, 'SERVICE', '14:00', '15:30')], '40.00')]},
   ];
   for (const scenario of cases) {
     const notes = `[${marker}:${scenario.key}] ${scenario.cancel ? 'Cliente canceló la atención programada.' : 'Atención solicitada en el local.'}`;
@@ -189,17 +164,6 @@ async function main() {
     }));
     console.log(`Creada cita ${scenario.key}: ${appointment.id} (${appointment.status})`);
   }
-  const formerServices = [301, 302, 303, 304].map(number => `'${id(number)}'::uuid`).join(',');
-  sql(`begin; select pg_advisory_xact_lock(930003);
-    do $$ begin
-      if (select count(*) from public.services where id in (${formerServices})
-        and name in ('Baño canino','Baño y corte canino','Hidratación de pelaje','Spa de temporada')) <> 4 then
-        raise exception 'Los servicios históricos del seed cambiaron; revisar antes de archivarlos';
-      end if;
-    end $$;
-    delete from public.service_prices where service_id in (${formerServices});
-    update public.services set active=false where id in (${formerServices}) and active;
-    commit;`);
   console.log(`Seed local completado. Agenda de ejemplo: ${startDate} (America/Lima).`);
   console.log('Cuentas: demo.fases.{owner,admin,staff,client}@example.test');
   console.log('Contraseña inicial pública de demostración: Pandas11-Demo-2026!');

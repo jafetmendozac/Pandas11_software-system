@@ -1,6 +1,6 @@
 <app-page-breadcrumb pageTitle="Empleados y horarios" />
 <div class="space-y-6">
-  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Consulta a todo el equipo y expande una fila para ver sus turnos y ausencias.</p>
+  <p class="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">Consulta a todo el equipo y expande una fila para ver sus turnos.</p>
   @if(errorMessage()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ errorMessage() }}</p>}
   @if(loading()){<p role="status" class="text-gray-600 dark:text-gray-300">Cargando empleados…</p>}
   <app-component-card title="Equipo" desc="Expande una fila para ver y gestionar los turnos del empleado.">
@@ -17,8 +17,8 @@
   <section aria-labelledby="general-calendar-title" class="space-y-4">
     <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-500/30 dark:bg-brand-500/10">
       <h2 id="general-calendar-title" class="text-lg font-semibold text-gray-800 dark:text-white/90">Horario del local y bloqueos generales</h2>
-      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Estos datos aplican al negocio y no pertenecen a un empleado específico.</p>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Configura el horario del negocio y registra ausencias o bloqueos para todo el local o para un empleado específico.</p>
     </div>
-    <app-work-calendar [employee]="null" />
+    <app-work-calendar [employee]="null" [employees]="tableData()" />
   </section>
 </div>

@@ -22,8 +22,11 @@ try{
  for(let i=0;i<2;i++){const c=await value(owner.rpc('save_client',{p_input:{first_name:prefix+i}}));clients.push(c.id);}
  for(let i=0;i<3;i++){const p=await value(owner.from('pets').insert({client_id:clients[i===2?1:0],name:prefix+' perro'+i,pet_size:'TOY'}).select().single());pets.push(p.id);}
  for(const [i,minutes,specialist] of [[0,120,true],[1,60,false]]){
-  const s=await value(owner.from('services').insert({name:prefix+' servicio'+i,base_price:i===0?'100.10':'50.25',base_duration_minutes:minutes,requires_specialist:specialist}).select().single());services.push(s.id);
+  const s=await value(owner.from('services').insert({name:prefix+' servicio'+i,base_price:i===0?'100.10':'50.25',base_duration_minutes:minutes,requires_specialist:specialist,kind:i===0?'MAIN':'ADD_ON',can_sell_alone:i===1}).select().single());services.push(s.id);
  }
+ await value(owner.from('service_addon_allowed').insert({main_id:services[0],addon_id:services[1]}));
+ const unpaired=await value(owner.from('services').insert({name:prefix+' adicional no compatible',base_price:'5.00',base_duration_minutes:15,kind:'ADD_ON',can_sell_alone:false}).select('id').single());
+ services.push(unpaired.id);
  for(const [profile,level] of [[actors.CLIENT.id,'ALL_SERVICES'],[actors.STAFF.id,'ASSISTANT']]){
   const e=await value(owner.rpc('save_employee',{p_input:{profile_id:profile,skill_level:level}}));employees.push(e.id);
   for(const d of [1,2])await value(owner.rpc('save_work_period',{p_kind:'employee',p_input:{employee_id:e.id,weekday:d,start_time:'07:00',end_time:'20:00'}}));
@@ -34,12 +37,34 @@ try{
  const simple=(pet=pets[0],emp=employees[0],start='10:00',end='11:00',date='2030-07-29')=>input([item(pet,services[1],[stage(emp,'SERVICE',start,end,date)])]);
  const save=async(payload,api=owner,current=null)=>{const a=await value(api.rpc('save_internal_appointment',{p_input:payload,...(current?{p_id:current.id,p_expected_version:current.version}:{})}));if(!appointments.includes(a.id))appointments.push(a.id);return a;};
  const cancel=async a=>value(owner.rpc('change_appointment_status',{p_id:a.id,p_expected_version:a.version,p_target:'CANCELLED',p_reason:'Prueba sintética'}));
+ const invalidAddonStage=stage(employees[0],'SERVICE','11:00','11:15');
+ const noSizePet=await value(owner.from('pets').insert({client_id:clients[0],name:prefix+' sin tamaño'}).select('id').single());
+ pets.push(noSizePet.id);
+ ok((await owner.rpc('save_internal_appointment',{p_input:input([
+  item(noSizePet.id,services[0],[stage(employees[0],'SERVICE','19:00','20:00')]),
+ ])})).error?.code==='22023','Cita nueva exige uno de los cinco tamaños de mascota');
+ ok((await owner.rpc('save_internal_appointment',{p_input:input([item(pets[0],services[2],[invalidAddonStage])])})).error?.code==='22023',
+  'Adicional no vendible solo rechazado por servidor');
+ ok((await owner.rpc('save_internal_appointment',{p_input:input([
+  item(pets[0],services[0],[stage(employees[0],'SERVICE','09:00','11:00')]),
+  item(pets[0],services[2],[invalidAddonStage]),
+ ])})).error?.code==='22023','Adicional incompatible rechazado por servidor');
  const split=input([item(pets[0],services[0],[stage(employees[1],'BATH','08:00','09:00'),stage(employees[0],'CUT','09:00','10:00')]),item(pets[0],services[1],[stage(employees[0],'SERVICE','10:00','11:00')])]);
  let a=await save(split,admin);
  ok(a.items.length===2&&new Set(a.items.map(i=>i.pet_id)).size===1&&a.items.flatMap(i=>i.stages).length===3,'Una mascota con dos servicios y relevo en reserva atómica');
  ok(a.total_price==='150.35'&&a.deposit_required==='0'&&a.source==='INTERNAL'&&a.status==='CONFIRMED'&&a.version===1,'Total una vez por servicio, sin adelanto de autorreserva');
  ok(a.starts_at.startsWith('2030-07-29T13:00:00')&&a.ends_at.startsWith('2030-07-29T16:00:00'),'Hora Lima en cabecera derivada de etapas');
  ok(a.created_by===actors.ADMIN.id,'Autor real del servidor');
+ await value(owner.from('services').update({base_max_price:'120.10'}).eq('id',services[0]));
+ const ranged=price=>input([{...item(pets[0],services[0],[stage(employees[0],'SERVICE','07:00','09:00','2030-07-30')]),...(price===undefined?{}:{price})}]);
+ for(const price of [undefined,'99.99','120.11','110.101']){
+  const result=await owner.rpc('save_internal_appointment',{p_input:ranged(price)});
+  ok(result.error?.code==='22023',`Rango rechaza ${price??'precio ausente'}`);
+ }
+ const selected=await save(ranged('110.10'));
+ ok(selected.items[0].price==='110.10'&&selected.total_price==='110.10','Precio manual dentro del rango queda en snapshot');
+ await cancel(selected);
+ await value(owner.from('services').update({base_max_price:'100.10'}).eq('id',services[0]));
  execFileSync('supabase',['test','db'],{stdio:'pipe'});
  ok((await value(owner.rpc('get_appointment',{p_id:a.id}))).version===a.version,'Regresión SQL completa con una reserva vigente ajena a sus fixtures; la conserva');
  ok((await value(staff.rpc('get_appointment',{p_id:a.id}))).items.length===2,'STAFF consulta ficha completa');
@@ -56,11 +81,11 @@ try{
  const note=await value(staff.from('appointment_internal').select('*').eq('appointment_id',a.id).single());ok(note.updated_by===actors.OWNER.id&&note.notes.startsWith('Privado'),'STAFF consulta interna con permiso propio');
  ok(!!(await staff.rpc('save_appointment_internal',{p_id:a.id,p_expected_version:a.version,p_notes:'No permitido'})).error,'STAFF no edita interna');
  const quoteBefore=a.items.map(i=>[i.id,i.price,i.duration_minutes]);
- await value(owner.from('services').update({base_price:'777.77',base_duration_minutes:180,requires_specialist:false}).eq('id',services[0]));
+ await value(owner.from('services').update({base_price:'777.77',base_max_price:'777.77',base_duration_minutes:180,requires_specialist:false}).eq('id',services[0]));
  const snapshotInput=input(a.items.map(i=>({id:i.id,pet_id:i.pet_id,service_id:i.service_id,notes:i.notes??'',weight_kg_at_visit:null,stages:i.stages.map(s=>({employee_id:s.employee_id,stage:s.stage,starts_local:s.starts_at.slice(0,10)+'T'+String(Number(s.starts_at.slice(11,13))-5).padStart(2,'0')+s.starts_at.slice(13,19),ends_local:s.ends_at.slice(0,10)+'T'+String(Number(s.ends_at.slice(11,13))-5).padStart(2,'0')+s.ends_at.slice(13,19)}))})));
  a=await save(snapshotInput,owner,a);ok(JSON.stringify(a.items.map(i=>[i.id,i.price,i.duration_minutes]))===JSON.stringify(quoteBefore),'Reprogramar conserva snapshots e IDs aunque cambie catálogo');
  ok(a.items.some(i=>i.requires_specialist_snapshot),'Habilidad histórica conservada');
- await value(owner.from('services').update({base_price:'100.10',base_duration_minutes:120,requires_specialist:true}).eq('id',services[0]));
+ await value(owner.from('services').update({base_price:'100.10',base_max_price:'100.10',base_duration_minutes:120,requires_specialist:true}).eq('id',services[0]));
  for(const bad of [
   input([item(pets[0],services[1],[stage(employees[0],'SERVICE','11:00','12:00')]),item(pets[1],services[1],[stage(employees[1],'SERVICE','12:00','13:00')])]),
   input([item(pets[2],services[1],[stage(employees[0],'SERVICE','10:00','11:00')])]),

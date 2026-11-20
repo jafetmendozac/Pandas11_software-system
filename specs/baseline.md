@@ -178,3 +178,9 @@ Dos migraciones incrementales locales sin reset ni cambios remotos. Validación 
 ## Evolución comercial 4.2, 4.3 y 4.6 — 2026-10-22
 
 Tras aprobación «Vamos con eso», se implementaron localmente cobros de productos, caja única y mínimos por producto mediante seis migraciones incrementales. No se inspeccionó ni modificó base remota. Evidencia y límites en [validación comercial](features/actividad-4-cobros-caja-alertas/validation.md): 272 pruebas SQL, 36 operaciones API nuevas, 114 Angular, build y lint público correctos. Recorrido visual manual de los nuevos flujos pendiente.
+
+## Evolución de catálogo — 2026-11-19
+
+Tres migraciones incrementales aplicadas a Supabase local, sin reset. Catálogo activo de seis prestaciones: tres principales y tres adicionales. Se eliminaron físicamente 12 servicios obsoletos; siete items de cita y un item de venta conservaron nombre e importes y quedaron sin FK al catálogo retirado. Los datos remotos no se inspeccionaron. Pruebas y límites en [validación](features/servicios-principales-adicionales/validation.md).
+
+Ampliación del 2026-11-20: una cuarta migración incremental instala nueve prestaciones activas (tres principales y seis adicionales), conserva los snapshots anteriores y exige tamaño para citas nuevas. Los códigos del enum no cambian; se muestran cinco etiquetas comerciales exactas. Ver [requisitos](features/catalogo-nueve-servicios/requirements.md).

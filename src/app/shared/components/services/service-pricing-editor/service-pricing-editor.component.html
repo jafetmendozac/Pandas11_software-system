@@ -4,7 +4,7 @@
       <div class="pe-12">
         <p class="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">Precios por tamaño</p>
         <h2 id="pricing-title" class="mt-1 text-xl font-semibold">Tarifas de {{ current.name }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Sin una tarifa particular se usan S/ {{ moneyLabel(current.base_price) }} y {{ current.base_duration_minutes }} minutos.</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Sin una tarifa particular se usan S/ {{ moneyLabel(current.base_price) }}–{{ moneyLabel(current.base_max_price) }} y {{ current.base_duration_minutes }} minutos.</p>
       </div>
 
       @if (error()) { <p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ error() }}</p> }
@@ -17,20 +17,23 @@
                 <div>
                   <h3 class="font-semibold">{{ row.label }}</h3>
                   @if (!row.editing) {
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">S/ {{ moneyLabel(row.saved?.price ?? current.base_price) }} · {{ row.saved?.duration_minutes ?? current.base_duration_minutes }} minutos</p>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">S/ {{ moneyLabel(row.saved?.price ?? current.base_price) }}–{{ moneyLabel(row.saved?.max_price ?? current.base_max_price) }} · {{ row.saved?.duration_minutes ?? current.base_duration_minutes }} minutos</p>
                     <p class="mt-1 text-xs" [class.text-brand-600]="row.saved" [class.text-gray-500]="!row.saved">{{ row.saved ? 'Tarifa personalizada' : 'Usa los valores base' }}</p>
                   }
                 </div>
 
                 @if (row.editing) {
-                  <div class="grid flex-1 gap-3 sm:max-w-[440px] sm:grid-cols-2">
-                    <label class="text-sm font-medium">Precio (S/)
+                  <div class="grid flex-1 gap-3 sm:max-w-[540px] sm:grid-cols-3">
+                    <label class="text-sm font-medium">Desde (S/)
                       <input [(ngModel)]="row.price" [name]="'price-'+row.size" inputmode="decimal" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                    </label>
+                    <label class="text-sm font-medium">Hasta (S/)
+                      <input [(ngModel)]="row.maxPrice" [name]="'max-price-'+row.size" inputmode="decimal" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
                     </label>
                     <label class="text-sm font-medium">Duración (min)
                       <input [(ngModel)]="row.duration" [name]="'duration-'+row.size" type="number" min="1" step="1" class="mt-1.5 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
                     </label>
-                    <div class="flex gap-2 sm:col-span-2 sm:justify-end">
+                    <div class="flex gap-2 sm:col-span-3 sm:justify-end">
                       <button type="button" (click)="cancel(row)" [disabled]="busySize() === row.size" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">Cancelar</button>
                       <button type="button" (click)="save(row)" [disabled]="busySize() === row.size" class="rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">{{ busySize() === row.size ? 'Guardando…' : 'Guardar tarifa' }}</button>
                     </div>

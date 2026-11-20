@@ -62,6 +62,6 @@ export class MyRecordsComponent implements OnInit {
   }
 
   sizeLabel(size: Pet['pet_size']): string {
-    return ({ TOY: 'Miniatura', SMALL: 'Pequeño', MEDIUM: 'Mediano', LARGE: 'Grande', EXTRA_LARGE: 'Extra grande' } as const)[size!] ?? 'No indicado';
+    return ({ TOY: 'Toy', SMALL: 'Pequeño', MEDIUM: 'Mediano', LARGE: 'Mediano grande', EXTRA_LARGE: 'Grande - extra' } as const)[size!] ?? 'No indicado';
   }
 }

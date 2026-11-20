@@ -34,15 +34,15 @@ Las habilidades laborales no conceden permisos de aplicación. Se mantienen las 
 
 ## Inventario y recorrido de prueba
 
-Los nombres visibles usan identidades ficticias verosímiles: Ana Valdez (OWNER), Diego Ramos (ADMIN), María Torres (STAFF), Lucía Herrera, Mateo Ríos y Rosa Salazar; mascotas Luna, Toby, Rocky y Milo. El seed reconoce sus filas con UUID, SKU y marcadores técnicos. Precios, tiempos, direcciones y antecedentes son ficticios: **no son tarifas comerciales aprobadas**. Los correos técnicos demo y la contraseña se conservan para acceder a las cuentas.
+Los nombres visibles usan identidades ficticias verosímiles: Ana Valdez (OWNER), Diego Ramos (ADMIN), María Torres (STAFF), Lucía Herrera, Mateo Ríos y Rosa Salazar; mascotas Luna, Toby, Rocky y Milo. El seed reconoce sus filas con UUID, SKU y marcadores técnicos. Direcciones, antecedentes y citas son ficticios. Las tarifas y duraciones actuales del catálogo son las aprobadas en [catálogo de nueve servicios](features/catalogo-nueve-servicios/requirements.md). Los correos técnicos demo y la contraseña se conservan para acceder a las cuentas.
 
 | Fase | Fixtures y comprobación manual |
 |---|---|
 | 0 | Cuatro usuarios confirmados y perfiles activos. OWNER administra seguridad; ADMIN gestiona; STAFF consulta; CLIENT accede solo a sus datos. Probar cada cuenta en una sesión separada |
-| 1 | Tres clientes: Lucía vinculada a CLIENT, Mateo sin cuenta y un cliente retirado. Cuatro mascotas: Luna y Toby de Lucía, Rocky de Mateo y una mascota retirada. Dos vacunas, una vigente y otra vencida al crear el seed; notas internas de cliente y mascota separadas de notas comunicables |
-| 2 | Ocho servicios demo activos: Baño estético, Baño medicado para piel delicada, Baño medicado para parásitos externos, Corte de pelo simple, Corte de pelo de raza, Desparasitación, Cepillados y Corte de uñas. Los cuatro servicios demo anteriores quedan archivados para mantener citas históricas; sus tarifas se retiran. Los dos servicios ajenos al seed se conservan |
+| 1 | Tres clientes: Lucía vinculada a CLIENT, Mateo sin cuenta y un cliente retirado. Cuatro mascotas: Luna y Toby de Lucía, Rocky de Mateo y una mascota retirada. Dos antecedentes demo de desparasitación; notas internas separadas de notas comunicables |
+| 2 | Nueve servicios activos aprobados: los tres principales, Corte higiénico, dos baños medicados, Cepillado, Corte de uñas y Desparasitación. Los diez servicios antiguos del seed y Duplex/Express se eliminaron físicamente en local; citas/ventas anteriores conservan snapshots |
 | 3 | Dos empleados: ADMIN especialista, STAFF asistente. Turnos lunes–sábado 07–19 y07–18 respectivamente; domingo sin turno. Un bloqueo de recojo manual el lunes11–12 para el asistente y una ausencia del especialista el martes13–14. No se modifica business_hours |
-| 4 | Tres citas internas: dos mascotas con relevo, final después18 y cancelación con motivo. Todas con observaciones internas separadas, origen INTERNAL y adelanto obligatorio0. No se crean pagos |
+| 4 | Tres citas internas demo. Una instalación nueva usa una mascota por cita y el catálogo vigente. La instancia local actual conserva tres citas históricas anteriores, incluida la de dos mascotas. Todas mantienen observaciones internas separadas, origen INTERNAL y adelanto obligatorio0 |
 
 La fecha se elige una vez: próximo lunes según America/Lima, guardado en metadata administrativa de la cuenta OWNER demo. En esta ejecución: **2026-10-19**. Las siguientes ejecuciones conservan esa fecha.
 
@@ -54,7 +54,7 @@ Agenda inicial de ese lunes:
 | Fin después18 | Rocky: baño y corte17–19 especialista, con turno explícito hasta19 | S/90.00 |
 | Cancelada | Rocky: baño14–15 asistente, cancelada por OWNER con motivo; intervalo liberado | Snapshot histórico: S/40.00 en el seed ya existente; S/45.00 en una carga nueva |
 
-El nuevo Baño estético usa S/25.00 y30min como fixture del flujo comercial. Los otros siete servicios tienen precio base S/0.00 y duraciones sintéticas de 60/60/60/90/30/30/15min en el orden de la lista; son valores técnicos, no tarifas comerciales aprobadas. Las cotizaciones de los servicios demo archivados se deniegan, pero las citas guardadas conservan sus importes. Ejemplos relacionados con RN-01/03/04/05/07/09/10/13/14/15; no resuelven las preguntas pendientes del negocio.
+La tabla anterior describe snapshots de las citas creadas antes de la migración de catálogo del 2026-11-19; sus importes y minutos no se recalculan. Una instalación nueva usa las tarifas y duraciones aprobadas de los nueve servicios; el seed repetido no recrea servicios eliminados. La cita comercial histórica de Toby conserva S/25 y 30 minutos como snapshot. Ejemplos relacionados con RN-01/03/04/05/07/09/10/13/14/15/43/44/45.
 
 ## Repetición, conservación y recuperación
 
@@ -90,7 +90,7 @@ supabase test db
 git diff --check
 ```
 
-`test-local-seed.mjs` comprueba por lectura/login el catálogo de ocho servicios demo, archivo de los anteriores, eliminación de sus tarifas, permisos, RLS, aislamiento de notas, relevo, ocupación, bloqueo, cancelación y fin19 Lima. Si se editan manualmente los ejemplos, sus comprobaciones iniciales pueden dejar de pasar. No sustituye las suites completas de cada fase.
+`test-local-seed.mjs` comprueba por lectura/login el catálogo vigente de nueve servicios, archivo de los anteriores, eliminación de sus tarifas, permisos, RLS, aislamiento de notas, relevo, ocupación, bloqueo, cancelación y fin19 Lima. Si se editan manualmente los ejemplos, sus comprobaciones iniciales pueden dejar de pasar. No sustituye las suites completas de cada fase.
 
 No se falsea el reloj ni se fuerzan estados históricos: para iniciar/completar o marcar NO_SHOW hay que llegar al inicio programado o crear otra cita válida. Las pruebas API de Fase4 ya cubren esas transiciones con fixtures aislados. No se crean autorreservas, pagos, transporte automático ni tablas de fases futuras. No se conectó a una base remota. La experiencia visual en navegador requiere revisión manual del usuario.
 

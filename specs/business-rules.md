@@ -13,8 +13,8 @@ Fuente: solicitud inicial y respuestas posteriores del usuario. Estas definicion
 | RN-01 | Atención de lunes a sábado, incluidos feriados; domingo es descanso. El inicio debe pertenecer al horario del local configurado y toda la atención debe estar cubierta por el turno del trabajador. Puede terminar después del cierre solo con turno explícito, sin cruzar de día. | La regla histórica de último inicio a las 17:00 fue sustituida por la aprobación de horarios configurables del 2026-11-18; zona America/Lima |
 | RN-02 | Medios de pago: Yape, Plin, efectivo, tarjeta o transferencia | Ampliado por solicitud explícita de Fase 5 el 2026-10-18; no implica integración bancaria ni implementación actual |
 | RN-03 | Actualmente trabajan dos personas; pueden avanzar con hasta dos perros diferentes simultáneamente, uno por trabajador, sujeto a sus habilidades | Confirmado; no equivale a dos ingresos por hora ni define un máximo de perros por cita |
-| RN-04 | Baño y corte tiene una referencia inicial de 2 horas, pero la duración depende del tamaño del perro | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
-| RN-05 | Solo baño tiene una referencia inicial de 1 hora, pero la duración depende del tamaño; un perro muy pequeño puede requerir menos tiempo | Aclarado; falta definir duraciones por tamaño y posibles ajustes |
+| RN-04 | Baño y corte varía por tamaño: Toy 90, Pequeño 105, Mediano 120, Grande 150 y Extra grande 180 minutos iniciales | Actualizado por aprobación del catálogo principal/adicional del 2026-11-19; la duración prevista de una cita puede ajustarse según el plan aprobado |
+| RN-05 | Baño estético varía por tamaño: Toy 45, Pequeño 60, Mediano 75, Grande 90 y Extra grande 120 minutos iniciales | Actualizado por aprobación del catálogo principal/adicional del 2026-11-19 |
 | RN-06 | Transporte de mascota: solo recojo (hacia el local), solo regreso (desde el local a casa) o recojo y regreso (ida y vuelta). El administrador fija el precio del transporte según la hora y la distancia | Confirmado: un trabajador realiza el transporte y queda ocupado durante el traslado; estimación de tiempo pendiente |
 | RN-07 | Un trabajador puede cortar y bañar; el otro solo puede bañar. Un trabajador sin habilidad de corte no puede realizar ese servicio | Confirmado; Fase 3 usa ALL_SERVICES para baño/corte y ASSISTANT para baño |
 | RN-08 | Cuando el cliente reserva por sí mismo, se solicita un adelanto fijo de S/ 20 (PEN). La cita queda confirmada cuando el propietario (owner) verifica el pago | Confirmado; vencimiento y liberación de reserva pendientes |
@@ -25,8 +25,8 @@ Reglas de Fase 2 aprobadas el 2026-10-17:
 
 | ID | Regla | Estado |
 |---|---|---|
-| RN-11 | Resolver tarifa por prioridad: tamaño exacto y, si no existe, valores base del servicio. La raza no interviene en precios; si el tamaño se desconoce se usan los valores base | Actualizado por aprobación de Servicios y tarifas unificados el 2026-11-13 |
-| RN-12 | La tarifa ganadora aporta precio y duración completos, sin mezclar campos de reglas. Precio en PEN no negativo, cero válido, máximo dos decimales; minutos enteros positivos. Servicio inactivo no se calcula; cliente solo calcula servicios activos y visibles | Confirmado por aprobación del plan de Fase 2 |
+| RN-11 | Resolver tarifa por prioridad: tamaño exacto y, si no existe, valores base del servicio. La raza no interviene. Las etiquetas globales de TOY/SMALL/MEDIUM/LARGE/EXTRA_LARGE son Toy/Pequeño/Mediano/Mediano grande/Grande - extra | Actualizado por aprobación del catálogo de nueve servicios el 2026-11-20 |
+| RN-12 | La tarifa ganadora aporta rango de precio y duración completos. En cita se autocompleta el mínimo por tamaño y recepción puede elegir otro importe dentro del rango, en PEN con máximo dos decimales; minutos enteros positivos. La cita nueva exige tamaño de mascota. Servicio inactivo no se calcula; cliente solo ve activos y visibles | Actualizado por aprobación del catálogo de nueve servicios el 2026-11-20 |
 
 Las referencias de 1 y 2 horas no son duraciones fijas universales. No se inventan tiempos por tamaño ni una fórmula automática de transporte. Los nombres administrador y owner describen responsabilidades del negocio; sus permisos técnicos deben especificarse antes de implementar.
 
@@ -46,7 +46,7 @@ Las referencias de 1 y 2 horas no son duraciones fijas universales. No se invent
 | ID | Pregunta | Reglas afectadas |
 |---|---|---|
 | PN-01 | Resuelto por aprobación del plan de Fase 3: America/Lima | RN-01 |
-| PN-02 | ¿Cuánto dura baño y baño con corte para cada tamaño? ¿Quién puede ajustar la duración de una cita? | RN-04, RN-05 |
+| PN-02 | Resuelto para el catálogo del 2026-11-19: duraciones iniciales por tamaño aprobadas y ajuste del fin previsto de cita ya implementado | RN-04, RN-05 |
 | PN-03 | ¿Cómo se estima la duración del recojo y qué trabajador puede realizarlo? | RN-06, RN-03 |
 | PN-04 | Resuelto para Fase 4: recepción define minutos respetando duración total y las etapas son consecutivas; espera entre etapas fuera del contrato aprobado | RN-03, RN-07, RN-10, RN-15 |
 | PN-05 | ¿Cuándo vence el plazo para pagar el adelanto o verificarlo y cuándo se libera la reserva? | RN-08 |
@@ -217,7 +217,7 @@ El usuario aprobó el [plan de gráficos](features/actividad-5-dashboard-grafico
 
 | ID | Regla aprobada |
 |---|---|
-| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Cada servicio/item cuenta por separado, incluidos históricos anteriores con varias mascotas; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID, con nombre actual del catálogo. |
+| RN-34 | «Servicios realizados» cuenta una vez cada `appointment_item` de cita `COMPLETED` por mes de `starts_at` programado. Cada servicio/item cuenta por separado, incluidos históricos anteriores con varias mascotas; etapas y trabajadores no multiplican el item. El ranking muestra hasta cinco servicios por cantidad descendente, desempate por ID; tras el borrado físico aprobado del catálogo antiguo usa el nombre guardado en el item histórico. |
 | RN-35 | «Productos vendidos» cuenta unidades de movimientos `SALE` por mes de `created_at` cuando la venta sigue `CONFIRMED`. Una venta anulada sale del ranking con RESTOCK o NO_RESTOCK, mientras su cobro `PAID` sigue en RN-32 si no hubo devolución. El ranking muestra hasta cinco productos por cantidad descendente, desempate por ID, con nombre actual. |
 | RN-36 | El panel muestra 12 meses de cobros confirmados separados entre servicios y productos, incluidos meses vacíos en cero. Las cifras y rankings se reservan a OWNER/ADMIN activos con `analytics.read`; STAFF puede usar `/panel` para enlaces operativos permitidos, sin analítica financiera. |
 
@@ -252,3 +252,15 @@ La retención mide repetición entre meses consecutivos; no representa cohortes 
 El usuario aprobó acortar o alargar solo el fin previsto de una cita interna programada, incluso después de su inicio si el nuevo fin sigue en el futuro. No se registra fin real ni se exige motivo. RN-04/RN-05/RN-12 conservan duración cotizada y precio como referencia; RN-15 permite que la última etapa planificada difiera de esa duración. RN-01/RN-03/RN-13 exigen cobertura laboral, ausencia de conflictos y permiso OWNER/ADMIN; STAFF solo consulta. RN-09/RN-18 mantienen el cobro al finalizar. La migración incremental y la interfaz se aplicaron únicamente en el entorno local.
 
 El usuario aprobó también elegir el fin previsto al crear la cita. La validación toma el intervalo elegido, no exige que esté libre toda la duración cotizada; un conflicto o error revierte la creación completa. Se conserva la duración cotizada como referencia y solo puede ajustarse la última etapa del último servicio.
+
+## Servicios principales y adicionales — aprobación 2026-11-19
+
+| ID | Regla aprobada |
+|---|---|
+| RN-43 | Los principales son Baño estético, Baño y corte y Corte estético. Los baños medicados para parásitos externos y piel delicada, y Corte higiénico, solo se añaden a Baño estético; Corte higiénico también se vende solo. Desparasitación, Cepillado y Corte de uñas se añaden a cualquier principal o se venden solos. Una cita nueva tiene un principal y adicionales compatibles, o una prestación vendible sola. |
+| RN-44 | Recepción puede ajustar el precio autocompletado dentro del rango por tamaño o prestación, con dos decimales como máximo. Los cinco tamaños son Toy, Pequeño, Mediano, Mediano grande y Grande - extra. Cada baño medicado añade S/ 5–15 y 15 min; Corte higiénico S/ 5–20 y 20 min; Desparasitación S/ 5–30 y 15 min. Cepillado cuesta S/ 5/5/10/15/20 y dura 10/10/15/20/25 min; Corte de uñas cuesta S/ 5 y dura 10 min en todos. Las duraciones de los tres principales permanecen en [requisitos del catálogo inicial](features/servicios-principales-adicionales/requirements.md). |
+| RN-45 | Los servicios antiguos aprobados se eliminan físicamente tras preservar nombre, precio y duración de sus citas y ventas. Los históricos conservan lectura y los servicios retirados no se reprograman como si fueran vigentes. El cambio se aplica solo a Supabase local. |
+
+Requisitos, tarifas completas y validación: [servicios principales y adicionales](features/servicios-principales-adicionales/requirements.md).
+
+La ampliación aprobada el 2026-11-20 está en [catálogo de nueve servicios](features/catalogo-nueve-servicios/requirements.md); el plan previo describe el estado anterior de seis prestaciones.

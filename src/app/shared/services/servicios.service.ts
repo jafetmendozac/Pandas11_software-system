@@ -5,17 +5,24 @@ import type { PageQuery, PageResult } from './clientes.service';
 import { money, minutes } from './service-pricing.models';
 export interface Service extends TableRow {
   id: string; name: string; description: string | null; base_price: string; base_duration_minutes: number;
+  base_max_price: string; kind: 'MAIN' | 'ADD_ON'; can_sell_alone: boolean;
   requires_specialist: boolean; visible_to_clients: boolean; active: boolean; created_at: string; updated_at: string;
 }
 @Injectable({ providedIn: 'root' })
 export class ServiciosService {
   constructor(private readonly supabase: SupabaseService) {}
+  async allowedAddons(): Promise<Array<{addon_id:string;main_id:string}>> {
+    const { data, error } = await this.supabase.client.from('service_addon_allowed').select('addon_id,main_id');
+    if (error) throw error;
+    return data as Array<{addon_id:string;main_id:string}>;
+  }
   async search(query: PageQuery, active: boolean | null = null): Promise<PageResult<Service>> {
     const { data, error } = await this.supabase.client.rpc('search_services', {
       p_search: query.search, p_page: query.page, p_size: query.size, p_active: active,
     });
     if (error) throw error;
-    return data as PageResult<Service>;
+    const result=data as PageResult<Service>;
+    return {...result,rows:result.rows.map(row=>({...row,base_price:String(row.base_price),base_max_price:String(row.base_max_price)}))};
   }
   async getAll(active: boolean | null = null): Promise<Service[]> {
     const rows: Service[] = [];
@@ -30,7 +37,8 @@ export class ServiciosService {
     if (!name) throw new Error('El nombre del servicio es obligatorio.');
     return {
       name, description: String(row['description'] ?? '').trim() || null,
-      base_price: money(row['base_price']), base_duration_minutes: minutes(row['base_duration_minutes']),
+      base_price: money(row['base_price']), base_max_price: money(row['base_max_price'] ?? row['base_price']), base_duration_minutes: minutes(row['base_duration_minutes']),
+      kind: row['kind'] === 'ADD_ON' ? 'ADD_ON' : 'MAIN', can_sell_alone: row['can_sell_alone'] === true || row['can_sell_alone'] === 'true',
       requires_specialist: row['requires_specialist'] === true || row['requires_specialist'] === 'true',
       visible_to_clients: row['visible_to_clients'] !== false && row['visible_to_clients'] !== 'false',
       active: row['active'] !== false && row['active'] !== 'false',

@@ -24,6 +24,7 @@ CREATE TYPE "pet_sex" AS ENUM (
   'UNKNOWN'
 );
 
+-- Etiquetas comerciales: Toy, Pequeño, Mediano, Mediano grande, Grande - extra.
 CREATE TYPE "pet_size" AS ENUM (
   'TOY',
   'SMALL',
@@ -348,12 +349,16 @@ CREATE TABLE "services" (
   "name" text NOT NULL CHECK (length(btrim(name)) > 0),
   "description" text,
   "base_price" numeric NOT NULL CHECK (base_price >= 0 AND base_price < 'Infinity'::numeric AND base_price = round(base_price,2)),
+  "base_max_price" numeric NOT NULL CHECK (base_max_price >= base_price AND base_max_price < 'Infinity'::numeric AND base_max_price = round(base_max_price,2)),
   "base_duration_minutes" integer NOT NULL CHECK (base_duration_minutes > 0),
+  "kind" text NOT NULL DEFAULT 'MAIN' CHECK (kind IN ('MAIN','ADD_ON')),
+  "can_sell_alone" boolean NOT NULL DEFAULT false,
   "requires_specialist" boolean NOT NULL DEFAULT false,
   "visible_to_clients" boolean NOT NULL DEFAULT true,
   "active" boolean NOT NULL DEFAULT true,
   "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now()
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "services_kind_standalone" CHECK (kind='ADD_ON' OR NOT can_sell_alone)
 );
 
 CREATE TABLE "service_prices" (
@@ -361,9 +366,16 @@ CREATE TABLE "service_prices" (
   "service_id" uuid NOT NULL,
   "pet_size" pet_size NOT NULL,
   "price" numeric NOT NULL,
+  "max_price" numeric NOT NULL CHECK (max_price >= price AND max_price < 'Infinity'::numeric AND max_price = round(max_price,2)),
   "duration_minutes" integer NOT NULL,
   CONSTRAINT "chk_sp_price" CHECK (price >= 0 AND price < 'Infinity'::numeric AND price = round(price,2)),
   CONSTRAINT "chk_sp_duration" CHECK (duration_minutes > 0)
+);
+
+CREATE TABLE "service_addon_allowed" (
+  "addon_id" uuid NOT NULL REFERENCES public.services(id) ON DELETE CASCADE,
+  "main_id" uuid NOT NULL REFERENCES public.services(id) ON DELETE CASCADE,
+  PRIMARY KEY (addon_id,main_id)
 );
 
 CREATE TABLE "appointments" (
@@ -396,7 +408,8 @@ CREATE TABLE "appointment_items" (
   "appointment_id" uuid NOT NULL,
   "pet_id" uuid NOT NULL,
   "client_id" uuid NOT NULL,
-  "service_id" uuid NOT NULL,
+  "service_id" uuid,
+  "service_name_snapshot" text NOT NULL,
   "price" numeric NOT NULL,
   "duration_minutes" integer NOT NULL,
   "planned_duration_minutes" integer CHECK (planned_duration_minutes > 0),
@@ -491,7 +504,7 @@ CREATE TABLE "sale_items" (
  sale_id uuid not null references public.sales(id),
  kind sale_item_kind not null,
  appointment_item_id uuid references public.appointment_items(id),
- service_id uuid references public.services(id),
+ service_id uuid references public.services(id) on delete set null,
  product_id uuid references public.products(id),
  description text not null check (length(btrim(description)) between 1 and 200),
  unit text not null check (unit='UNIT'),
@@ -500,7 +513,7 @@ CREATE TABLE "sale_items" (
  line_total numeric generated always as (quantity*unit_price) stored,
  created_at timestamptz not null default clock_timestamp(),
  constraint chk_sale_item_source check (
-  (kind='SERVICE' and appointment_item_id is not null and service_id is not null and product_id is null and quantity=1)
+  (kind='SERVICE' and appointment_item_id is not null and product_id is null and quantity=1)
   or (kind='PRODUCT' and appointment_item_id is null and service_id is null and product_id is not null))
 );
 CREATE UNIQUE INDEX sale_service_once ON "sale_items"(sale_id,appointment_item_id) WHERE appointment_item_id IS NOT NULL;
@@ -785,7 +798,7 @@ ALTER TABLE "appointments" ADD FOREIGN KEY ("cancelled_by") REFERENCES "profiles
 
 ALTER TABLE "appointments" ADD FOREIGN KEY ("created_by") REFERENCES "profiles" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "appointment_items" ADD FOREIGN KEY ("service_id") REFERENCES "services" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "appointment_items" ADD FOREIGN KEY ("service_id") REFERENCES "services" ("id") ON DELETE SET NULL DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "appointment_items" ADD FOREIGN KEY ("appointment_id", "client_id") REFERENCES "appointments" ("id", "client_id") DEFERRABLE INITIALLY IMMEDIATE;
 

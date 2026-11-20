@@ -30,11 +30,19 @@ export class ServiciosComponent implements OnInit {
     },
     {
       key: 'base_price',
-      label: 'Precio base (S/)',
+      label: 'Precio desde (S/)',
       type: 'text',
       placeholder: 'Ej. 75',
       helpText: 'Precio en soles, máximo dos decimales (ej. 12.50). Se permite cero.',
     },
+    { key: 'base_max_price', label: 'Precio hasta (S/)', type: 'text', placeholder: 'Ej. 75',
+      helpText: 'Usa el mismo importe en ambos campos cuando el precio sea fijo.' },
+    { key: 'kind', label: 'Tipo', options: [
+      { label: 'Principal', value: 'MAIN' }, { label: 'Adicional', value: 'ADD_ON' },
+    ] },
+    { key: 'can_sell_alone', label: 'Se vende solo', options: [
+      { label: 'No', value: 'false' }, { label: 'Sí', value: 'true' },
+    ] },
     {
       key: 'base_duration_minutes',
       label: 'Duración (min)',
