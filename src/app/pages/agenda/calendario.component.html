@@ -85,7 +85,7 @@
             <section class="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-700 dark:bg-gray-900/30">
               <div class="grid gap-3 lg:grid-cols-[1fr_1.2fr_1.25fr]">
                 <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700"><div class="mb-2 flex items-center justify-between"><span class="text-sm font-semibold">Mascota</span><span class="text-xs text-gray-400">{{ group.pet_name || 'Nueva' }}</span></div><app-custom-select [options]="petOptions(group)" [value]="group.pet_id" [disabled]="pending() || !canEdit || group.items.some(i=>!!i.id)" (valueChange)="setGroupPet(group,$event)" placeholder="Selecciona mascota del cliente" [ariaLabel]="'Mascota ' + (group.pet_name || '')" /></div>
-                <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700"><span class="mb-2 block text-sm font-semibold">Servicio principal y adicionales</span><p class="mb-2 text-xs text-gray-600 dark:text-gray-400">Elige un principal primero y luego sus adicionales. Corte higiénico, Desparasitación, Cepillado y Corte de uñas también se venden solos. La mascota debe tener un tamaño asignado.</p><app-multi-select [options]="serviceOptions(group)" [selected]="selectedServices(group)" [disabled]="pending() || !canEdit || !group.pet_id" placeholder="Selecciona un servicio" (selectionChange)="setGroupServices(group,$event)" /></div>
+                <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700"><span class="mb-2 block text-sm font-semibold">Servicio principal y adicionales</span><p class="mb-2 text-xs text-gray-600 dark:text-gray-400">Elige un principal primero y luego sus adicionales.</p><app-multi-select [options]="serviceOptions(group)" [selected]="selectedServices(group)" [disabled]="pending() || !canEdit || !group.pet_id" placeholder="Selecciona un servicio" (selectionChange)="setGroupServices(group,$event)" /></div>
               @if(group.pet_id && group.items[0];as firstItem){
                 <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-3 dark:border-gray-700 dark:bg-gray-800/40">
                   <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Inicio de atención para {{ group.pet_name || 'la mascota' }}</p>
@@ -146,6 +146,9 @@
           @if(items().length){}
         </fieldset>
         @if(formError()){<p role="alert" class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">{{ formError() }}</p>}
+        @if(availabilitySummary()){
+          <p role="status" [class]="availabilitySummary().startsWith('No disponible') ? 'rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400' : 'rounded-lg border border-success-200 bg-success-50 p-3 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400'">{{ availabilitySummary() }}</p>
+        }
         @if(canEdit){
           <div class="flex flex-wrap gap-3 w-full">
             <button type="button" [disabled]="pending()" (click)="close()" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Cerrar</button>

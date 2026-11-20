@@ -51,6 +51,7 @@ export class CalendarioComponent implements OnInit,OnDestroy {
  readonly checks=signal<Record<string,ReservationAvailability>>({});readonly options=signal<CalendarOptions>({});
 readonly money=decimalLabel;readonly label=limaDateTime;readonly statuses=STATUS_LABELS;readonly stages=STAGE_LABELS;
 readonly newItemError=signal('');readonly newItemValid=signal(false);
+readonly availabilitySummary=signal('');
 plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';notes='';internalNotes='';internalLoaded=false;cancelReason='';employeeFilter='';statusFilter:AppointmentStatus|''='';search='';
  private revision=0;private formRevision=0;private savedFormRevision=0;private detailRevision=0;private rangeFrom='';private rangeUntil='';private suggestedStart='';
  private readonly automaticStarts=new Set<string>();
@@ -136,7 +137,7 @@ plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';not
   }catch(error){if(revision===this.detailRevision){this.detailFailed.set(true);this.formError.set(workError(error));}}finally{if(revision===this.detailRevision)this.detailLoading.set(false);}
  }
  close():void{if(this.pending())return;this.detailRevision++;this.formRevision++;this.isOpen.set(false);this.checking.set(false);}
- touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.checking.set(false);this.items.update(rows=>[...rows]);}
+ touch():void{this.formRevision++;this.formError.set('');this.checks.set({});this.availabilitySummary.set('');this.checking.set(false);this.items.update(rows=>[...rows]);}
  changeClient():void{this.resetNewPlannedEnd();this.automaticStarts.clear();this.removedItems.clear();this.items.set([]);this.touch();}
  filteredPets():Pet[]{return this.pets().filter(p=>p.client_id===this.clientId);}
  clientOptions():CustomSelectOption[]{return this.clients().map(c=>({value:c.id,label:`${c.first_name} ${c.last_name??''} · ${c.whatsapp||c.phone||'Sin WhatsApp'}`.trim()}));}
@@ -167,7 +168,13 @@ plannedEndTime='';newPlannedEndTime='';newPlannedEndEdited=false;clientId='';not
  }
  groupEmployeeOptions(group:PetGroup):CustomSelectOption[]{
   const candidates=this.employees().filter(employee=>group.items.every(item=>item.stages.every((_,index)=>this.candidates(item,index).some(candidate=>candidate.id===employee.id))));
-  return candidates.map(employee=>({value:employee.id,label:`${employee.employee_name} · Sin verificar`}));
+  return candidates.map(employee=>{
+   const states=group.items.flatMap(item=>item.stages.map((stage,index)=>this.checks()[this.checkKey(item,index,employee.id)]));
+   const checked=states.filter((state):state is ReservationAvailability=>!!state);
+   const unavailable=checked.length>0&&checked.some(state=>state.can_start_service===false);
+   const label=checked.length===0?'Sin verificar':unavailable?'No habilitado':checked.every(state=>state.can_start_service===true)?'Horario habilitado':'Sin verificar';
+   return {value:employee.id,label:`${employee.employee_name} · ${label}`,disabled:unavailable};
+  });
  }
 setGroupEmployee(group:PetGroup,value:string|number|null):void{
   if(!this.canEdit)return;
@@ -334,17 +341,46 @@ setGroupEmployee(group:PetGroup,value:string|number|null):void{
  availabilityLabel(item:DraftItem,index:number,id:string):string{
   const r=this.checks()[this.checkKey(item,index,id)];return !r?'Sin verificar':r.can_start_service?'Horario habilitado':'No habilitado';
  }
+ availabilityReasonLabel(reason:string):string{
+  return ({BUSY:'Ya tiene una cita en ese horario',NO_COVERAGE:'No tiene turno o cobertura laboral para toda la atención',INVALID_START:'El inicio está fuera del horario habilitado',OUTSIDE_WORKING_HOURS:'El intervalo no está cubierto por su turno',BLOCKED:'Tiene una ausencia o bloqueo en ese horario',CLOSED:'El local está cerrado',NO_SHIFT:'No tiene turno en esa fecha',LATE_START:'El inicio está fuera del horario permitido',SKILL_REQUIRED:'No tiene la habilidad requerida',INACTIVE_EMPLOYEE:'El empleado está inactivo',INACTIVE_PROFILE:'La cuenta vinculada está inactiva'} as Record<string,string>)[reason]??'No está habilitado para ese horario';
+ }
  unavailable(item:DraftItem,index:number,id:string):boolean{const r=this.checks()[this.checkKey(item,index,id)];return !!r&&!r.can_start_service;}
  async checkAvailability():Promise<void>{
   if(!this.canEdit||this.pending()||this.checking()||this.items().some(item=>item.quoting))return;
-  const revision=this.formRevision;this.checking.set(true);this.formError.set('');const result:Record<string,ReservationAvailability>={};
+  const revision=this.formRevision;
+  this.checking.set(true);
+  this.formError.set('');
+  this.availabilitySummary.set('');
+  const result:Record<string,ReservationAvailability>={};
   try{
-   await Promise.all(this.items().flatMap(item=>item.stages.flatMap((s,index)=>{
-    const interval=this.interval(item,index);if(!interval)throw new Error('Completa fechas y minutos para consultar disponibilidad.');
-    return this.candidates(item,index).map(async employee=>{result[this.checkKey(item,index,employee.id)]=await this.appointments.availability({...interval,employee_id:employee.id},s.stage==='CUT'||(s.stage==='SERVICE'&&item.specialist),this.current()?.id??null,this.continuation(item,index));});
+   await Promise.all(this.items().flatMap(item=>item.stages.flatMap((stage,index)=>{
+    const interval=this.interval(item,index);
+    if(!interval)throw new Error('Completa fechas y minutos para consultar disponibilidad.');
+    return this.candidates(item,index).map(async employee=>{
+     result[this.checkKey(item,index,employee.id)]=await this.appointments.availability({...interval,employee_id:employee.id},stage.stage==='CUT'||(stage.stage==='SERVICE'&&item.specialist),this.current()?.id??null,this.continuation(item,index));
+    });
    })));
-   if(revision===this.formRevision)this.checks.set(result);
-  }catch(error){if(revision===this.formRevision)this.formError.set(workError(error));}finally{if(revision===this.formRevision)this.checking.set(false);}
+   if(revision===this.formRevision){
+    this.checks.set(result);
+    const conflictLines:string[]=[];
+    for(const item of this.items()){
+     for(let index=0;index<item.stages.length;index++){
+      for(const employee of this.candidates(item,index)){
+       const availability=result[this.checkKey(item,index,employee.id)];
+       if(!availability||availability.can_start_service!==false)continue;
+       const reason=availability.reasons[0];
+       conflictLines.push(`${employee.employee_name}: ${this.availabilityReasonLabel(reason)}`);
+      }
+     }
+    }
+    const unique=[...new Set(conflictLines)];
+    this.availabilitySummary.set(unique.length?'No disponible — '+unique.join('. ')+'.':'Disponibilidad comprobada: todos los trabajadores consultados están habilitados para este horario.');
+   }
+  }catch(error){
+   if(revision===this.formRevision)this.formError.set(workError(error));
+  }finally{
+   if(revision===this.formRevision)this.checking.set(false);
+  }
  }
  async save():Promise<void>{
   if(!this.canEdit||this.pending()||this.detailLoading())return;
